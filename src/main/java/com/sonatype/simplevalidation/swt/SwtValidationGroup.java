@@ -155,42 +155,44 @@ public final class SwtValidationGroup extends ValidationGroup {
         this.addItem(vl, false);
     }
 
-    /**
-     * Add a JList to be validated using the passed validators
-     *
-     * <p> When a problem occurs, the created {@link ValidationListener} will
-     * use a {@link ValidationUI} created by this {@code ValidationGroup} to decorate
-     * the component.
-     *
-     * <p> <b>Note:</b> All methods in this class must be called from
-     * the AWT Event Dispatch thread, or assertion errors will be
-     * thrown.  Manipulating components on other threads is not safe.
-     *
-     * @param list A JList component
-     * @param validators One or more Validators
-     */
-    @SuppressWarnings("unchecked")
-    public final void add(List list, Validator<Integer[]>... validators) {
-        assert Display.getCurrent() != null : "Must be called on event thread";
-        this.add (ValidationListenerFactory.createValidationListener(list, ValidationStrategy.DEFAULT, this.getComponentDecorationFactory().decorationFor(list), ValidatorUtils.merge(validators)));
-    }
+//TODO
+//    /**
+//     * Add a JList to be validated using the passed validators
+//     *
+//     * <p> When a problem occurs, the created {@link ValidationListener} will
+//     * use a {@link ValidationUI} created by this {@code ValidationGroup} to decorate
+//     * the component.
+//     *
+//     * <p> <b>Note:</b> All methods in this class must be called from
+//     * the AWT Event Dispatch thread, or assertion errors will be
+//     * thrown.  Manipulating components on other threads is not safe.
+//     *
+//     * @param list A JList component
+//     * @param validators One or more Validators
+//     */
+//    @SuppressWarnings("unchecked")
+//    public final void add(List list, Validator<Integer[]>... validators) {
+//        assert Display.getCurrent() != null : "Must be called on event thread";
+//        this.add (ValidationListenerFactory.createValidationListener(list, ValidationStrategy.DEFAULT, this.getComponentDecorationFactory().decorationFor(list), ValidatorUtils.merge(validators)));
+//    }
 
 
-    /**
-     * Add a validator of button models - typically to see if any are selected.
-     *
-     * <p> <b>Note:</b> All methods in this class must be called from
-     * the AWT Event Dispatch thread, or assertion errors will be
-     * thrown.  Manipulating components on other threads is not safe.
-     *
-     * @param buttons The buttons
-     * @param validators A number of Validators
-     */
-    @SuppressWarnings("unchecked")
-    public final void add(final Button[] buttons, Validator<Integer[]>... validators) {
-        assert Display.getCurrent() != null : "Must be called on event thread";
-        this.add (ValidationListenerFactory.createValidationListener(buttons, ValidationStrategy.DEFAULT, ValidationUI.NO_OP, ValidatorUtils.merge(validators)));
-    }
+//TODO
+//    /**
+//     * Add a validator of button models - typically to see if any are selected.
+//     *
+//     * <p> <b>Note:</b> All methods in this class must be called from
+//     * the AWT Event Dispatch thread, or assertion errors will be
+//     * thrown.  Manipulating components on other threads is not safe.
+//     *
+//     * @param buttons The buttons
+//     * @param validators A number of Validators
+//     */
+//    @SuppressWarnings("unchecked")
+//    public final void add(final Button[] buttons, Validator<Integer[]>... validators) {
+//        assert Display.getCurrent() != null : "Must be called on event thread";
+//        this.add (ValidationListenerFactory.createValidationListener(buttons, ValidationStrategy.DEFAULT, ValidationUI.NO_OP, ValidatorUtils.merge(validators)));
+//    }
 
 
 //TODO

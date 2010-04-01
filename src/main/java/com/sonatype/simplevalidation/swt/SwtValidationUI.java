@@ -26,6 +26,11 @@ public final class SwtValidationUI {
     private SwtValidationUI() {}
 
 
+    /**
+     * Create ValidationUI bridging for TitleAreaDialog.
+     * @param tad
+     * @return
+     */
     public static ValidationUI createTitleAreaDialogValidationUI(final TitleAreaDialog tad) {
         return new ValidationUI() {
 
@@ -74,6 +79,11 @@ public final class SwtValidationUI {
         return IMessageProvider.NONE;
     }
 
+    /**
+     * Create ValidationUI bridging for WizardPage
+     * @param tad
+     * @return
+     */
     public static ValidationUI createWizardPageValidationUI( final WizardPage page) {
         return new ValidationUI() {
             @Override
