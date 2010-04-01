@@ -40,7 +40,16 @@
  */
 package com.sonatype.simplevalidation.swt;
 
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Widget;
+import org.netbeans.validation.api.Problem;
+import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.ui.*;
 import org.openide.util.Lookup;
 
@@ -105,7 +114,7 @@ public abstract class SwtComponentDecorationFactory {
     };
     //TODO create a decorator that does something..
     private static SwtComponentDecorationFactory componentDecorator =
-            noOpDecorationFactory;
+            new DefaultSwtComponentDecorationFactory();
 
     /**
      *
@@ -157,6 +166,72 @@ public abstract class SwtComponentDecorationFactory {
             result = componentDecorator;
         }
         return result;
+    }
+
+
+    private static class DefaultSwtComponentDecorationFactory extends SwtComponentDecorationFactory {
+
+        @Override
+        public ValidationUI decorationFor(final Widget c) {
+            assert Display.getCurrent() != null;
+            if (c instanceof Control) {
+                return new ControlValidationUI((Control)c);
+            }
+            return ValidationUI.NO_OP;
+        }
+
+    }
+
+    private static class ControlValidationUI implements ValidationUI {
+
+        private ControlDecoration dec;
+        private Image errorImage;
+        private Image warningImage;
+        private Image infoImage;
+        private ControlValidationUI(Control combo) {
+            dec = new ControlDecoration(combo, SWT.TOP | SWT.LEFT);
+            dec.setMarginWidth(1);
+            dec.setShowHover(true);
+            //TODO is this realy the best way to load images?
+            errorImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/error-badge.png"));
+            infoImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/info-badge.png"));
+            warningImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/warning-badge.png"));
+
+            combo.addDisposeListener(new DisposeListener() {
+                @Override
+                public void widgetDisposed(DisposeEvent de) {
+                    dec.dispose();
+                    errorImage.dispose();
+                    warningImage.dispose();
+                    infoImage.dispose();
+                }
+            });
+
+        }
+
+        @Override
+        public void showProblem(Problem prblm) {
+            dec.setDescriptionText(prblm.getMessage());
+            if (prblm.isFatal()) {
+                dec.setImage(errorImage);
+            } else {
+                if (Severity.WARNING.equals(prblm.severity())) {
+                    dec.setImage(warningImage);
+                } else if (Severity.INFO.equals(prblm.severity())) {
+                    dec.setImage(infoImage);
+                } else {
+                    dec.setImage(null);
+                }
+            }
+            dec.show();
+        }
+
+        @Override
+        public void clearProblem() {
+            dec.setImage(null);
+            dec.hide();
+        }
+
     }
 
 }

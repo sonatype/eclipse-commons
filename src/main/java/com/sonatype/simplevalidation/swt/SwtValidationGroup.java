@@ -149,7 +149,9 @@ public final class SwtValidationGroup extends ValidationGroup {
     public final void add(Combo box, Validator<String>... validators) {
         assert Display.getCurrent() != null : "Must be called on event thread";
         ValidationListener<Combo> vl = ValidationListenerFactory.createValidationListener(box,
-                ValidationStrategy.DEFAULT, ValidationUI.NO_OP, ValidatorUtils.<String>merge(validators));
+                ValidationStrategy.DEFAULT, 
+                this.getComponentDecorationFactory().decorationFor(box),
+                ValidatorUtils.<String>merge(validators));
         this.addItem(vl, false);
     }
 
