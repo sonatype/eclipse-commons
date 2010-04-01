@@ -14,14 +14,13 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
- * Mock of the real org.openide.util.Lookup which delegates to JDK 6
- * ServiceLoader.
+ * Mock of the real org.openide.util.Lookup which mimics the 1.6 ServiceLoader
+ * but works on 1.5
  * 
- * @author Tim Boudreau
+ * @author Milos Kleint
  */
 public abstract class Lookup {
 
@@ -37,7 +36,6 @@ public abstract class Lookup {
 
         @Override
         public <T> T lookup(Class<T> type) {
-            System.out.println("my lookup=" + type);
             Iterator<T> ldr;
             try {
                 ldr = load(type).iterator();
@@ -50,7 +48,6 @@ public abstract class Lookup {
 
         @Override
         public <T> Collection<? extends T> lookupAll(Class<T> type) {
-            System.out.println("my lookup=" + type);
             Set<T> result = new HashSet<T>();
             try {
                 for (T t : load(type)) {
@@ -59,7 +56,6 @@ public abstract class Lookup {
             } catch (Exception ex) {
                 Exceptions.printStackTrace(ex);
             }
-            System.out.println("res=" + result.size());
             return result;
         }
     }
