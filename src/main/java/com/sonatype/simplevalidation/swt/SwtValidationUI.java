@@ -8,10 +8,12 @@ package com.sonatype.simplevalidation.swt;
 import java.lang.reflect.Method;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.widgets.Button;
 import org.netbeans.validation.api.Problem;
+import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.ui.ValidationUI;
 import org.openide.util.Exceptions;
 
@@ -29,7 +31,7 @@ public final class SwtValidationUI {
 
             @Override
             public void showProblem(Problem problem) {
-                tad.setErrorMessage( problem.getMessage() );
+                tad.setMessage(problem.getMessage(), convertSeverityToMessageType(problem.severity()));
                 Button ok = reflectAndConquer(tad, IDialogConstants.OK_ID );
                 if ( ok != null )
                 {
@@ -39,14 +41,16 @@ public final class SwtValidationUI {
 
             @Override
             public void clearProblem() {
-                tad.setErrorMessage( null );
+                tad.setMessage( null );
                 Button ok = reflectAndConquer(tad, IDialogConstants.OK_ID );
                 if ( ok != null )
                 {
                     ok.setEnabled( true );
                 }
             }
-            private Button reflectAndConquer(TitleAreaDialog tad, int button) {
+
+            private Button reflectAndConquer(TitleAreaDialog tad, int button)
+            {
                 try {
                     Method m = Dialog.class.getDeclaredMethod("getButton", Integer.TYPE);
                     m.setAccessible(true);
@@ -59,17 +63,28 @@ public final class SwtValidationUI {
         };
     }
 
+    private static int convertSeverityToMessageType(Severity severity) {
+        if (Severity.FATAL.equals(severity)) {
+            return IMessageProvider.ERROR;
+        } else if (Severity.WARNING.equals(severity)) {
+            return IMessageProvider.WARNING;
+        } else if (Severity.INFO.equals(severity)) {
+            return IMessageProvider.INFORMATION;
+        }
+        return IMessageProvider.NONE;
+    }
+
     public static ValidationUI createWizardPageValidationUI( final WizardPage page) {
         return new ValidationUI() {
             @Override
             public void showProblem(Problem problem) {
-                page.setErrorMessage( problem.getMessage() );
+                page.setMessage(problem.getMessage(), convertSeverityToMessageType(problem.severity()));
                 page.setPageComplete(!problem.isFatal());
             }
 
             @Override
             public void clearProblem() {
-                page.setErrorMessage( null );
+                page.setMessage( null );
                 page.setPageComplete( true );
             }
         };
