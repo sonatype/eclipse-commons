@@ -77,12 +77,12 @@
         <dependency>
             <groupId>com.kenai</groupId>
             <artifactId>ValidationAPI</artifactId>
-            <version>SVN_TRUNK</version>
+            <version>SVN_TRUNK_310</version>
         </dependency>
         <dependency>
             <groupId>com.kenai</groupId>
             <artifactId>nb_stubs</artifactId>
-            <version>SVN_TRUNK</version>
+            <version>SVN_TRUNK_310</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse</groupId>
