@@ -29,11 +29,6 @@ public final class SwtValidationUI {
 
             @Override
             public void showProblem(Problem problem) {
-                if (problem == null) {
-                    //this is sort of bug I think.
-                    clearProblem();
-                    return;
-                }
                 tad.setErrorMessage( problem.getMessage() );
                 Button ok = reflectAndConquer(tad, IDialogConstants.OK_ID );
                 if ( ok != null )
@@ -68,11 +63,6 @@ public final class SwtValidationUI {
         return new ValidationUI() {
             @Override
             public void showProblem(Problem problem) {
-                if (problem == null) {
-                    //this is sort of bug I think.
-                    clearProblem();
-                    return;
-                }
                 page.setErrorMessage( problem.getMessage() );
                 page.setPageComplete(!problem.isFatal());
             }
