@@ -148,7 +148,9 @@ public final class SwtValidationGroup extends ValidationGroup {
     @SuppressWarnings("unchecked")
     public final void add(Combo box, Validator<String>... validators) {
         assert Display.getCurrent() != null : "Must be called on event thread";
-        this.add (ValidationListenerFactory.createValidationListener(box, ValidationStrategy.DEFAULT, ValidationUI.NO_OP, ValidatorUtils.<String>merge(validators)));
+        ValidationListener<Combo> vl = ValidationListenerFactory.createValidationListener(box,
+                ValidationStrategy.DEFAULT, ValidationUI.NO_OP, ValidatorUtils.<String>merge(validators));
+        this.addItem(vl, false);
     }
 
     /**
