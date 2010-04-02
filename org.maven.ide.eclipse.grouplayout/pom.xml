@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2008 Sonatype, Inc.
+  All rights reserved. This program and the accompanying materials
+  are made available under the terms of the Eclipse Public License v1.0
+  which accompanies this distribution, and is available at
+  http://www.eclipse.org/legal/epl-v10.html
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.maven.ide.eclipse</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.10.0</version>
+    <!--relativePath>../org.maven.ide.eclipse.parent</relativePath-->
+  </parent>
+
+  <artifactId>org.maven.ide.eclipse.grouplayout</artifactId>
+  <packaging>eclipse-plugin</packaging>
+
+  <name>SWT GroupLayout</name>
+
+  <!--
+    To include new nexus-indexer, 
+
+    * run the command below from CLI (use proper Tycho version, see below)
+    * right-click on the project in Eclipse, PDE->Update Classpath
+
+     /opt/maven/bin/mvn -o \
+       -Dtycho.mode=maven -Pupdate-dependencies \
+       clean org.sonatype.tycho:maven-osgi-packaging-plugin:generate-bundle
+   -->
+  <profiles>
+    <profile>
+      <id>update-dependencies</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.instantiations</groupId>
+          <artifactId>swt-grouplayout</artifactId>
+          <version>7.3.0</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>jars</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/*.jar</include>
+                  </includes>
+                </fileset>
+                <fileset>
+                  <directory>META-INF</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/MANIFEST.MF</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.tycho</groupId>
+            <artifactId>maven-osgi-packaging-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>generate-bundle</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <packageSources>false</packageSources>
+              <includes>
+                <include>
+                  <groupId>com.instantiations</groupId>
+                  <artifactId>swt-grouplayout</artifactId>
+                </include>
+              </includes>
+              <exportPackages>
+                org.eclipse.swt.*,
+              </exportPackages>
+              <manifestAttributes>
+                <Bundle-RequiredExecutionEnvironment>J2SE-1.5, JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+              </manifestAttributes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>
