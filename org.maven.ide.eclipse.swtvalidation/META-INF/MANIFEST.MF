@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Export-Package: org.netbeans.validation.api.ui,org.netbeans.validation
+ .api.builtin.stringvalidation,META-INF.services,org.openide.util,com.
+ sonatype.simplevalidation.swt,org.netbeans.validation.api.ui.swing,or
+ g.netbeans.validation.api.builtin.indexvalidation,org.netbeans.valida
+ tion.api,org.netbeans.validation.spi.accessibility,org.netbeans.valid
+ ation.api.conversion
+Bundle-Vendor: Sonatype, Inc.
+Bundle-ClassPath: jars/simplevalidation-swt-1.0-SNAPSHOT-all.jar
+MavenArtifact-BaseVersion: 0.10.0
+Bundle-Version: 0.10.0
+MavenArtifact-ArtifactId: org.maven.ide.eclipse.swtvalidation
+MavenArtifact-GroupId: org.maven.ide.eclipse
+Bundle-Name: SWT Simple Validation Framework
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.maven.ide.eclipse.swtvalidation;singleton:=tr
+ ue
+Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
+
