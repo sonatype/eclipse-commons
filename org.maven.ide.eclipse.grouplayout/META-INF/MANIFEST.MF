@@ -4,8 +4,8 @@ Export-Package: org.eclipse.swt.widgets.baseline,org.eclipse.swt.layou
 Bundle-ClassPath: jars/swt-grouplayout-7.3.0.jar
 Bundle-Name: SWT GroupLayout
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
-Require-Bundle: org.eclipse.swt;bundle-version="3.5.1",
- org.eclipse.jface;bundle-version="3.5.1"
+Require-Bundle: org.eclipse.swt,
+ org.eclipse.jface
 Bundle-Vendor: Sonatype, Inc.
 MavenArtifact-BaseVersion: 0.10.0
 Bundle-Version: 0.10.0
