@@ -1,10 +1,13 @@
 Manifest-Version: 1.0
-Export-Package: org.netbeans.validation.api.ui,org.netbeans.validation
- .api.builtin.stringvalidation,META-INF.services,org.openide.util,com.
- sonatype.simplevalidation.swt,org.netbeans.validation.api.ui.swing,or
- g.netbeans.validation.api.builtin.indexvalidation,org.netbeans.valida
- tion.api,org.netbeans.validation.spi.accessibility,org.netbeans.valid
- ation.api.conversion
+Export-Package: com.sonatype.simplevalidation.swt,
+ org.netbeans.validation.api,
+ org.netbeans.validation.api.builtin.indexvalidation,
+ org.netbeans.validation.api.builtin.stringvalidation,
+ org.netbeans.validation.api.conversion,
+ org.netbeans.validation.api.ui,
+ org.netbeans.validation.api.ui.swing,
+ org.netbeans.validation.spi.accessibility,
+ org.openide.util
 Bundle-Vendor: Sonatype, Inc.
 Bundle-ClassPath: jars/simplevalidation-swt-1.0-SNAPSHOT-all.jar
 MavenArtifact-BaseVersion: 0.10.0
