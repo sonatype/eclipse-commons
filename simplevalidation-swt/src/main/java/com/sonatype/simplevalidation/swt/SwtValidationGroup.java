@@ -1,19 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 
 package com.sonatype.simplevalidation.swt;
 
-import org.eclipse.swt.widgets.Button;
+
 import org.eclipse.swt.widgets.Combo;
 import org.netbeans.validation.api.ui.*;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
-import org.netbeans.validation.api.Problem;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.ValidatorUtils;
 
