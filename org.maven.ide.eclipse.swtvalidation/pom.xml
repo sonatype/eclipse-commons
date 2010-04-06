@@ -10,10 +10,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.maven.ide.eclipse</groupId>
+    <groupId>org.maven.ide.eclipse.commons</groupId>
     <artifactId>parent</artifactId>
-    <version>0.10.0</version>
-    <!--relativePath>../org.maven.ide.eclipse.parent</relativePath-->
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../parent</relativePath>
   </parent>
 
   <artifactId>org.maven.ide.eclipse.swtvalidation</artifactId>
@@ -88,8 +88,7 @@
               <exportPackages>
                 com.sonatype.*,
                 org.netbeans.*,
-                org.openide.*,
-                META-INF.services.*
+                org.openide.*
               </exportPackages>
               <manifestAttributes>
                 <Bundle-RequiredExecutionEnvironment>J2SE-1.5, JavaSE-1.6</Bundle-RequiredExecutionEnvironment>

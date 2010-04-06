@@ -10,8 +10,8 @@ Export-Package: com.sonatype.simplevalidation.swt,
  org.openide.util
 Bundle-Vendor: Sonatype, Inc.
 Bundle-ClassPath: jars/simplevalidation-swt-1.0-SNAPSHOT-all.jar
-MavenArtifact-BaseVersion: 0.10.0
-Bundle-Version: 0.10.0
+MavenArtifact-BaseVersion: 1.0.0-SNAPSHOT
+Bundle-Version: 1.0.0.qualifier
 MavenArtifact-ArtifactId: org.maven.ide.eclipse.swtvalidation
 MavenArtifact-GroupId: org.maven.ide.eclipse
 Bundle-Name: SWT Simple Validation Framework
