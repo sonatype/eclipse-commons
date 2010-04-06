@@ -36,7 +36,7 @@
       <id>update-dependencies</id>
       <dependencies>
         <dependency>
-          <groupId>com.sonatype</groupId>
+          <groupId>org.maven.ide.eclipse.commons</groupId>
           <artifactId>simplevalidation-swt</artifactId>
           <version>1.0-SNAPSHOT</version>
           <classifier>all</classifier>
