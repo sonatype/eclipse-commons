@@ -85,11 +85,9 @@ public final class SwtValidationGroup extends ValidationGroup {
 
     @Override
     protected final <T> ValidationUI decorationFor (T comp) {
-        System.out.println("validation ui for " + comp);
         ValidationUI dec = comp instanceof Widget ?
             this.getComponentDecorationFactory().decorationFor((Widget) comp) :
             ValidationUI.NO_OP;
-        System.out.println("dec=" + dec);
         return dec;
     }
 
