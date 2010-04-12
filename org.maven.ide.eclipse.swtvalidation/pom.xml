@@ -81,7 +81,7 @@
               <packageSources>false</packageSources>
               <includes>
                 <include>
-                  <groupId>com.sonatype</groupId>
+                  <groupId>org.maven.ide.eclipse.commons</groupId>
                   <artifactId>simplevalidation-swt</artifactId>
                 </include>
               </includes>
