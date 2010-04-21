@@ -66,21 +66,6 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <distributionManagement>
-        <repository>
-            <id>forge-releases</id>
-            <url>${m2e.releases}</url>
-        </repository>
-        <snapshotRepository>
-            <id>forge-snapshots</id>
-            <url>${m2e.snapshots}</url>
-        </snapshotRepository>
-        <site>
-            <id>m2e-site</id>
-            <url>${m2e.site}</url>
-        </site>
-    </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
