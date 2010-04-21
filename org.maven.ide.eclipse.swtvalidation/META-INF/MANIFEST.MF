@@ -1,11 +1,16 @@
 Manifest-Version: 1.0
-Export-Package: org.netbeans.validation.api.ui,org.netbeans.validation
- .api.builtin.stringvalidation,org.openide.util,com.sonatype.simpleval
- idation.swt,org.netbeans.validation.api.ui.swing,org.netbeans.validat
- ion.api.builtin.indexvalidation,org.netbeans.validation.api,org.netbe
- ans.validation.spi.accessibility,org.netbeans.validation.api.conversi
- on
-Bundle-ClassPath: jars/simplevalidation-swt-1.0-SNAPSHOT-all.jar
+Export-Package: com.sonatype.simplevalidation.swt,
+ org.maven.ide.eclipse.swtvalidation,
+ org.netbeans.validation.api,
+ org.netbeans.validation.api.builtin.indexvalidation,
+ org.netbeans.validation.api.builtin.stringvalidation,
+ org.netbeans.validation.api.conversion,
+ org.netbeans.validation.api.ui,
+ org.netbeans.validation.api.ui.swing,
+ org.netbeans.validation.spi.accessibility,
+ org.openide.util
+Bundle-ClassPath: jars/simplevalidation-swt-1.0-SNAPSHOT-all.jar,
+ .
 MavenArtifact-BaseVersion: 1.0.0-SNAPSHOT
 Bundle-Version: 1.0.0.qualifier
 MavenArtifact-ArtifactId: org.maven.ide.eclipse.swtvalidation
@@ -16,5 +21,6 @@ Bundle-SymbolicName: org.maven.ide.eclipse.swtvalidation;singleton:=tr
  ue
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
 Require-Bundle: org.eclipse.swt,
- org.eclipse.jface
+ org.eclipse.jface,
+ org.eclipse.core.runtime
 
