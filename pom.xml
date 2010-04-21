@@ -25,6 +25,7 @@
       <module>org.maven.ide.eclipse.swtvalidation</module>
       <module>org.maven.ide.eclipse.grouplayout</module>
       <module>org.maven.ide.eclipse.commons.feature</module>
+      <module>org.maven.ide.eclipse.log</module>
       <module>simplevalidation-swt</module>
   </modules>
 
