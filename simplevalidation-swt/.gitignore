@@ -1,0 +1,15 @@
+# Build output
+target
+
+# Local Eclipse junk, in case anyone's using eclipse
+.classpath
+.manager
+.project
+.settings
+
+# Local IntelliJ junk ...
+.idea
+*.iml
+
+# Mac stuff
+.DS_Store
