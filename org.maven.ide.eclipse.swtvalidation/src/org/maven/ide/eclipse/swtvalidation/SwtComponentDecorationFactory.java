@@ -1,5 +1,5 @@
 
-package com.sonatype.simplevalidation.swt;
+package org.maven.ide.eclipse.swtvalidation;
 
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Widget;
 import org.netbeans.validation.api.Problem;
 import org.netbeans.validation.api.Severity;
-import org.netbeans.validation.api.ui.*;
+import org.netbeans.validation.api.ui.ValidationUI;
 import org.openide.util.Lookup;
 
 /**
@@ -62,8 +62,7 @@ import org.openide.util.Lookup;
  * com.foo.myapp.MySwingComponentDecorationFactory
  * </pre>
  *
- * @author Tim Boudreau
- * @author Hugo Heden
+ * @author Milos Kleint
  */
 public abstract class SwtComponentDecorationFactory {
 
@@ -73,7 +72,7 @@ public abstract class SwtComponentDecorationFactory {
             return ValidationUI.NO_OP;
         }
     };
-    //TODO create a decorator that does something..
+    
     private static SwtComponentDecorationFactory componentDecorator =
             new DefaultSwtComponentDecorationFactory();
 
@@ -159,7 +158,6 @@ public abstract class SwtComponentDecorationFactory {
             warningImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/warning-badge.png"));
 
             combo.addDisposeListener(new DisposeListener() {
-                @Override
                 public void widgetDisposed(DisposeEvent de) {
                     dec.dispose();
                     errorImage.dispose();
@@ -170,7 +168,6 @@ public abstract class SwtComponentDecorationFactory {
 
         }
 
-        @Override
         public void showProblem(Problem prblm) {
             dec.setDescriptionText(prblm.getMessage());
             if (prblm.isFatal()) {
@@ -187,7 +184,6 @@ public abstract class SwtComponentDecorationFactory {
             dec.show();
         }
 
-        @Override
         public void clearProblem() {
             dec.setImage(null);
             dec.hide();

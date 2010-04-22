@@ -1,5 +1,5 @@
 
-package com.sonatype.simplevalidation.swt;
+package org.maven.ide.eclipse.swtvalidation;
 
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -16,6 +16,7 @@ import org.netbeans.validation.api.ui.ValidationListener;
 import org.netbeans.validation.api.ui.ValidationListenerFactory;
 import org.netbeans.validation.api.ui.ValidationStrategy;
 import org.netbeans.validation.api.ui.ValidationUI;
+
 
 /**
  *
@@ -58,8 +59,6 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
                     break;
                 case INPUT_VERIFIER:
                     component.addVerifyListener(new VerifyListener() {
-
-                        @Override
                         public void verifyText(VerifyEvent ve) {
                             performValidation();
                             ve.doit = !hasFatalProblem;
@@ -84,16 +83,13 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
 
         }
 
-        @Override
         public void modifyText(ModifyEvent me) {
             performValidation();
         }
 
-        @Override
         public void focusGained(FocusEvent fe) {
         }
 
-        @Override
         public void focusLost(FocusEvent fe) {
             performValidation();
         }

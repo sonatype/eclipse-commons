@@ -53,11 +53,6 @@
                 <configuration>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <shadedClassifierName>all</shadedClassifierName>
-                    <artifactSet>
-                        <excludes>
-                            <exclude>org.eclipse</exclude>
-                        </excludes>
-                    </artifactSet>
                     <filters>
                         <filter>
                             <artifact>com.kenai:nb_stubs</artifact>
@@ -81,12 +76,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>swt</artifactId>
-            <version>3.5.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.kenai</groupId>
             <artifactId>ValidationAPI</artifactId>
             <version>SVN_TRUNK_313</version>
@@ -95,12 +84,6 @@
             <groupId>com.kenai</groupId>
             <artifactId>nb_stubs</artifactId>
             <version>SVN_TRUNK_310</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>jface</artifactId>
-            <version>3.5.1</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
     <properties>

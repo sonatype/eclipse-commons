@@ -1,6 +1,6 @@
 
 
-package com.sonatype.simplevalidation.swt;
+package org.maven.ide.eclipse.swtvalidation;
 
 
 import org.eclipse.swt.widgets.Combo;

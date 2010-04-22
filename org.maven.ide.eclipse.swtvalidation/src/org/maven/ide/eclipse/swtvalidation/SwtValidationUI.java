@@ -1,12 +1,18 @@
 
 
-package com.sonatype.simplevalidation.swt;
+package org.maven.ide.eclipse.swtvalidation;
 
 import java.lang.reflect.Method;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.StatusDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.util.Policy;
+import org.eclipse.jface.util.Util;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.widgets.Button;
 import org.netbeans.validation.api.Problem;
@@ -31,7 +37,6 @@ public final class SwtValidationUI {
     public static ValidationUI createTitleAreaDialogValidationUI(final TitleAreaDialog tad) {
         return new ValidationUI() {
 
-            @Override
             public void showProblem(Problem problem) {
                 tad.setMessage(problem.getMessage(), convertSeverityToMessageType(problem.severity()));
                 Button ok = reflectAndConquer(tad, IDialogConstants.OK_ID );
@@ -41,7 +46,6 @@ public final class SwtValidationUI {
                 }
             }
 
-            @Override
             public void clearProblem() {
                 tad.setMessage( null );
                 Button ok = reflectAndConquer(tad, IDialogConstants.OK_ID );
@@ -83,17 +87,62 @@ public final class SwtValidationUI {
      */
     public static ValidationUI createWizardPageValidationUI( final WizardPage page) {
         return new ValidationUI() {
-            @Override
             public void showProblem(Problem problem) {
                 page.setMessage(problem.getMessage(), convertSeverityToMessageType(problem.severity()));
                 page.setPageComplete(!problem.isFatal());
             }
 
-            @Override
             public void clearProblem() {
                 page.setMessage( null );
                 page.setPageComplete( true );
             }
         };
     }
+    
+    /**
+     * Create ValidationUI bridging for StatusDialog
+     * @param tad
+     * @return
+     */
+    public static ValidationUI createStatusDialogValidationUI( final StatusDialog dialog) {
+        return new ValidationUI() {
+            
+            public void showProblem(Problem problem) {
+                IStatus status  = new Status(getStatusLevel(problem.severity()), Policy.JFACE, problem.getMessage());
+                reflectAndConquer( dialog, status );
+            }
+
+            public void clearProblem() {
+                IStatus st = new Status(IStatus.OK, Policy.JFACE, IStatus.OK,
+                           Util.ZERO_LENGTH_STRING, null);
+                reflectAndConquer( dialog, st );
+            }
+            
+            private int getStatusLevel(Severity sev) {
+                if (Severity.INFO == sev) {
+                    return IStatus.INFO;
+                }
+                if (Severity.WARNING == sev) {
+                    return IStatus.WARNING;
+                }
+                if (Severity.FATAL == sev) {
+                    return IStatus.ERROR;
+                }
+                return IStatus.OK;
+            }
+            
+            private void reflectAndConquer(StatusDialog dialog, IStatus status)
+            {
+                try {
+                    Method m = StatusDialog.class.getDeclaredMethod("updateStatus", IStatus.class);
+                    m.setAccessible(true);
+                    m.invoke(dialog, status);
+                } catch (Exception ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+            
+        };
+    }  
+    
 }
