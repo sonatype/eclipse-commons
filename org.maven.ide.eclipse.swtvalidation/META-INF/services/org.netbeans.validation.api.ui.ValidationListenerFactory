@@ -1,2 +1,2 @@
-com.sonatype.simplevalidation.swt.TextSwtValidationListenerFactory
-com.sonatype.simplevalidation.swt.ComboSwtValidationListenerFactory
+org.maven.ide.eclipse.swtvalidation.TextSwtValidationListenerFactory
+org.maven.ide.eclipse.swtvalidation.ComboSwtValidationListenerFactory
