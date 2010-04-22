@@ -26,7 +26,8 @@
       <module>org.maven.ide.eclipse.grouplayout</module>
       <module>org.maven.ide.eclipse.log</module>
       <module>org.maven.ide.eclipse.commons.feature</module>
-      <module>simplevalidation-swt</module>
+      <!-- just comment this one out until we have the validationAPI jars in a maven repo-->
+      <!--module>simplevalidation-swt</module-->
   </modules>
 
 
