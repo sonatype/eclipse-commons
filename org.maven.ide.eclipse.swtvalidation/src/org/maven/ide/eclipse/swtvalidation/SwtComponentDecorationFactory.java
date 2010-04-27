@@ -5,6 +5,8 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -191,5 +193,76 @@ public abstract class SwtComponentDecorationFactory {
 
     }
 
+    /**
+     * this decoration factory will avoid showing field decorations,
+     * until the user enters the field in question
+     * @return
+     */
+    public static SwtComponentDecorationFactory createLazyFactory() {
+        return new SwtComponentDecorationFactory()
+        {
+            
+            @Override
+            public ValidationUI decorationFor( Widget widget )
+            {
+                ValidationUI ui = SwtComponentDecorationFactory.getDefault().decorationFor( widget );
+                return new DelayedValidationUI( widget, ui);
+            }
+        };
+    }
+    
+    
+    
+    public static class DelayedValidationUI implements ValidationUI, FocusListener {
+
+        private ValidationUI ui;
+        private boolean enabled = false;
+        private Problem lastProblem;
+
+        public DelayedValidationUI( Widget widget, ValidationUI ui )
+        {
+            this.ui = ui;
+            if (widget instanceof Control) {
+                Control cont = (Control)widget;
+                cont.addFocusListener( this );
+            }
+        }
+
+        public void clearProblem()
+        {
+            if (enabled) {
+                ui.clearProblem();
+            } else {
+                lastProblem = null;
+            }
+        }
+
+        public void showProblem( Problem arg0 )
+        {
+            if (enabled) {
+                ui.showProblem( arg0 );
+            } else {
+                lastProblem = arg0;
+            }
+        }
+
+        public void focusGained( FocusEvent e )
+        {
+            if (enabled) {
+                return;
+            }
+            enabled = true;
+            if (lastProblem != null) {
+                ui.showProblem( lastProblem );
+            } else {
+                ui.clearProblem();
+            }
+        }
+
+        public void focusLost( FocusEvent e )
+        {
+        }
+        
+    }    
 }
 
