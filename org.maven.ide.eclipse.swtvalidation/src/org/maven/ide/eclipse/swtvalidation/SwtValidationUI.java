@@ -15,6 +15,8 @@ import org.eclipse.jface.util.Policy;
 import org.eclipse.jface.util.Util;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.editor.FormPage;
 import org.netbeans.validation.api.Problem;
 import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.ui.ValidationUI;
@@ -98,6 +100,31 @@ public final class SwtValidationUI {
             }
         };
     }
+    
+    /**
+     * Create ValidationUI bridging for FormPage
+     * @param tad
+     * @return
+     */
+    public static ValidationUI createFormPageValidationUI( final FormPage page) {
+        return new ValidationUI() {
+            public void showProblem(Problem problem) {
+                IManagedForm managedForm = page.getManagedForm();
+                if ( managedForm != null )
+                {
+                    managedForm.getForm().setMessage( problem.getMessage(), convertSeverityToMessageType(problem.severity()));
+                }
+            }
+
+            public void clearProblem() {
+                IManagedForm managedForm = page.getManagedForm();
+                if ( managedForm != null )
+                {
+                    managedForm.getForm().setMessage( null, IMessageProvider.NONE );
+                }
+            }
+        };
+    }    
     
     /**
      * Create ValidationUI bridging for StatusDialog
