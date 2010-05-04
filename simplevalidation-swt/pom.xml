@@ -72,12 +72,14 @@
         <dependency>
             <groupId>com.kenai</groupId>
             <artifactId>ValidationAPI</artifactId>
-            <version>SVN_TRUNK_313</version>
+            <version>SVN_TRUNK_314</version>
+            <classifier>jdk15</classifier>
         </dependency>
         <dependency>
             <groupId>com.kenai</groupId>
             <artifactId>nb_stubs</artifactId>
-            <version>SVN_TRUNK_310</version>
+            <version>SVN_TRUNK_314</version>
+            <classifier>jdk15</classifier>
         </dependency>
     </dependencies>
     <properties>
