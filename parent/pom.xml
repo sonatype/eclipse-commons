@@ -48,6 +48,12 @@
             <layout>p2</layout>
             <url>http://repository.sonatype.org/content/sites/forge-sites/m2e-extras/${m2e.version}</url>
         </repository>
+
+        <repository>
+          <id>jetty</id>
+          <layout>p2</layout>
+          <url>http://download.eclipse.org/jetty/7.0.0.v20091005/update/</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -94,7 +100,7 @@
                 </property>
             </activation>
             <properties>
-                <tycho.test.jvmArgs>-Xmx800m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
+                <tycho.test.jvmArgs>-Xmx256m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
             </properties>
         </profile>
 
@@ -107,8 +113,7 @@
                 </property>
             </activation>
             <properties>
-                <tycho.test.jvmArgs>-Xmx800m -XX:MaxPermSize=256m -Dosgi.ws=cocoa -XstartOnFirstThread</tycho.test.jvmArgs>
-                <osgi.ws>cocoa</osgi.ws>
+                <tycho.test.jvmArgs>-Xmx256m -XX:MaxPermSize=256m -XstartOnFirstThread</tycho.test.jvmArgs>
             </properties>
         </profile>
 
