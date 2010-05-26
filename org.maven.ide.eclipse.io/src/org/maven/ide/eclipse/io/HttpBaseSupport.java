@@ -20,8 +20,8 @@ import org.eclipse.jetty.http.HttpSchemes;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.thread.Timeout.Task;
-import org.maven.ide.eclipse.auth.IAuthData;
-import org.maven.ide.eclipse.auth.IAuthService;
+import org.maven.ide.eclipse.authentication.IAuthData;
+import org.maven.ide.eclipse.authentication.IAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

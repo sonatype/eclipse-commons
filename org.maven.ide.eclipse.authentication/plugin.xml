@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="passwordProviderDelegate" name="passwordProviderDelegate" schema="schema/passwordProviderDelegate.exsd"/>
+   <extension
+         id="defaultpasswordprovider"
+         point="org.eclipse.equinox.security.secureStorage">
+      <provider
+            class="org.maven.ide.eclipse.authentication.internal.storage.PasswordProvider"
+            description="UI Prompt"
+            priority="3">
+      </provider>
+   </extension>
+
+</plugin>

@@ -7,7 +7,7 @@ import java.net.URI;
 
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.maven.ide.eclipse.auth.IAuthService;
+import org.maven.ide.eclipse.authentication.IAuthService;
 
 
 public class UrlFetcher

@@ -21,8 +21,8 @@ import org.eclipse.jetty.http.security.B64Code;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.BufferUtil;
 import org.eclipse.jetty.util.StringUtil;
-import org.maven.ide.eclipse.auth.IAuthData;
-import org.maven.ide.eclipse.auth.IAuthService;
+import org.maven.ide.eclipse.authentication.IAuthData;
+import org.maven.ide.eclipse.authentication.IAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

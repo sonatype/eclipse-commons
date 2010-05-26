@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.maven.ide.eclipse.auth.AuthFacade;
+import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.io.internal.S2IOPlugin;
 
 

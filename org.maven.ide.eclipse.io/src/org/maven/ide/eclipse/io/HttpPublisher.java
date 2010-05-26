@@ -14,7 +14,7 @@ import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Buffer;
-import org.maven.ide.eclipse.auth.IAuthService;
+import org.maven.ide.eclipse.authentication.IAuthService;
 
 
 public class HttpPublisher
