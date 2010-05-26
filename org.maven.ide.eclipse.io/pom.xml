@@ -10,23 +10,7 @@
     <relativePath>../parent</relativePath>
   </parent>
 
-  <artifactId>org.maven.ide.eclipse.log</artifactId>
+  <artifactId>org.maven.ide.eclipse.io</artifactId>
   <packaging>eclipse-plugin</packaging>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>com.sonatype.tycho</groupId>
-          <artifactId>tycho-proguard-plugin</artifactId>
-          <configuration>
-            <keep>
-              <name>org.maven.ide.eclipse.log.internal.LogDataGatherer</name>
-            </keep>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 
 </project>

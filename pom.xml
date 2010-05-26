@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.maven.ide.eclipse.commons</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>parent</relativePath>
   </parent>
 
@@ -26,6 +26,9 @@
       <module>org.maven.ide.eclipse.grouplayout</module>
       <module>org.maven.ide.eclipse.log</module>
       <module>org.maven.ide.eclipse.commons.feature</module>
+      <module>org.maven.ide.eclipse.authentication</module>
+      <module>org.maven.ide.eclipse.authentication.test</module>
+      <module>org.maven.ide.eclipse.io</module>
       <!-- just comment this one out until we have the validationAPI jars in a maven repo-->
       <!--module>simplevalidation-swt</module-->
   </modules>
