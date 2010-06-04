@@ -61,7 +61,7 @@ public class PasswordProvider
         }
 
         IExtensionRegistry registry = RegistryFactory.getRegistry();
-        IExtensionPoint point = registry.getExtensionPoint( "com.sonatype.s2.authentication.passwordProviderDelegate" );
+        IExtensionPoint point = registry.getExtensionPoint( "org.maven.ide.eclipse.authentication.passwordProviderDelegate" );
         IExtension[] extensions = point.getExtensions();
 
         if ( extensions.length != 1 )
