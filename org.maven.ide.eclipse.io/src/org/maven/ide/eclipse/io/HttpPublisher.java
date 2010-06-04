@@ -15,11 +15,14 @@ import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Buffer;
 import org.maven.ide.eclipse.authentication.IAuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class HttpPublisher
     extends HttpBaseSupport
 {
+    private final Logger log = LoggerFactory.getLogger( HttpPublisher.class );
 
     /**
      * Uploads a file to the specified URL.
@@ -90,7 +93,7 @@ public class HttpPublisher
         {
             throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
         }
-
+        
         ServerResponse response =
             new ServerResponse( exchange.getStatus(), exchange.getResponseContentBytes(), exchange.getEncoding() );
 
@@ -104,6 +107,9 @@ public class HttpPublisher
                 break;
             case HttpStatus.UNAUTHORIZED_401:
                 throw new UnauthorizedException( "HTTP status code " + status + ": "
+                    + HttpStatus.getMessage( status ) + ": " + url );
+            case HttpStatus.FORBIDDEN_403:
+                throw new ForbiddenException( "HTTP status code " + status + ": "
                     + HttpStatus.getMessage( status ) + ": " + url );
             default:
                 throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status ) + ": "
