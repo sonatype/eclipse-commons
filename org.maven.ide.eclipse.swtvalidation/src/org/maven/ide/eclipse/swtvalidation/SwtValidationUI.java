@@ -36,6 +36,60 @@ public final class SwtValidationUI {
      * @param tad
      * @return
      */
+    public static ValidationUI createUI(final TitleAreaDialog tad) {
+        return createTitleAreaDialogValidationUI( tad );
+    }    
+    /**
+     * Create ValidationUI bridging for WizardPage
+     * @param tad
+     * @return
+     */
+    public static ValidationUI createUI( final WizardPage page) {
+        return createWizardPageValidationUI( page );
+    }
+    
+    /**
+     * Create ValidationUI bridging for StatusDialog
+     * @param tad
+     * @return
+     */
+    public static ValidationUI createUI( final StatusDialog dialog) {
+        return createStatusDialogValidationUI( dialog );
+    }
+    
+    /**
+     * Create ValidationUI bridging for FormPage
+     * @param tad
+     * @return
+     */
+    public static ValidationUI createUI( final FormPage page) {
+        return new ValidationUI() {
+            public void showProblem(Problem problem) {
+                IManagedForm managedForm = page.getManagedForm();
+                if ( managedForm != null )
+                {
+                    managedForm.getForm().setMessage( problem.getMessage(), convertSeverityToMessageType(problem.severity()));
+                }
+            }
+
+            public void clearProblem() {
+                IManagedForm managedForm = page.getManagedForm();
+                if ( managedForm != null )
+                {
+                    managedForm.getForm().setMessage( null, IMessageProvider.NONE );
+                }
+            }
+        };
+    }
+    
+    
+    
+    /**
+     * Create ValidationUI bridging for TitleAreaDialog.
+     * @param tad
+     * @return
+     * @deprecated
+     */
     public static ValidationUI createTitleAreaDialogValidationUI(final TitleAreaDialog tad) {
         return new ValidationUI() {
 
@@ -86,6 +140,7 @@ public final class SwtValidationUI {
      * Create ValidationUI bridging for WizardPage
      * @param tad
      * @return
+     * @deprecated
      */
     public static ValidationUI createWizardPageValidationUI( final WizardPage page) {
         return new ValidationUI() {
@@ -102,34 +157,10 @@ public final class SwtValidationUI {
     }
     
     /**
-     * Create ValidationUI bridging for FormPage
-     * @param tad
-     * @return
-     */
-    public static ValidationUI createFormPageValidationUI( final FormPage page) {
-        return new ValidationUI() {
-            public void showProblem(Problem problem) {
-                IManagedForm managedForm = page.getManagedForm();
-                if ( managedForm != null )
-                {
-                    managedForm.getForm().setMessage( problem.getMessage(), convertSeverityToMessageType(problem.severity()));
-                }
-            }
-
-            public void clearProblem() {
-                IManagedForm managedForm = page.getManagedForm();
-                if ( managedForm != null )
-                {
-                    managedForm.getForm().setMessage( null, IMessageProvider.NONE );
-                }
-            }
-        };
-    }    
-    
-    /**
      * Create ValidationUI bridging for StatusDialog
      * @param tad
      * @return
+     * @deprecated
      */
     public static ValidationUI createStatusDialogValidationUI( final StatusDialog dialog) {
         return new ValidationUI() {
