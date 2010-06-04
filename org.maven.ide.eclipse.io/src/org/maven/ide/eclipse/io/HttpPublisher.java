@@ -111,6 +111,9 @@ public class HttpPublisher
             case HttpStatus.FORBIDDEN_403:
                 throw new ForbiddenException( "HTTP status code " + status + ": "
                     + HttpStatus.getMessage( status ) + ": " + url );
+            case HttpStatus.NOT_FOUND_404:
+                throw new NotFoundException( "HTTP status code " + status + ": "
+                    + HttpStatus.getMessage( status ) + ": " + url );
             default:
                 throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status ) + ": "
                     + url, response, null );
