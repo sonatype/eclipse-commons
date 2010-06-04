@@ -3,7 +3,7 @@ Export-Package: org.eclipse.swt.widgets.baseline,org.eclipse.swt.layou
  t.grouplayout
 Bundle-ClassPath: jars/swt-grouplayout-7.4.0-r35.jar
 MavenArtifact-BaseVersion: 1.0.0-SNAPSHOT
-Bundle-Version: 1.1.0.qualifier
+Bundle-Version: 1.1.0.20100604-1351
 MavenArtifact-ArtifactId: org.maven.ide.eclipse.grouplayout
 MavenArtifact-GroupId: org.maven.ide.eclipse.commons
 Bundle-Name: SWT GroupLayout
