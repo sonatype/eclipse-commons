@@ -1,5 +1,6 @@
 package org.maven.ide.eclipse.authentication.internal;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -15,9 +16,9 @@ import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.IAuthRegistry;
 import org.maven.ide.eclipse.authentication.IAuthService;
+import org.maven.ide.eclipse.authentication.ISSLAuthData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class AuthRegistry
     implements IAuthRegistry, IAuthService
@@ -38,6 +39,16 @@ public class AuthRegistry
      * The key to save the password into.
      */
     private static final String SECURE_PASSWORD = "password";
+
+    /**
+     * Local filesystem path to ssl client certificate
+     */
+    private static final String SECURE_SSL_CERTIFICATE_PATH = "sslCertificatePath";
+
+    /**
+     * Passphrase to access ssl certificate
+     */
+    private static final String SECURE_SSL_CERTIFICATE_PASSPHRASE = "sslCertificatePassphrase";
 
     /**
      * Map of AuthRealm by realm id.
@@ -235,8 +246,16 @@ public class AuthRegistry
                 log.debug( "Loading authentication realm {}", realmId );
                 ISecurePreferences realmNode = authNode.node( nodeName );
 
+                String username = realmNode.get( SECURE_USERNAME, "" );
+                String password = realmNode.get( SECURE_PASSWORD, "" );
+
+                String sslCertificatePath = realmNode.get( SECURE_SSL_CERTIFICATE_PATH, null );
+                File sslCertificate = sslCertificatePath != null ? new File( sslCertificatePath ) : null;
+
+                String sslCertificatePassphrase = realmNode.get( SECURE_SSL_CERTIFICATE_PASSPHRASE, null );
+
                 IAuthRealm realm =
-                    new AuthRealm( realmId, realmNode.get( SECURE_USERNAME, "" ), realmNode.get( SECURE_PASSWORD, "" ) );
+                    new AuthRealm( realmId, username, password, sslCertificate, sslCertificatePassphrase );
                 realms.put( realmId, realm );
             }
             catch ( StorageException e )
@@ -299,7 +318,7 @@ public class AuthRegistry
     }
 
     private class AuthRealm
-        implements IAuthRealm, IAuthData
+        implements IAuthRealm, IAuthData, ISSLAuthData
     {
         private String id;
 
@@ -307,16 +326,23 @@ public class AuthRegistry
 
         private String password = "";
 
+        private File sslCertificate;
+
+        private String sslCertificatePassphrase;
+
         private AuthRealm( String id )
         {
             this.id = id;
         }
 
-        private AuthRealm( String id, String username, String password )
+        private AuthRealm( String id, String username, String password, File sslCertificate,
+                           String sslCertificatePassphrase )
         {
             this.id = id;
             this.username = username;
             this.password = password;
+            this.sslCertificate = sslCertificate;
+            this.sslCertificatePassphrase = sslCertificatePassphrase;
         }
 
         public IAuthData getAuthData()
@@ -367,7 +393,54 @@ public class AuthRegistry
 
         public boolean isAnonymous()
         {
-            return username == null || username.trim().length() == 0;
+            if ( username != null && username.trim().length() != 0 )
+            {
+                return false;
+            }
+
+            if ( sslCertificate != null )
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public ISSLAuthData getSSLAuthData()
+        {
+            return this;
+        }
+
+        public File getCertificatePath()
+        {
+            return sslCertificate;
+        }
+
+        public String getCertificatePassphrase()
+        {
+            return sslCertificatePassphrase;
+        }
+
+        public void setSSLAuthData( ISSLAuthData authData )
+        {
+            File oldCertificate = sslCertificate;
+            String oldPassphrase = sslCertificatePassphrase;
+
+            if ( authData == null )
+            {
+                sslCertificate = null;
+                sslCertificatePassphrase = null;
+            }
+            else
+            {
+                sslCertificate = authData.getCertificatePath();
+                sslCertificatePassphrase = authData.getCertificatePassphrase();
+            }
+
+            if ( !eq( oldCertificate, sslCertificate ) || !eq( oldPassphrase, sslCertificatePassphrase ) )
+            {
+                save();
+            }
         }
 
         private void save()
@@ -395,9 +468,14 @@ public class AuthRegistry
                 {
                     realmNode.put( SECURE_USERNAME, username, true );
                     realmNode.put( SECURE_PASSWORD, password, true );
+
+                    String sslCertificatePath = sslCertificate != null ? sslCertificate.getCanonicalPath() : null;
+
+                    realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePath, false );
+                    realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, sslCertificatePassphrase, true );
                 }
             }
-            catch ( StorageException e )
+            catch ( Exception e )
             {
                 log.error( "Error saving authentication realm " + id, e );
             }
@@ -417,6 +495,11 @@ public class AuthRegistry
         {
             return getId();
         }
+    }
+
+    private static <T> boolean eq( T a, T b )
+    {
+        return a != null ? a.equals( b ) : b == null;
     }
 
     public IAuthRealm removeRealm( String realmId )
