@@ -6,10 +6,10 @@ Bundle-Version: 1.1.1.qualifier
 Bundle-Vendor: SONATYPE
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.net,
- org.eclipse.jetty.client;bundle-version="7.0.0",
- org.eclipse.jetty.http;bundle-version="7.0.0",
- org.eclipse.jetty.io;bundle-version="7.0.0",
- org.eclipse.jetty.util;bundle-version="7.0.0",
+ org.eclipse.jetty.client;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
+ org.eclipse.jetty.http;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
+ org.eclipse.jetty.io;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
+ org.eclipse.jetty.util;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
  org.maven.ide.eclipse.authentication
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6

@@ -27,7 +27,7 @@
     <properties>
         <m2e.version>0.10.1/S/0.10.1.20100510-1546</m2e.version>
 
-        <tycho-version>0.8.0</tycho-version>
+        <tycho-version>0.9.0-SNAPSHOT</tycho-version>
 
         <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
     </properties>
@@ -52,7 +52,10 @@
         <repository>
           <id>jetty</id>
           <layout>p2</layout>
-          <url>http://download.eclipse.org/jetty/7.0.0.v20091005/update/</url>
+          <!-- 
+             All available jetty downloads http://download.eclipse.org/jetty/ (followed Download link on http://eclipse.org/jetty/)  
+          -->
+          <url>http://download.eclipse.org/jetty/7.0.0.v20091005/repository</url>
         </repository>
     </repositories>
 
