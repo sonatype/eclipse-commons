@@ -69,6 +69,16 @@ public class HttpFetcher
                 mis.setException( new UnauthorizedException( "HTTP status code " + status + ": "
                     + HttpStatus.getMessage( status ) + ": " + url ) );
             }
+            else if ( HttpStatus.FORBIDDEN_403 == status )
+            {
+                mis.setException( new ForbiddenException( "HTTP status code " + status + ": "
+                    + HttpStatus.getMessage( status ) + ": " + url ) );
+            }
+            else if ( HttpStatus.NOT_FOUND_404 == status )
+            {
+                mis.setException( new NotFoundException( "HTTP status code " + status + ": "
+                    + HttpStatus.getMessage( status ) + ": " + url ) );
+            }
             else
             {
                 mis.setException( new IOException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
