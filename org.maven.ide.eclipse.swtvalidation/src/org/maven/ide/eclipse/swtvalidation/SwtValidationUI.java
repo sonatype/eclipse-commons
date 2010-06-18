@@ -62,7 +62,7 @@ public final class SwtValidationUI {
      * @param tad
      * @return
      */
-    public static ValidationUI createUI( final FormPage page) {
+    public static ValidationUI createFormUI( final FormPage page) {
         return new ValidationUI() {
             public void showProblem(Problem problem) {
                 IManagedForm managedForm = page.getManagedForm();
