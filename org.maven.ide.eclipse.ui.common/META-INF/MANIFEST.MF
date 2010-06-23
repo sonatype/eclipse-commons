@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+MavenArtifact-BaseVersion: 1.0.0-SNAPSHOT
+Bundle-Version: 1.1.1.qualifier
+MavenArtifact-ArtifactId: org.maven.ide.eclipse.ui.common
+MavenArtifact-GroupId: org.maven.ide.eclipse.commons
+Bundle-Name: Maven Eclipse UI Commons
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.maven.ide.eclipse.ui.common;singleton:=true
+Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
+Require-Bundle: org.eclipse.osgi,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.ui,
+ org.maven.ide.eclipse.authentication,
+ org.maven.ide.eclipse.io,
+ org.maven.ide.eclipse.swtvalidation
+Export-Package: org.maven.ide.eclipse.ui.common,
+ org.maven.ide.eclipse.ui.common.authentication,
+ org.maven.ide.eclipse.ui.common.validation
+
