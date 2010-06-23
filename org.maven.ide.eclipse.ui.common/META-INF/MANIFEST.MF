@@ -17,4 +17,7 @@ Require-Bundle: org.eclipse.osgi,
 Export-Package: org.maven.ide.eclipse.ui.common,
  org.maven.ide.eclipse.ui.common.authentication,
  org.maven.ide.eclipse.ui.common.validation
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.maven.ide.eclipse.ui.common.Activator
+Bundle-Vendor: SONATYPE
 
