@@ -3,11 +3,8 @@ package org.maven.ide.eclipse.swtvalidation;
 
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Widget;
@@ -147,38 +144,21 @@ public abstract class SwtComponentDecorationFactory {
     private static class ControlValidationUI implements ValidationUI {
 
         private ControlDecoration dec;
-        private Image errorImage;
-        private Image warningImage;
-        private Image infoImage;
         private ControlValidationUI(Control combo) {
             dec = new ControlDecoration(combo, SWT.TOP | SWT.LEFT);
             dec.setMarginWidth(1);
             dec.setShowHover(true);
-            //TODO is this realy the best way to load images?
-            errorImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/error-badge.png"));
-            infoImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/info-badge.png"));
-            warningImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/org/netbeans/validation/api/warning-badge.png"));
-
-            combo.addDisposeListener(new DisposeListener() {
-                public void widgetDisposed(DisposeEvent de) {
-                    dec.dispose();
-                    errorImage.dispose();
-                    warningImage.dispose();
-                    infoImage.dispose();
-                }
-            });
-
         }
 
         public void showProblem(Problem prblm) {
             dec.setDescriptionText(prblm.getMessage());
             if (prblm.isFatal()) {
-                dec.setImage(errorImage);
+                dec.setImage(Images.ERROR);
             } else {
                 if (Severity.WARNING.equals(prblm.severity())) {
-                    dec.setImage(warningImage);
+                    dec.setImage(Images.WARN);
                 } else if (Severity.INFO.equals(prblm.severity())) {
-                    dec.setImage(infoImage);
+                    dec.setImage(Images.INFO);
                 } else {
                     dec.setImage(null);
                 }
