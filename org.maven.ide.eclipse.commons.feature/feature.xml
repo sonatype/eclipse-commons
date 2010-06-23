@@ -16,4 +16,5 @@ http://www.eclipse.org/legal/epl-v10.html</license>
   <plugin unpack="false" id="org.maven.ide.eclipse.log" install-size="0" version="0.0.0" download-size="0"/>
   <plugin unpack="false" id="org.maven.ide.eclipse.authentication" install-size="0" version="0.0.0" download-size="0"/>
   <plugin unpack="false" id="org.maven.ide.eclipse.io" install-size="0" version="0.0.0" download-size="0"/>
+  <plugin unpack="false" id="org.maven.ide.eclipse.ui.common" install-size="0" version="0.0.0" download-size="0"/>
 </feature>
