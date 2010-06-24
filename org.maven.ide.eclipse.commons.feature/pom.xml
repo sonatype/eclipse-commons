@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.maven.ide.eclipse.commons</groupId>
     <artifactId>parent</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1.20100624-1300</version>
     <relativePath>../parent</relativePath>
   </parent>
 
@@ -74,7 +74,7 @@
 
                   <serverId>forge-releases</serverId>
                   <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>eclipse-commons/${unqualifiedVersion}/N/${buildQualifier}</repositoryPath>
+                  <repositoryPath>eclipse-commons/${unqualifiedVersion}/S/${unqualifiedVersion}.{buildQualifier}</repositoryPath>
                 </configuration>
               </execution>
             </executions>
