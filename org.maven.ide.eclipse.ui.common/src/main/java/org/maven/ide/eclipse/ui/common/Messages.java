@@ -20,6 +20,16 @@ public class Messages
 
     public static String errors_unresolvedAddress;
 
+    public static String remoteResourceLookupDialog_error_other;
+
+    public static String remoteResourceLookupDialog_loading;
+
+    public static String remoteResourceLookupDialog_server_collapsed;
+
+    public static String remoteResourceLookupDialog_server_expanded;
+
+    public static String remoteResourceLookupDialog_server_label;
+
     public static String urlInput_anonymousIfEmpty;
 
     public static String urlInput_browse;
