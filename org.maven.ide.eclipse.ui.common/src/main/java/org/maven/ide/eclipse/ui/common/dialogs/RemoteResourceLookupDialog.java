@@ -175,7 +175,7 @@ public abstract class RemoteResourceLookupDialog
 
         Composite reloadPanel = new Composite( parent, SWT.NONE );
         GridLayout gridLayout = new GridLayout( 2, false );
-        gridLayout.horizontalSpacing = 0;
+        gridLayout.marginWidth = 0;
         reloadPanel.setLayout( gridLayout );
         reloadPanel.setLayoutData( new GridData( SWT.FILL, SWT.BOTTOM, false, false ) );
 
