@@ -464,16 +464,14 @@ public class AuthRegistry
                 authNode.put( key, nodeName, false );
 
                 ISecurePreferences realmNode = authNode.node( nodeName );
-                if ( !isAnonymous() )
-                {
-                    realmNode.put( SECURE_USERNAME, username, true );
-                    realmNode.put( SECURE_PASSWORD, password, true );
 
-                    String sslCertificatePath = sslCertificate != null ? sslCertificate.getCanonicalPath() : null;
+                realmNode.put( SECURE_USERNAME, username, true );
+                realmNode.put( SECURE_PASSWORD, password, true );
 
-                    realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePath, false );
-                    realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, sslCertificatePassphrase, true );
-                }
+                String sslCertificatePath = sslCertificate != null ? sslCertificate.getCanonicalPath() : null;
+
+                realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePath, false );
+                realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, sslCertificatePassphrase, true );
             }
             catch ( Exception e )
             {
