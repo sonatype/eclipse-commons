@@ -30,6 +30,20 @@ public class Messages
 
     public static String remoteResourceLookupDialog_server_label;
 
+    public static String secureStorageDialog_errors_noMatch;
+
+    public static String secureStorageDialog_errors_emptyPassword;
+
+    public static String secureStorageDialog_label_confirm;
+
+    public static String secureStorageDialog_label_password;
+
+    public static String secureStorageDialog_messageLogin;
+
+    public static String secureStorageDialog_messageLoginChange;
+
+    public static String secureStorageDialog_title;
+
     public static String urlInput_anonymousIfEmpty;
 
     public static String urlInput_browse;

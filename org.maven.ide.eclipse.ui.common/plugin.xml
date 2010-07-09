@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.maven.ide.eclipse.authentication.passwordProviderDelegate">
+      <delegate
+            class="org.maven.ide.eclipse.ui.common.authentication.PasswordProviderDelegate">
+      </delegate>
+   </extension>
+</plugin>

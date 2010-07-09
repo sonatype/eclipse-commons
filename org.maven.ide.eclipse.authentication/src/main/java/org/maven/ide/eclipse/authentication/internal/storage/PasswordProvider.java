@@ -61,12 +61,13 @@ public class PasswordProvider
         }
 
         IExtensionRegistry registry = RegistryFactory.getRegistry();
-        IExtensionPoint point = registry.getExtensionPoint( "org.maven.ide.eclipse.authentication.passwordProviderDelegate" );
+        IExtensionPoint point =
+            registry.getExtensionPoint( "org.maven.ide.eclipse.authentication.passwordProviderDelegate" );
         IExtension[] extensions = point.getExtensions();
 
         if ( extensions.length != 1 )
         {
-            throw new IllegalStateException( "There should be one and only one password privder delegate" );
+            throw new IllegalStateException( "There should be one and only one password provider delegate" );
         }
 
         try
