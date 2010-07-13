@@ -27,6 +27,7 @@ import org.maven.ide.eclipse.authentication.ISSLAuthData;
 import org.maven.ide.eclipse.authentication.SSLAuthData;
 import org.maven.ide.eclipse.ui.common.InputHistory;
 import org.maven.ide.eclipse.ui.common.Messages;
+import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
 
 /**
  * Reusable widget to enter a URL and/or supply the associated credentials.
@@ -91,6 +92,8 @@ public class UrlInputComposite
 
     private Text passphraseText;
 
+    private WidthGroup widthGroup;
+
     public UrlInputComposite( Composite parent, String urlLabelText )
     {
         this( parent, urlLabelText, null, ALLOW_ANONYMOUS );
@@ -111,6 +114,8 @@ public class UrlInputComposite
         {
             assert url != null;
         }
+
+        widthGroup = new WidthGroup();
 
         setInputHistory( new InputHistory( SETTINGS ) );
 
@@ -191,6 +196,7 @@ public class UrlInputComposite
         Label urlLabel = new Label( this, SWT.NONE );
         urlLabel.setText( urlLabelText );
         urlLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
+        widthGroup.addControl( urlLabel );
 
         createUrlControl( urlLabelText );
 
@@ -204,6 +210,7 @@ public class UrlInputComposite
         GridData usernameLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         usernameLabelData.horizontalIndent = INPUT_INDENT;
         usernameLabel.setLayoutData( usernameLabelData );
+        widthGroup.addControl( usernameLabel );
 
         usernameText = new Text( this, SWT.BORDER );
         GridData usernameGridData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
@@ -219,6 +226,7 @@ public class UrlInputComposite
         GridData passwordLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         passwordLabelData.horizontalIndent = INPUT_INDENT;
         passwordLabel.setLayoutData( passwordLabelData );
+        widthGroup.addControl( passwordLabel );
 
         passwordText = new Text( this, SWT.BORDER | SWT.PASSWORD );
         passwordText.setLayoutData( usernameGridData );
@@ -604,6 +612,11 @@ public class UrlInputComposite
     {
         Control c = urlComponent.getWrappedControl();
         return c instanceof Combo ? (Combo) c : null;
+    }
+
+    public WidthGroup getWidthGroup()
+    {
+        return widthGroup;
     }
 
     private interface UrlFieldFacade
