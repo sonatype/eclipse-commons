@@ -280,6 +280,7 @@ public abstract class RemoteResourceLookupDialog
 
     protected String exceptionToUIText( Exception e )
     {
+        //TODO mkleint: this sort of won't work in governor use cases
         return ErrorHandlingUtils.convertNexusIOExceptionToUIText( e );
     }
 
