@@ -97,4 +97,20 @@ public final class SonatypeValidators
         }
     };
 
+    public static Validator<String> EMPTY_OR_URL = new Validator<String>() {
+        public void validate( Problems problems, String compName, String model )
+        {
+            if ( model.trim().length() == 0 )
+            {
+                return;
+            }
+            
+            StringValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
+        }
+
+        public Class<String> modelType()
+        {
+            return String.class;
+        }
+    };
 }
