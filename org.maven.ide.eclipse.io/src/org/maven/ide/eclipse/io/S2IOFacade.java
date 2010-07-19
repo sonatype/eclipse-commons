@@ -54,4 +54,14 @@ public class S2IOFacade
     {
         return put( new FileRequestEntity( file ), uri, monitor );
     }
+
+    public static ServerResponse delete( String uri, final Integer timeoutInMilliseconds, IProgressMonitor monitor,
+                                         String monitorTaskName )
+        throws IOException, URISyntaxException
+    {
+        UrlPublisher publisher = new UrlPublisher();
+        publisher.setName( monitorTaskName );
+        return publisher.delete( new URI( uri ), monitor, AuthFacade.getAuthService(), S2IOFacade.getProxyService(),
+                                 timeoutInMilliseconds );
+    }
 }

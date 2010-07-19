@@ -62,6 +62,17 @@ public class UrlPublisher
         }
     }
 
+    public ServerResponse delete( final URI url, final IProgressMonitor monitor, final IAuthService authService,
+                                  final IProxyService proxyService, final Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        if ( isHttp( url.getScheme() ) )
+        {
+            return httpPublisher.delete( url, monitor, name, authService, proxyService, timeoutInMilliseconds );
+        }
+        throw new IOException( "Unsupported protocol " + url.getScheme() );
+    }
+
     /**
      * Uploads a file to the specified URL.
      * 

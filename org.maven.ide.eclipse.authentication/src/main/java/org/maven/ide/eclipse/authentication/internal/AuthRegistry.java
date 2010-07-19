@@ -16,7 +16,6 @@ import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.IAuthRegistry;
 import org.maven.ide.eclipse.authentication.IAuthService;
-import org.maven.ide.eclipse.authentication.ISSLAuthData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +110,7 @@ public class AuthRegistry
         realm = new AuthRealm( realmId );
         realms.put( realmId, realm );
 
-        ( (AuthRealm) realm ).save( realmId );
+        ( (AuthRealm) realm ).save( secureStorage, realmId );
 
         return realm;
     }
@@ -136,8 +135,8 @@ public class AuthRegistry
         log.debug( "Mapping {} to authentication realm {}", urlId, realm );
         realms.put( urlId, realm );
 
-        ( (AuthRealm) realm ).save( realmId );
-        ( (AuthRealm) realm ).save( urlId );
+        ( (AuthRealm) realm ).save( secureStorage, realmId );
+        ( (AuthRealm) realm ).save( secureStorage, urlId );
 
         return realm;
     }
@@ -290,20 +289,6 @@ public class AuthRegistry
         }
     }
 
-    private String encodeRealmId( String realmId )
-        throws StorageException
-    {
-        realmId = normalizeRealmId( realmId );
-        try
-        {
-            return EncodingUtils.encodeSlashes( EncodingUtils.encodeBase64( realmId.getBytes( "UTF-8" ) ) );
-        }
-        catch ( UnsupportedEncodingException e )
-        {
-            throw new StorageException( StorageException.INTERNAL_ERROR, e );
-        }
-    }
-
     private String decodeRealmId( String nodeName )
         throws StorageException
     {
@@ -317,189 +302,6 @@ public class AuthRegistry
         }
     }
 
-    private class AuthRealm
-        implements IAuthRealm, IAuthData, ISSLAuthData
-    {
-        private String id;
-
-        private String username = "";
-
-        private String password = "";
-
-        private File sslCertificate;
-
-        private String sslCertificatePassphrase;
-
-        private AuthRealm( String id )
-        {
-            this.id = id;
-        }
-
-        private AuthRealm( String id, String username, String password, File sslCertificate,
-                           String sslCertificatePassphrase )
-        {
-            this.id = id;
-            this.username = username;
-            this.password = password;
-            this.sslCertificate = sslCertificate;
-            this.sslCertificatePassphrase = sslCertificatePassphrase;
-        }
-
-        public IAuthData getAuthData()
-        {
-            return this;
-        }
-
-        public String getId()
-        {
-            return id;
-        }
-
-        public void setUsername( String username )
-        {
-            if ( username == null )
-            {
-                username = "";
-            }
-            if ( !username.equals( this.username ) )
-            {
-                this.username = username;
-                save();
-            }
-        }
-
-        public String getUsername()
-        {
-            return username;
-        }
-
-        public void setPassword( String password )
-        {
-            if ( password == null )
-            {
-                password = "";
-            }
-            if ( !password.equals( this.password ) )
-            {
-                this.password = password;
-                save();
-            }
-        }
-
-        public String getPassword()
-        {
-            return password;
-        }
-
-        public boolean isAnonymous()
-        {
-            if ( username != null && username.trim().length() != 0 )
-            {
-                return false;
-            }
-
-            if ( sslCertificate != null )
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public ISSLAuthData getSSLAuthData()
-        {
-            return this;
-        }
-
-        public File getCertificatePath()
-        {
-            return sslCertificate;
-        }
-
-        public String getCertificatePassphrase()
-        {
-            return sslCertificatePassphrase;
-        }
-
-        public void setSSLAuthData( ISSLAuthData authData )
-        {
-            File oldCertificate = sslCertificate;
-            String oldPassphrase = sslCertificatePassphrase;
-
-            if ( authData == null )
-            {
-                sslCertificate = null;
-                sslCertificatePassphrase = null;
-            }
-            else
-            {
-                sslCertificate = authData.getCertificatePath();
-                sslCertificatePassphrase = authData.getCertificatePassphrase();
-            }
-
-            if ( !eq( oldCertificate, sslCertificate ) || !eq( oldPassphrase, sslCertificatePassphrase ) )
-            {
-                save();
-            }
-        }
-
-        private void save()
-        {
-            save( id );
-        }
-
-        private void save( String key )
-        {
-            if ( secureStorage == null )
-            {
-                log.debug( "Secure storage not available, can't save authentication registry." );
-                return;
-            }
-
-            ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
-
-            try
-            {
-                String nodeName = encodeRealmId( id );
-                authNode.put( key, nodeName, false );
-
-                ISecurePreferences realmNode = authNode.node( nodeName );
-
-                realmNode.put( SECURE_USERNAME, username, true );
-                realmNode.put( SECURE_PASSWORD, password, true );
-
-                String sslCertificatePath = sslCertificate != null ? sslCertificate.getCanonicalPath() : null;
-
-                realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePath, false );
-                realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, sslCertificatePassphrase, true );
-            }
-            catch ( Exception e )
-            {
-                log.error( "Error saving authentication realm " + id, e );
-            }
-
-            try
-            {
-                authNode.flush();
-            }
-            catch ( IOException e )
-            {
-                log.error( "Error saving authentication registry", e );
-            }
-        }
-
-        @Override
-        public String toString()
-        {
-            return getId();
-        }
-    }
-
-    private static <T> boolean eq( T a, T b )
-    {
-        return a != null ? a.equals( b ) : b == null;
-    }
-
     public IAuthRealm removeRealm( String realmId )
     {
         log.debug( "Removing authentication realm {}", realmId );
@@ -507,43 +309,43 @@ public class AuthRegistry
         realmId = normalizeRealmId( realmId );
         IAuthRealm realm = realms.remove( realmId );
 
-        if ( secureStorage != null )
-        {
-            try
-            {
-                ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
-                authNode.remove( realmId );
-
-                if ( realm != null )
-                {
-                    boolean used = false;
-                    for ( IAuthRealm rlm : realms.values() )
-                    {
-                        if ( realm == rlm )
-                        {
-                            used = true;
-                            break;
-                        }
-                    }
-                    if ( !used )
-                    {
-                        String nodeName = encodeRealmId( realm.getId() );
-                        ISecurePreferences realmNode = authNode.node( nodeName );
-                        realmNode.removeNode();
-                    }
-                }
-
-                authNode.flush();
-            }
-            catch ( StorageException e )
-            {
-                log.error( "Error removing authentication realm for " + realmId, e );
-            }
-            catch ( IOException e )
-            {
-                log.error( "Failed to flush secure storage", e );
-            }
-        }
+        // if ( secureStorage != null )
+        // {
+        // try
+        // {
+        // ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
+        // authNode.remove( realmId );
+        //
+        // if ( realm != null )
+        // {
+        // boolean used = false;
+        // for ( IAuthRealm rlm : realms.values() )
+        // {
+        // if ( realm == rlm )
+        // {
+        // used = true;
+        // break;
+        // }
+        // }
+        // if ( !used )
+        // {
+        // String nodeName = encodeRealmId( realm.getId() );
+        // ISecurePreferences realmNode = authNode.node( nodeName );
+        // realmNode.removeNode();
+        // }
+        // }
+        //
+        // authNode.flush();
+        // }
+        // catch ( StorageException e )
+        // {
+        // log.error( "Error removing authentication realm for " + realmId, e );
+        // }
+        // catch ( IOException e )
+        // {
+        // log.error( "Failed to flush secure storage", e );
+        // }
+        // }
 
         return realm;
     }

@@ -45,28 +45,50 @@ public class HttpPublisher
                                    final IProxyService proxyService, Integer timeoutInMilliseconds )
         throws IOException
     {
-        InputStream is = file.getContent();
+        PutExchange exchange = new PutExchange( url.toString() );
+        return doDataExchange( exchange, file, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds );
+    }
 
-        MonitoredInputStream mis = new MonitoredInputStream( is, SubMonitor.convert( monitor ) );
-        if ( monitorSubtaskName == null )
+    public ServerResponse delete( final URI url, final IProgressMonitor monitor, String monitorSubtaskName,
+                                  final IAuthService authService, final IProxyService proxyService,
+                                  Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        DeleteExchange exchange = new DeleteExchange( url.toString() );
+        return doDataExchange( exchange, null /* file */, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds );
+    }
+
+    private ServerResponse doDataExchange( final _DataExchange exchange, final RequestEntity file, final URI url,
+                                           final IProgressMonitor monitor,
+                                   String monitorSubtaskName, final IAuthService authService,
+                                   final IProxyService proxyService, Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        if ( file != null )
         {
-            monitorSubtaskName = "Uploading file " + file.getName();
+            InputStream is = file.getContent();
+
+            MonitoredInputStream mis = new MonitoredInputStream( is, SubMonitor.convert( monitor ) );
+            if ( monitorSubtaskName == null )
+            {
+                monitorSubtaskName = "Uploading file " + file.getName();
+            }
+            mis.setName( monitorSubtaskName );
+            mis.setLength( (int) file.getContentLength() );
+
+            exchange.setRequestHeader( HttpHeaders.CONTENT_LENGTH, Long.toString( file.getContentLength() ) );
+            if ( file.getContentType() != null )
+            {
+                exchange.setRequestContentType( file.getContentType() );
+            }
+
+            exchange.setRequestContentSource( mis );
         }
-        mis.setName( monitorSubtaskName );
-        mis.setLength( (int) file.getContentLength() );
 
         HttpClient httpClient = startClient( url, authService, proxyService, timeoutInMilliseconds );
         httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
-
-        PutExchange exchange = new PutExchange( url.toString() );
-        exchange.setRequestHeader( HttpHeaders.CONTENT_LENGTH, Long.toString( file.getContentLength() ) );
-        if ( file.getContentType() != null )
-        {
-            exchange.setRequestContentType( file.getContentType() );
-        }
-
-        exchange.setRequestContentSource( mis );
-
         httpClient.send( exchange );
         try
         {
@@ -122,7 +144,24 @@ public class HttpPublisher
         return response;
     }
 
-    static class PutExchange
+    private static class PutExchange
+        extends _DataExchange
+    {
+        public PutExchange(String url)
+        {
+            super( url, HttpMethods.PUT );
+        }
+    }
+
+    private static class DeleteExchange
+        extends _DataExchange
+    {
+        public DeleteExchange( String url ) {
+            super( url, HttpMethods.DELETE );
+        }
+    }
+
+    private abstract static class _DataExchange
         extends DataExchange
     {
 
@@ -130,10 +169,10 @@ public class HttpPublisher
 
         private ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
 
-        public PutExchange( String url )
+        public _DataExchange( String url, String httpMethod )
         {
             setURL( url );
-            setMethod( HttpMethods.PUT );
+            setMethod( httpMethod );
         }
 
         public Throwable getException()
@@ -221,6 +260,5 @@ public class HttpPublisher
         {
             exception = e;
         }
-
     }
 }

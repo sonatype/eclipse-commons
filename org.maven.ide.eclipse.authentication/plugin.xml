@@ -12,4 +12,6 @@
       </provider>
    </extension>
 
+   <extension-point id="org.maven.ide.eclipse.authentication.SecurityRealmPersistence" name="Security Realm Persistence"
+     schema="schema/securityRealmPersistence.exsd"/>
 </plugin>

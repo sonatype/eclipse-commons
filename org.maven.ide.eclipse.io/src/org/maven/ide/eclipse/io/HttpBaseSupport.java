@@ -74,9 +74,17 @@ public class HttpBaseSupport
             public Realm getRealm( final String realmName, final HttpDestination destination, final String path )
                 throws IOException
             {
-                IAuthData auth = ( authService != null ) ? authService.select( url ) : null;
+                IAuthData auth = null;
+                if ( authService != null )
+                {
+                    auth = authService.select( url );
+                }
+                if ( auth != null )
+                {
+                    return new SimpleRealm( realmName, auth );
+                }
 
-                return ( auth != null ) ? new SimpleRealm( realmName, auth ) : null;
+                return null;
             }
         } );
 
