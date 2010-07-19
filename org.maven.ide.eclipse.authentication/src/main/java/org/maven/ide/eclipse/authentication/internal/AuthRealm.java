@@ -43,6 +43,8 @@ public class AuthRealm
      */
     private static final String SECURE_SSL_CERTIFICATE_PASSPHRASE = "sslCertificatePassphrase";
 
+    private final ISecurePreferences secureStorage;
+
     private String id;
 
     private String username = "";
@@ -77,12 +79,15 @@ public class AuthRealm
 
     private String description;
 
-    public AuthRealm( String id ) {
+    public AuthRealm( ISecurePreferences secureStorage, String id ) {
+        this.secureStorage = secureStorage;
         this.id = id;
     }
 
-    AuthRealm( String id, String username, String password, File sslCertificate, String sslCertificatePassphrase )
+    AuthRealm( ISecurePreferences secureStorage, String id, String username, String password, File sslCertificate,
+               String sslCertificatePassphrase )
 {
+        this.secureStorage = secureStorage;
         this.id = id;
         this.username = username;
         this.password = password;
@@ -91,6 +96,7 @@ public class AuthRealm
     }
 
     public AuthRealm( String id, String name, String description ) {
+        this.secureStorage = null;
         this.id = id;
         this.name = name;
         this.description = description;
@@ -201,7 +207,7 @@ public class AuthRealm
 
     private void save()
     {
-        // save( id );
+        save( id );
     }
 
     private String encodeRealmId( String realmId )
@@ -218,7 +224,7 @@ public class AuthRealm
         }
     }
 
-    void save( ISecurePreferences secureStorage, String key )
+    void save( String key )
     {
         if ( secureStorage == null )
         {

@@ -107,10 +107,10 @@ public class AuthRegistry
         }
 
         log.debug( "Adding new authentication realm {}", realmId );
-        realm = new AuthRealm( realmId );
+        realm = new AuthRealm( secureStorage, realmId );
         realms.put( realmId, realm );
 
-        ( (AuthRealm) realm ).save( secureStorage, realmId );
+        ( (AuthRealm) realm ).save( realmId );
 
         return realm;
     }
@@ -123,7 +123,7 @@ public class AuthRegistry
         if ( realm == null )
         {
             log.debug( "Adding new authentication realm {}", realmId );
-            realm = new AuthRealm( realmId );
+            realm = new AuthRealm( secureStorage, realmId );
             realms.put( realmId, realm );
         }
         else
@@ -135,8 +135,8 @@ public class AuthRegistry
         log.debug( "Mapping {} to authentication realm {}", urlId, realm );
         realms.put( urlId, realm );
 
-        ( (AuthRealm) realm ).save( secureStorage, realmId );
-        ( (AuthRealm) realm ).save( secureStorage, urlId );
+        ( (AuthRealm) realm ).save( realmId );
+        ( (AuthRealm) realm ).save( urlId );
 
         return realm;
     }
@@ -254,7 +254,7 @@ public class AuthRegistry
                 String sslCertificatePassphrase = realmNode.get( SECURE_SSL_CERTIFICATE_PASSPHRASE, null );
 
                 IAuthRealm realm =
-                    new AuthRealm( realmId, username, password, sslCertificate, sslCertificatePassphrase );
+                    new AuthRealm( secureStorage, realmId, username, password, sslCertificate, sslCertificatePassphrase );
                 realms.put( realmId, realm );
             }
             catch ( StorageException e )
