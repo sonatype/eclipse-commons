@@ -20,6 +20,14 @@ public class Messages
 
     public static String errors_unresolvedAddress;
 
+    public static String listEditorComposite_add;
+
+    public static String listEditorComposite_edit;
+
+    public static String listEditorComposite_find;
+
+    public static String listEditorComposite_remove;
+
     public static String remoteResourceLookupDialog_error_other;
 
     public static String remoteResourceLookupDialog_loading;

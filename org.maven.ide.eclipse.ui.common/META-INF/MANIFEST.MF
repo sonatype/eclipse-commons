@@ -19,6 +19,7 @@ Require-Bundle: org.eclipse.osgi,
  org.maven.ide.eclipse.swtvalidation
 Export-Package: org.maven.ide.eclipse.ui.common,
  org.maven.ide.eclipse.ui.common.authentication,
+ org.maven.ide.eclipse.ui.common.composites,
  org.maven.ide.eclipse.ui.common.dialogs,
  org.maven.ide.eclipse.ui.common.layout,
  org.maven.ide.eclipse.ui.common.validation
