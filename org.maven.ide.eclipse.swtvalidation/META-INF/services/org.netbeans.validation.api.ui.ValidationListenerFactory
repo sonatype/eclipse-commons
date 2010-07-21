@@ -1,2 +1,3 @@
 org.maven.ide.eclipse.swtvalidation.TextSwtValidationListenerFactory
 org.maven.ide.eclipse.swtvalidation.ComboSwtValidationListenerFactory
+org.maven.ide.eclipse.swtvalidation.CComboSwtValidationListenerFactory

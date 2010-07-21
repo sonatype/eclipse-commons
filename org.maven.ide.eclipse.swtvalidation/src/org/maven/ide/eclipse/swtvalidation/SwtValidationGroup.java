@@ -3,6 +3,7 @@
 package org.maven.ide.eclipse.swtvalidation;
 
 
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.widgets.Combo;
 import org.netbeans.validation.api.ui.*;
 import org.eclipse.swt.widgets.Display;
@@ -137,10 +138,18 @@ public final class SwtValidationGroup extends ValidationGroup {
      * @param box A combo box component
      * @param validators One or more Validators
      */
-    @SuppressWarnings("unchecked")
     public final void add(Combo box, Validator<String>... validators) {
         assert Display.getCurrent() != null : "Must be called on event thread";
         ValidationListener<Combo> vl = ValidationListenerFactory.createValidationListener(box,
+                ValidationStrategy.DEFAULT, 
+                this.getComponentDecorationFactory().decorationFor(box),
+                ValidatorUtils.<String>merge(validators));
+        this.addItem(vl, false);
+    }
+
+    public final void add(CCombo box, Validator<String>... validators) {
+        assert Display.getCurrent() != null : "Must be called on event thread";
+        ValidationListener<CCombo> vl = ValidationListenerFactory.createValidationListener(box,
                 ValidationStrategy.DEFAULT, 
                 this.getComponentDecorationFactory().decorationFor(box),
                 ValidatorUtils.<String>merge(validators));
