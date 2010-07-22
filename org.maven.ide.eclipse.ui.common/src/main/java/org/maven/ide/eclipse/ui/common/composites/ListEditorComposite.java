@@ -116,7 +116,7 @@ public class ListEditorComposite<T>
         if ( ( editorStyle & EDIT ) == EDIT )
         {
             editButton = new Button( this, buttonStyle );
-            editButton.setText( Messages.listEditorComposite_find );
+            editButton.setText( Messages.listEditorComposite_edit );
             GridData gd = new GridData( SWT.FILL, SWT.TOP, false, false );
             gd.verticalIndent = 0;
             editButton.setLayoutData( gd );
