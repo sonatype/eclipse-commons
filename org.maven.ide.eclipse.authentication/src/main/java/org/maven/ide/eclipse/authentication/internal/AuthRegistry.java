@@ -372,6 +372,7 @@ public class AuthRegistry
         {
             persistence.addRealm( newRealm, monitor );
         }
+        ( (AuthRealm) newRealm ).loadFromSecureStorage( secureStorage );
 
         realms.put( id, newRealm );
 

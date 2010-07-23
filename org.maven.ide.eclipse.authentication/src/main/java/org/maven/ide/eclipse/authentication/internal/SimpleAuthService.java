@@ -57,7 +57,7 @@ public class SimpleAuthService
             {
                 return authNode.node( sURI );
             }
-            if ( uri.getPath().length() <= 1 )
+            if ( uri.getPath() == null || uri.getPath().length() <= 1 )
             {
                 break;
             }
