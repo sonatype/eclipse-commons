@@ -22,9 +22,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.IAuthData;
-import org.maven.ide.eclipse.authentication.IAuthRealm;
-import org.maven.ide.eclipse.authentication.ISSLAuthData;
-import org.maven.ide.eclipse.authentication.SSLAuthData;
+import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.ui.common.InputHistory;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
@@ -512,29 +510,28 @@ public class UrlInputComposite
         return null;
     }
 
-    protected void updateCredentials()
+    private void updateCredentials()
     {
         updating = true;
 
-        IAuthRealm realm = AuthFacade.getAuthRegistry().getRealm( getUrlText() );
-        if ( realm != null )
+        IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
+        if ( authData == null )
         {
-            if ( realm.isAnonymous() )
+            return;
+        }
+
+        if ( authData != null )
+        {
+            // TODO Disable username and password controls if anonymous is required
+            if ( authData.allowsUsernameAndPassword() )
             {
-                usernameText.setText( "" );
-                passwordText.setText( "" );
-            }
-            else
-            {
-                IAuthData authData = realm.getAuthData();
                 usernameText.setText( authData.getUsername() );
                 passwordText.setText( authData.getPassword() );
             }
 
-            ISSLAuthData sslData = realm.getSSLAuthData();
-            if ( displayCertificateControls )
+            if ( displayCertificateControls && authData.allowsCertificate() )
             {
-                if ( sslData != null && !useCertificateButton.getSelection() )
+                if ( !useCertificateButton.getSelection() )
                 {
                     useCertificateButton.setSelection( true );
                     createCertificateControls();
@@ -543,18 +540,14 @@ public class UrlInputComposite
 
                 if ( useCertificateButton.getSelection() )
                 {
-
                     String certificateFilename = "";
                     String passphrase = "";
-                    if ( sslData != null )
+                    File file = authData.getCertificatePath();
+                    if ( file != null )
                     {
-                        File file = sslData.getCertificatePath();
-                        if ( file != null )
-                        {
-                            certificateFilename = file.getAbsolutePath();
-                        }
-                        passphrase = sslData.getCertificatePassphrase();
+                        certificateFilename = file.getAbsolutePath();
                     }
+                    passphrase = authData.getCertificatePassphrase();
                     certificateText.setText( certificateFilename == null ? "" : certificateFilename );
                     passphraseText.setText( passphrase == null ? "" : passphrase );
                 }
@@ -587,26 +580,34 @@ public class UrlInputComposite
 
     private void saveAuthRealm()
     {
-        IAuthRealm realm = AuthFacade.getAuthRegistry().addRealm( getUrlText() );
-        realm.setUsername( usernameText.getText() );
-        realm.setPassword( passwordText.getText() );
-
-        if ( displayCertificateControls && useCertificateButton.getSelection() )
+        IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
+        if ( authData == null )
         {
-            String filename = certificateText.getText().trim();
-            if ( filename.length() > 0 )
-            {
-                File file = new File( filename );
-                SSLAuthData auth = new SSLAuthData( file, passphraseText.getText() );
-                realm.setSSLAuthData( auth );
-            }
+            authData = new AuthData();
         }
+        if ( authData.allowsUsernameAndPassword() )
+        {
+            authData.setUsernameAndPassword( usernameText.getText(), passwordText.getText() );
+        }
+        if ( authData.allowsCertificate() )
+        {
+            File certificatePath = null;
+
+            if ( displayCertificateControls && useCertificateButton.getSelection() )
+            {
+                String filename = certificateText.getText().trim();
+                if ( filename.length() > 0 )
+                {
+                    certificatePath = new File( filename );
+                }
+            }
+            authData.setSSLCertificate( certificatePath, passphraseText.getText() );
+        }
+        AuthFacade.getAuthService().save( getUrlText(), authData );
     }
 
     /**
-     * return the combo box component showing the url. can return null if the url is not represented by the combobox.
-     * 
-     * @return
+     * @return the combo box component showing the url. can return null if the url is not represented by the combobox.
      */
     protected Combo getComboBoxComponent()
     {

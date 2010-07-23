@@ -1,5 +1,6 @@
 package org.maven.ide.eclipse.authentication;
 
+import java.io.File;
 
 public interface IAuthRealm
 {
@@ -13,15 +14,15 @@ public interface IAuthRealm
 
     public void setDescription( String description );
 
-    public IAuthData getAuthData();
+    public void setUsernameAndPassword( String username, String password );
 
-    public ISSLAuthData getSSLAuthData();
+    public void setSSLCertificate( File sslCertificatePath, String sslCertificatePassphrase );
 
-    public void setSSLAuthData( ISSLAuthData authData );
+    IAuthData getAuthData();
 
-    public boolean isAnonymous();
+    void setAuthData( IAuthData authData );
 
-    public void setUsername( String username );
+    public AuthenticationType getAuthenticationType();
 
-    public void setPassword( String password );
+    public void setAuthenticationType( AuthenticationType authenticationType );
 }

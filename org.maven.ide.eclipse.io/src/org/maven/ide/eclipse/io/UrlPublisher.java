@@ -104,4 +104,23 @@ public class UrlPublisher
         return "http".equalsIgnoreCase( protocol ) || "https".equalsIgnoreCase( protocol );
     }
 
+    public ServerResponse postFile( final RequestEntity file, final URI url, final IProgressMonitor monitor,
+                                    final IAuthService authService, final IProxyService proxyService,
+                                    final Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        if ( isFile( url.getScheme() ) )
+        {
+            filePublisher.putFile( file, new File( url ), monitor );
+            return new ServerResponse( 200, null, "UTF-8" );
+        }
+        else if ( isHttp( url.getScheme() ) )
+        {
+            return httpPublisher.postFile( file, url, monitor, name, authService, proxyService, timeoutInMilliseconds );
+        }
+        else
+        {
+            throw new IOException( "Unsupported protocol " + url.getScheme() );
+        }
+    }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         id="org.maven.ide.eclipse.authentication.InMemorySecurityRealmPersistence"
+         name="Security Realm Persistence for unit tests"
+         point="org.maven.ide.eclipse.authentication.SecurityRealmPersistence">
+      <handler
+            class="org.maven.ide.eclipse.authentication.InMemorySecurityRealmPersistence"
+            priority="5">
+      </handler>
+   </extension>
+</plugin>

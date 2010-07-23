@@ -153,6 +153,15 @@ public class HttpPublisher
         }
     }
 
+    private static class PostExchange
+        extends _DataExchange
+    {
+        public PostExchange( String url )
+        {
+            super( url, HttpMethods.POST );
+        }
+    }
+
     private static class DeleteExchange
         extends _DataExchange
     {
@@ -260,5 +269,15 @@ public class HttpPublisher
         {
             exception = e;
         }
+    }
+
+    public ServerResponse postFile( final RequestEntity file, final URI url, final IProgressMonitor monitor,
+                                    String monitorSubtaskName, final IAuthService authService,
+                                    final IProxyService proxyService, Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        PostExchange exchange = new PostExchange( url.toString() );
+        return doDataExchange( exchange, file, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds );
     }
 }
