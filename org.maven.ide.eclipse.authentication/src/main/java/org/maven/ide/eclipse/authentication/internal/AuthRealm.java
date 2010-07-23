@@ -44,10 +44,7 @@ public class AuthRealm
      */
     private static final String SECURE_SSL_CERTIFICATE_PASSPHRASE = "sslCertificatePassphrase";
 
-    /**
-     * @deprecated To be removed
-     */
-    private final ISecurePreferences secureStorage;
+    private ISecurePreferences secureStorage;
 
     private String id;
 
@@ -227,6 +224,8 @@ public class AuthRealm
         try
         {
             log.debug( "Loading authentication realm {}", id );
+
+            this.secureStorage = secureStorage;
 
             ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
             ISecurePreferences realmNode = authNode.node( encodeRealmId( id ) );

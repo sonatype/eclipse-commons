@@ -207,20 +207,24 @@ public class AuthRegistryTest
     {
         ISecurePreferences preferences = registry.getSecureStorage();
 
-        registry.addRealm( "realm-id-1", "realm-name-1", "realm-description-1",
+        AuthRealm realm =
+            (AuthRealm) registry.addRealm( "realm-id-1", "realm-name-1", "realm-description-1",
                                AuthenticationType.USERNAME_PASSWORD, monitor );
+        realm.setUsernameAndPassword( "user", "pass" );
 
         registry.addRealm( "id-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]", "realm-name-2", "realm-description-2",
                            AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD, monitor );
 
         registry = new AuthRegistry( preferences );
 
-        AuthRealm realm = (AuthRealm) registry.getRealm( "realm-id-1" );
+        realm = (AuthRealm) registry.getRealm( "realm-id-1" );
         assertNotNull( realm );
         assertEquals( "realm-id-1", realm.getId() );
         assertEquals( "realm-name-1", realm.getName() );
         assertEquals( "realm-description-1", realm.getDescription() );
         assertEquals( AuthenticationType.USERNAME_PASSWORD, realm.getAuthenticationType() );
+        assertEquals( "user", realm.getUsername() );
+        assertEquals( "pass", realm.getPassword() );
         realm.setUsernameAndPassword( "user-1", "pass-1" );
         assertEquals( "user-1", realm.getUsername() );
         assertEquals( "pass-1", realm.getPassword() );
