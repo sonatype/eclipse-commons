@@ -161,11 +161,6 @@ public class AuthRealm
         return a != null ? a.equals( b ) : b == null;
     }
 
-    private void save()
-    {
-        save( id );
-    }
-
     private String encodeRealmId( String realmId )
         throws StorageException
     {
@@ -180,11 +175,11 @@ public class AuthRealm
         }
     }
 
-    void save( String key )
+    private void saveToSecureStorage()
     {
         if ( secureStorage == null )
         {
-            log.debug( "Secure storage not available, can't save authentication registry." );
+            log.debug( "Secure storage not available, can't save security realm authentication data." );
             return;
         }
 
@@ -193,7 +188,7 @@ public class AuthRealm
         try
         {
             String nodeName = encodeRealmId( id );
-            authNode.put( key, nodeName, false );
+            authNode.put( id, nodeName, false );
 
             ISecurePreferences realmNode = authNode.node( nodeName );
 
@@ -221,9 +216,14 @@ public class AuthRealm
 
     void loadFromSecureStorage( ISecurePreferences secureStorage )
     {
+        if ( secureStorage == null )
+        {
+            log.debug( "Secure storage not available, can't load security realm authentication data." );
+            return;
+        }
         try
         {
-            log.debug( "Loading authentication realm {}", id );
+            log.debug( "Loading authentication realm {} from secure storage", id );
 
             this.secureStorage = secureStorage;
 
@@ -240,6 +240,34 @@ public class AuthRealm
         catch ( StorageException e )
         {
             log.error( "Error loading authentication realm from node " + id, e );
+        }
+    }
+
+    void removeFromSecureStorage( ISecurePreferences secureStorage )
+    {
+        if ( secureStorage == null )
+        {
+            return;
+        }
+        try
+        {
+            log.debug( "Removing authentication realm {} from secure storage", id );
+
+            this.secureStorage = secureStorage;
+
+            ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
+            String realmId = encodeRealmId( id );
+            if ( !authNode.nodeExists( realmId ) )
+            {
+                return;
+            }
+            ISecurePreferences realmNode = authNode.node( realmId );
+            realmNode.removeNode();
+            authNode.flush();
+        }
+        catch ( Exception e )
+        {
+            log.error( "Error removing authentication realm node for realm " + id, e );
         }
     }
 
@@ -269,7 +297,7 @@ public class AuthRealm
         {
             this.username = username;
             this.password = password;
-            save();
+            saveToSecureStorage();
         }
     }
 
@@ -286,7 +314,7 @@ public class AuthRealm
         {
             this.sslCertificatePath = sslCertificatePath;
             this.sslCertificatePassphrase = sslCertificatePassphrase;
-            save();
+            saveToSecureStorage();
         }
     }
 

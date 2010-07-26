@@ -9,7 +9,7 @@ public interface IAuthRegistry
 
     /**
      * Creates a new security realm. If a persistence mechanism for security realms is available, the new realm is
-     * persisted. If a realm with the provided id already exists,
+     * persisted.
      * 
      * @param id The id for the new security realm. Must not be null.
      * @param name The name for the new security realm. Must not be null.
@@ -23,11 +23,21 @@ public interface IAuthRegistry
                                 IProgressMonitor monitor );
 
     /**
-     * Removes the realm with the given id.
+     * Updates a security realm. If a persistence mechanism for security realms is available, the realm is persisted.
      * 
-     * @return Returns the removed realm or null if the given id was not in the list of known realms
+     * @param authRealm The realm to be updated. Must not be null.
+     * @throws AuthRegistryException If the realm does not exist or the persistence mechanism cannot persist the realm.
      */
-    public IAuthRealm removeRealm( String id );
+    public void updateRealm( IAuthRealm authRealm, IProgressMonitor monitor );
+
+    /**
+     * Removes the realm with the given id. If a persistence mechanism for security realms is available, the realm is
+     * removed from persistent storage.
+     * 
+     * @throws AuthRegistryException If a realm with the provided id does not exist or the persistence mechanism cannot
+     *             delete the realm.
+     */
+    public void removeRealm( String id, IProgressMonitor monitor );
 
     /**
      * @param url The URL to associate. Must not be null.

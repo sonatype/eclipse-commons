@@ -81,23 +81,6 @@ public class AuthRegistry
         return secureStorage;
     }
 
-    private String normalizeRealmId( String realmId )
-    {
-        URI uri;
-        try
-        {
-            uri = URI.create( realmId );
-            uri = uri.normalize();
-        }
-        catch ( IllegalArgumentException e )
-        {
-            // Not a URI, that's fine
-            return realmId;
-        }
-        realmId = uri.toString();
-        return stripSlash( realmId );
-    }
-
     private String stripSlash( String s )
     {
         if ( s != null && s.length() > 0 )
@@ -277,52 +260,25 @@ public class AuthRegistry
     }
 
     // TODO Implement me
-    public IAuthRealm removeRealm( String realmId )
+    public void removeRealm( String realmId, IProgressMonitor monitor )
     {
         log.debug( "Removing authentication realm {}", realmId );
 
-        realmId = normalizeRealmId( realmId );
-        IAuthRealm realm = realms.remove( realmId );
+        if ( realmId == null || realmId.trim().length() == 0 )
+        {
+            throw new AuthRegistryException( "The id of a security realm cannot be null or empty." );
+        }
+        if ( !realms.containsKey( realmId ) )
+        {
+            throw new AuthRegistryException( "A security realm with id='" + realmId + "' does not exists." );
+        }
 
-        // if ( secureStorage != null )
-        // {
-        // try
-        // {
-        // ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
-        // authNode.remove( realmId );
-        //
-        // if ( realm != null )
-        // {
-        // boolean used = false;
-        // for ( IAuthRealm rlm : realms.values() )
-        // {
-        // if ( realm == rlm )
-        // {
-        // used = true;
-        // break;
-        // }
-        // }
-        // if ( !used )
-        // {
-        // String nodeName = encodeRealmId( realm.getId() );
-        // ISecurePreferences realmNode = authNode.node( nodeName );
-        // realmNode.removeNode();
-        // }
-        // }
-        //
-        // authNode.flush();
-        // }
-        // catch ( StorageException e )
-        // {
-        // log.error( "Error removing authentication realm for " + realmId, e );
-        // }
-        // catch ( IOException e )
-        // {
-        // log.error( "Failed to flush secure storage", e );
-        // }
-        // }
+        if ( persistence != null )
+        {
+            persistence.deleteRealm( realmId, monitor );
+        }
 
-        return realm;
+        realms.remove( realmId );
     }
 
     public void clear()
@@ -466,5 +422,39 @@ public class AuthRegistry
         }
         log.debug( "Selected authentication realm {} for URL {}", urlAssoc.getRealmId(), uri );
         return realms.get( urlAssoc.getRealmId() );
+    }
+
+    public void updateRealm( IAuthRealm authRealm, IProgressMonitor monitor )
+    {
+        if ( authRealm == null )
+        {
+            throw new AuthRegistryException( "The security realm cannot be null." );
+        }
+        if ( authRealm.getId() == null || authRealm.getId().trim().length() == 0 )
+        {
+            throw new AuthRegistryException( "The id of a security realm cannot be null or empty." );
+        }
+        if ( authRealm.getName() == null || authRealm.getName().trim().length() == 0 )
+        {
+            throw new AuthRegistryException( "The name of a security realm cannot be null or empty." );
+        }
+        if ( !realms.containsKey( authRealm.getId() ) )
+        {
+            throw new AuthRegistryException( "A security realm with id='" + authRealm.getId() + "' does not exist." );
+        }
+        
+        if (persistence != null)
+        {
+            persistence.updateRealm( authRealm, monitor );
+        }
+
+        // Although it's not obvious, we have to load auth data from secure storage, not save it!
+        // If the updated realm already has auth data, then that auth data was set through one of the methods that saves
+        // to secure storage, so we don't need to reload it because it is already up to date. But if the realm to update
+        // was constructed using one of the constructors, then it doesn't have auth data loaded, so we need to load it
+        // here.
+        ( (AuthRealm) authRealm ).loadFromSecureStorage( secureStorage );
+
+        realms.put( authRealm.getId(), authRealm );
     }
 }
