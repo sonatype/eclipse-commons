@@ -10,4 +10,13 @@
             priority="5">
       </handler>
    </extension>
+   
+   <extension
+         id="org.maven.ide.eclipse.authentication.TestURINormalizer"
+         name="URI Normalizer for unit tests"
+         point="org.maven.ide.eclipse.authentication.URINormalizer">
+      <handler
+            class="org.maven.ide.eclipse.authentication.TestURINormalizer">
+      </handler>
+   </extension>
 </plugin>

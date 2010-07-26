@@ -14,4 +14,7 @@
 
    <extension-point id="org.maven.ide.eclipse.authentication.SecurityRealmPersistence" name="Security Realm Persistence"
      schema="schema/securityRealmPersistence.exsd"/>
+
+   <extension-point id="org.maven.ide.eclipse.authentication.URINormalizer" name="URI Normalizer"
+     schema="schema/URINormalizer.exsd"/>
 </plugin>

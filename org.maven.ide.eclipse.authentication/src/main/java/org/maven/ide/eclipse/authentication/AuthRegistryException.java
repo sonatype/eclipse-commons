@@ -13,4 +13,8 @@ public class AuthRegistryException
     public AuthRegistryException( Exception cause ) {
         super( cause.getMessage(), cause );
     }
+
+    public AuthRegistryException( String message, Exception cause ) {
+        super( message, cause );
+    }
 }
