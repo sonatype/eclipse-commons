@@ -90,6 +90,11 @@ public class InputHistory
     /** Saves the input history into the dialog settings. */
     public void save()
     {
+        if ( Beans.isDesignTime() )
+        {
+            return;
+        }
+
         for ( Map.Entry<String, List<Combo>> e : comboMap.entrySet() )
         {
             String id = e.getKey();

@@ -656,6 +656,11 @@ public class UrlInputComposite
 
     private void saveAuthRealm()
     {
+        if ( Beans.isDesignTime() )
+        {
+            return;
+        }
+
         IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
         if ( authData == null )
         {
