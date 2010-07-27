@@ -26,6 +26,7 @@ import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.ui.common.InputHistory;
 import org.maven.ide.eclipse.ui.common.Messages;
+import org.maven.ide.eclipse.ui.common.composites.ValidatingComposite;
 import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
 import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Validator;
@@ -46,7 +47,7 @@ import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
  * saved in the auth registry.
  */
 public class UrlInputComposite
-    extends Composite
+    extends ValidatingComposite
 {
     public static final int READ_ONLY_URL = 1;
 
@@ -94,10 +95,6 @@ public class UrlInputComposite
 
     private Text passphraseText;
 
-    private WidthGroup widthGroup;
-
-    private SwtValidationGroup validationGroup;
-
     private IAuthData authData;
 
     private IAuthData defaultAuthData;
@@ -123,12 +120,11 @@ public class UrlInputComposite
 
     public UrlInputComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, int style )
     {
-        super( parent, SWT.NONE );
+        super( parent, widthGroup, validationGroup, false );
         this.readonlyUrl = ( style & READ_ONLY_URL ) != 0;
         this.allowAnonymous = ( style & ALLOW_ANONYMOUS ) != 0;
         this.displayCertificateControls = ( style & CERTIFICATE_CONTROLS ) != 0;
         this.urlLabelText = Messages.urlInput_url_label;
-        this.validationGroup = validationGroup;
 
         AnonymousAccessType anonymousAccessType =
             allowAnonymous ? AnonymousAccessType.ALLOWED : AnonymousAccessType.NOT_ALLOWED;
@@ -140,8 +136,6 @@ public class UrlInputComposite
         {
             defaultAuthData = new AuthData( "", "", anonymousAccessType );
         }
-
-        this.widthGroup = widthGroup == null ? new WidthGroup() : widthGroup;
 
         setInputHistory( new InputHistory( SETTINGS ) );
 
@@ -245,7 +239,7 @@ public class UrlInputComposite
         urlLabel = new Label( this, SWT.NONE );
         urlLabel.setText( urlLabelText );
         urlLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
-        widthGroup.addControl( urlLabel );
+        addToWidthGroup( urlLabel );
 
         createUrlControl();
 
@@ -259,7 +253,7 @@ public class UrlInputComposite
         GridData usernameLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         usernameLabelData.horizontalIndent = INPUT_INDENT;
         usernameLabel.setLayoutData( usernameLabelData );
-        widthGroup.addControl( usernameLabel );
+        addToWidthGroup( usernameLabel );
 
         usernameText = new Text( this, SWT.BORDER );
         GridData usernameGridData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
@@ -280,7 +274,7 @@ public class UrlInputComposite
         GridData passwordLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         passwordLabelData.horizontalIndent = INPUT_INDENT;
         passwordLabel.setLayoutData( passwordLabelData );
-        widthGroup.addControl( passwordLabel );
+        addToWidthGroup( passwordLabel );
 
         passwordText = new Text( this, SWT.BORDER | SWT.PASSWORD );
         passwordText.setLayoutData( usernameGridData );
@@ -314,9 +308,9 @@ public class UrlInputComposite
                     }
 
                     getShell().pack();
-                    if ( validationGroup != null )
+                    if ( getValidationGroup() != null )
                     {
-                        validationGroup.performValidation();
+                        getValidationGroup().performValidation();
                     }
                 }
             } );
@@ -629,11 +623,6 @@ public class UrlInputComposite
         return c instanceof Combo ? (Combo) c : null;
     }
 
-    public WidthGroup getWidthGroup()
-    {
-        return widthGroup;
-    }
-
     private interface UrlFieldFacade
     {
         String getText();
@@ -647,15 +636,6 @@ public class UrlInputComposite
         void setEnabled( boolean enabled );
 
         Control getWrappedControl();
-    }
-
-    @SuppressWarnings( "unchecked" )
-    protected void addToValidationGroup( Control control, Validator<String> validator )
-    {
-        if ( validationGroup != null )
-        {
-            validationGroup.add( control, validator );
-        }
     }
 
     private IAuthData getAuthData()

@@ -20,6 +20,18 @@ public class Messages
 
     public static String errors_unresolvedAddress;
 
+    public static String gavComposite_artifactId_label;
+
+    public static String gavComposite_artifactId_name;
+
+    public static String gavComposite_groupId_label;
+
+    public static String gavComposite_groupId_name;
+
+    public static String gavComposite_version_label;
+
+    public static String gavComposite_version_name;
+
     public static String listEditorComposite_add;
 
     public static String listEditorComposite_edit;
