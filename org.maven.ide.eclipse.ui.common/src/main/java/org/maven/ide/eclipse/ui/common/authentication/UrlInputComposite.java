@@ -1,5 +1,6 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
+import java.beans.Beans;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
@@ -491,6 +492,11 @@ public class UrlInputComposite
 
     private void updateCredentials()
     {
+        if ( Beans.isDesignTime() )
+        {
+            return;
+        }
+
         IAuthData newAuthData = AuthFacade.getAuthService().select( getUrlText() );
         if ( authData == newAuthData )
         {

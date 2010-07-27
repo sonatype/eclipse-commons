@@ -1,5 +1,6 @@
 package org.maven.ide.eclipse.ui.common;
 
+import java.beans.Beans;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +52,11 @@ public class InputHistory
     /** Loads the input history from the dialog settings. */
     public void load()
     {
+        if ( Beans.isDesignTime() )
+        {
+            return;
+        }
+
         for ( Map.Entry<String, List<Combo>> e : comboMap.entrySet() )
         {
             String id = e.getKey();
