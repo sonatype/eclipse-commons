@@ -229,9 +229,8 @@ public abstract class RemoteResourceLookupDialog
             {
                 if ( ! url.equals( serverUrl ) ) {
                     setInput( null );
-                    setMessage( null, IMessageProvider.ERROR );
                     serverUrl = url;
-                    problems.add( readyToLoadMessage, Severity.INFO );
+                    problems.add( readyToLoadMessage, Severity.FATAL );
                 }
                 loadButton.setEnabled( true );
             }
@@ -332,14 +331,16 @@ public abstract class RemoteResourceLookupDialog
                     expandableComposite.setExpanded( true );
                     updateExpandableState();
                     urlInputComposite.setFocus();
+                    setMessage( message, messageType );
+                    updateOkState( false );
                 }
                 else
                 {
                     resourceComposite.setFocus();
-                }
-                if ( validationGroup.performValidation() == null )
-                {
-                    setMessage( message, messageType );
+                    if ( validationGroup.performValidation() == null )
+                    {
+                        setMessage( message, messageType );
+                    }
                 }
             }
         } );
