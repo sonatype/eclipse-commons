@@ -1,10 +1,7 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
