@@ -2,6 +2,7 @@ package org.maven.ide.eclipse.ui.common.layout;
 
 import java.util.HashSet;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.layout.GridData;
@@ -21,7 +22,7 @@ public class WidthGroup
         int maxWidth = 0;
         for ( Control c : this.controls )
         {
-            int width = c.getSize().x + ( (GridData) c.getLayoutData() ).horizontalIndent;
+            int width = c.computeSize( SWT.DEFAULT, SWT.DEFAULT ).x + ( (GridData) c.getLayoutData() ).horizontalIndent;
             if ( width > maxWidth )
             {
                 maxWidth = width;
