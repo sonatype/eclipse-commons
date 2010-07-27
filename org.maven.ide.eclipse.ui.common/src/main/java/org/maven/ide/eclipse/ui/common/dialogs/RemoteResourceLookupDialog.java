@@ -9,6 +9,8 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -22,9 +24,16 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
+import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
+import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.ErrorHandlingUtils;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.authentication.UrlInputComposite;
+import org.netbeans.validation.api.Problems;
+import org.netbeans.validation.api.Severity;
+import org.netbeans.validation.api.Validator;
+import org.netbeans.validation.api.ui.ValidationListener;
+import org.netbeans.validation.api.ui.ValidationUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +68,15 @@ public abstract class RemoteResourceLookupDialog
 
     private Button loadButton;
 
+    private SwtValidationGroup validationGroup;
+
     public RemoteResourceLookupDialog( Shell parentShell, String serverUrl )
     {
         super( parentShell );
         this.serverUrl = serverUrl;
         setShellStyle( SWT.CLOSE | SWT.RESIZE | SWT.TITLE | SWT.APPLICATION_MODAL );
+
+        validationGroup = SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
     }
 
     @Override
@@ -132,11 +145,8 @@ public abstract class RemoteResourceLookupDialog
         resourceComposite = createResourcePanel( panel );
 
         applyDialogFont( dialogArea );
-        if ( serverUrl == null )
-        {
-            urlInputComposite.validate();
-        }
-        else
+        validationGroup.performValidation();
+        if ( serverUrl != null )
         {
             reload();
         }
@@ -151,27 +161,9 @@ public abstract class RemoteResourceLookupDialog
         expandableComposite.setLayoutData( new GridData( SWT.FILL, SWT.TOP, true, false ) );
 
         urlInputComposite =
-            new UrlInputComposite( expandableComposite, NLS.bind( Messages.remoteResourceLookupDialog_server_label,
-                                                                  serverName ), serverUrl,
-                                   UrlInputComposite.ALLOW_ANONYMOUS )
-            {
-                @Override
-                public String validate()
-                {
-                    String message = super.validate();
-                    if ( message != null )
-                    {
-                        setMessage( message, IMessageProvider.ERROR );
-                        loadButton.setEnabled( false );
-                    }
-                    else
-                    {
-                        setMessage( input == null ? readyToLoadMessage : selectMessage, IMessageProvider.NONE );
-                        loadButton.setEnabled( true );
-                    }
-                    return message;
-                }
-            };
+            new UrlInputComposite( expandableComposite, null, validationGroup, UrlInputComposite.ALLOW_ANONYMOUS );
+        urlInputComposite.setUrlLabelText( NLS.bind( Messages.remoteResourceLookupDialog_server_label, serverName ) );
+        urlInputComposite.setUrl( serverUrl );
 
         Composite reloadPanel = new Composite( parent, SWT.NONE );
         GridLayout gridLayout = new GridLayout( 2, false );
@@ -195,6 +187,8 @@ public abstract class RemoteResourceLookupDialog
             }
         } );
 
+        validationGroup.addItem( new UrlValidationListener( urlInputComposite ), false );
+
         String url = urlInputComposite.getUrlText();
         if ( url.length() > 0 )
         {
@@ -211,6 +205,42 @@ public abstract class RemoteResourceLookupDialog
         } );
 
         updateExpandableTitle();
+    }
+
+    private class UrlValidationListener
+        extends ValidationListener<UrlInputComposite>
+        implements ModifyListener
+    {
+        protected UrlValidationListener( UrlInputComposite urlInputComposite )
+        {
+            super( UrlInputComposite.class, ValidationUI.NO_OP, urlInputComposite );
+            urlInputComposite.addModifyListener( this );
+        }
+
+        @Override
+        protected void performValidation( Problems problems )
+        {
+            String url = urlInputComposite.getUrlText();
+            if ( url.length() == 0 )
+            {
+                loadButton.setEnabled( false );
+            }
+            else
+            {
+                if ( ! url.equals( serverUrl ) ) {
+                    setInput( null );
+                    setMessage( null, IMessageProvider.ERROR );
+                    serverUrl = url;
+                    problems.add( readyToLoadMessage, Severity.INFO );
+                }
+                loadButton.setEnabled( true );
+            }
+        }
+
+        public void modifyText( ModifyEvent e )
+        {
+            performValidation();
+        }
     }
 
     private void updateExpandableState()
@@ -280,7 +310,7 @@ public abstract class RemoteResourceLookupDialog
 
     protected String exceptionToUIText( Exception e )
     {
-        //TODO mkleint: this sort of won't work in governor use cases
+        // TODO mkleint: this sort of won't work in governor use cases
         return ErrorHandlingUtils.convertNexusIOExceptionToUIText( e );
     }
 
@@ -297,7 +327,6 @@ public abstract class RemoteResourceLookupDialog
             {
                 loadButton.setEnabled( enable );
                 setInput( input );
-                setMessage( message, messageType );
                 if ( messageType == IMessageProvider.ERROR )
                 {
                     expandableComposite.setExpanded( true );
@@ -307,6 +336,10 @@ public abstract class RemoteResourceLookupDialog
                 else
                 {
                     resourceComposite.setFocus();
+                }
+                if ( validationGroup.performValidation() == null )
+                {
+                    setMessage( message, messageType );
                 }
             }
         } );
@@ -324,6 +357,17 @@ public abstract class RemoteResourceLookupDialog
     protected String getServerUrl()
     {
         return urlInputComposite.getUrlText();
+    }
+
+    @SuppressWarnings( "unchecked" )
+    protected void addToValidationGroup( Control control, Validator<String> validator )
+    {
+        validationGroup.add( control, validator );
+    }
+
+    protected SwtValidationGroup getValidationGroup()
+    {
+        return validationGroup;
     }
 
     abstract protected Composite createResourcePanel( Composite parent );

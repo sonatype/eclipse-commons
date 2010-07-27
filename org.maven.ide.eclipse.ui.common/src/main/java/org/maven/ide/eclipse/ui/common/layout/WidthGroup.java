@@ -21,7 +21,7 @@ public class WidthGroup
         int maxWidth = 0;
         for ( Control c : this.controls )
         {
-            int width = c.getSize().x;
+            int width = c.getSize().x + ( (GridData) c.getLayoutData() ).horizontalIndent;
             if ( width > maxWidth )
             {
                 maxWidth = width;
@@ -32,7 +32,7 @@ public class WidthGroup
             for ( Control c : this.controls )
             {
                 GridData gd = (GridData) c.getLayoutData();
-                gd.widthHint = maxWidth;
+                gd.widthHint = maxWidth - gd.horizontalIndent;
                 c.getParent().layout();
             }
         }

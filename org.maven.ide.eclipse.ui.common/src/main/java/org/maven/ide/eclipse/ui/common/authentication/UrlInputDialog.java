@@ -1,15 +1,17 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
+import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.InputHistory;
 
 public class UrlInputDialog
@@ -92,24 +94,16 @@ public class UrlInputDialog
         Composite composite = (Composite) super.createDialogArea( parent );
         composite.setLayout( new GridLayout( 1, true ) );
 
-        setMessage( title );
-        setErrorMessage( errorMessage );
+        setTitle( title );
+        setMessage( errorMessage, IMessageProvider.ERROR );
 
-        urlComposite = new UrlInputComposite( composite, urlLabelText, url, inputStyle )
-        {
-            @Override
-            public String validate()
-            {
-                String message = super.validate();
-                setErrorMessage( message );
-                Button ok = getButton( IDialogConstants.OK_ID );
-                if ( ok != null )
-                {
-                    ok.setEnabled( message == null );
-                }
-                return message;
-            }
-        };
+        SwtValidationGroup validationGroup =
+            SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
+        
+        urlComposite = new UrlInputComposite( composite, null, validationGroup, inputStyle );
+        urlComposite.setUrlLabelText( urlLabelText );
+        urlComposite.setUrl( url );
+
         if ( initialHistory != null )
         {
             urlComposite.setInputHistory( initialHistory );
@@ -132,11 +126,11 @@ public class UrlInputDialog
     protected Control createButtonBar( Composite parent )
     {
         Control control = super.createButtonBar( parent );
-        getButton( IDialogConstants.OK_ID ).setEnabled( urlComposite.validate() == null );
+//        getButton( IDialogConstants.OK_ID ).setEnabled( urlComposite.validate() == null );
         urlComposite.setFocus();
         return control;
     }
-    
+
     @Override
     protected Point getInitialSize()
     {

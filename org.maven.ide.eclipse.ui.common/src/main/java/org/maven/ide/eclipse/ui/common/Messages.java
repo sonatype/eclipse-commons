@@ -56,7 +56,9 @@ public class Messages
 
     public static String urlInput_browse;
 
-    public static String urlInput_certificateFile;
+    public static String urlInput_certificateFile_label;
+
+    public static String urlInput_certificateFile_name;
 
     public static String urlInput_fileSelect_empty;
 
@@ -68,11 +70,21 @@ public class Messages
 
     public static String urlInput_fileSelect_title;
 
-    public static String urlInput_passphrase;
+    public static String urlInput_passphrase_label;
 
-    public static String urlInput_password;
+    public static String urlInput_passphrase_name;
 
-    public static String urlInput_username;
+    public static String urlInput_password_label;
+
+    public static String urlInput_password_name;
+
+    public static String urlInput_url_label;
+
+    public static String urlInput_url_name;
+
+    public static String urlInput_username_label;
+
+    public static String urlInput_username_name;
 
     public static String urlInput_useCertificate;
 

@@ -5,8 +5,10 @@ import java.text.MessageFormat;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.viewers.ISelection;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.netbeans.validation.api.Problems;
+import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.ValidatorUtils;
 import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
@@ -97,14 +99,15 @@ public final class SonatypeValidators
         }
     };
 
-    public static Validator<String> EMPTY_OR_URL = new Validator<String>() {
+    public static Validator<String> EMPTY_OR_URL = new Validator<String>()
+    {
         public void validate( Problems problems, String compName, String model )
         {
             if ( model.trim().length() == 0 )
             {
                 return;
             }
-            
+
             StringValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
         }
 

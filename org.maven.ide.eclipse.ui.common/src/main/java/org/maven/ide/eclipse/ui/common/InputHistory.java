@@ -72,6 +72,10 @@ public class InputHistory
                         // setItems() clears the text input, so we need to restore it
                         combo.setText( text );
                     }
+                    else if ( items.size() > 0 )
+                    {
+                        combo.setText( items.iterator().next() );
+                    }
                 }
             }
         }

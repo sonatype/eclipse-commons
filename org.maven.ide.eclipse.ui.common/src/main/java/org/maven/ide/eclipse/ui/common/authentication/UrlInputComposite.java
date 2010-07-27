@@ -20,12 +20,18 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
+import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.internal.AuthData;
+import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.ui.common.InputHistory;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
+import org.netbeans.validation.api.Problems;
+import org.netbeans.validation.api.Validator;
+import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
 
 /**
  * Reusable widget to enter a URL and/or supply the associated credentials.
@@ -58,7 +64,7 @@ public class UrlInputComposite
 
     private UrlFieldFacade urlComponent;
 
-    protected String url;
+    private Label urlLabel;
 
     private Text usernameText;
 
@@ -72,8 +78,6 @@ public class UrlInputComposite
 
     private InputHistory inputHistory;
 
-    private ModifyListener modifyListener;
-
     private String urlLabelText;
 
     private boolean allowAnonymous;
@@ -81,6 +85,8 @@ public class UrlInputComposite
     private Button useCertificateButton;
 
     private Label certificateLabel;
+
+    private Label anonymousLabel;
 
     private Text certificateText;
 
@@ -92,6 +98,14 @@ public class UrlInputComposite
 
     private WidthGroup widthGroup;
 
+    private SwtValidationGroup validationGroup;
+
+    private IAuthData authData;
+
+    private IAuthData defaultAuthData;
+
+    private boolean initialized;
+
     public UrlInputComposite( Composite parent, String urlLabelText )
     {
         this( parent, urlLabelText, null, ALLOW_ANONYMOUS );
@@ -102,49 +116,46 @@ public class UrlInputComposite
      */
     public UrlInputComposite( Composite parent, String urlLabelText, String url, int style )
     {
+        this( parent, (WidthGroup) null, (SwtValidationGroup) null, style );
+        initialized = false;
+        setUrlLabelText( urlLabelText );
+        setUrl( url );
+        initialized = true;
+    }
+
+    public UrlInputComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, int style )
+    {
         super( parent, SWT.NONE );
         this.readonlyUrl = ( style & READ_ONLY_URL ) != 0;
         this.allowAnonymous = ( style & ALLOW_ANONYMOUS ) != 0;
         this.displayCertificateControls = ( style & CERTIFICATE_CONTROLS ) != 0;
-        this.url = url;
-        this.urlLabelText = urlLabelText;
-        if ( readonlyUrl )
+        this.urlLabelText = Messages.urlInput_url_label;
+        this.validationGroup = validationGroup;
+
+        AnonymousAccessType anonymousAccessType =
+            allowAnonymous ? AnonymousAccessType.ALLOWED : AnonymousAccessType.NOT_ALLOWED;
+        if ( displayCertificateControls )
         {
-            assert url != null;
+            defaultAuthData = new AuthData( "", "", null, null, anonymousAccessType );
+        }
+        else
+        {
+            defaultAuthData = new AuthData( "", "", anonymousAccessType );
         }
 
-        widthGroup = new WidthGroup();
+        this.widthGroup = widthGroup == null ? new WidthGroup() : widthGroup;
 
         setInputHistory( new InputHistory( SETTINGS ) );
 
         setLayout( new GridLayout( 4, false ) );
-        // 1.create controls
-        createControls( urlLabelText, url );
 
-        // 2. set fields.
-        if ( url != null )
-        {
-            urlComponent.setText( url );
-            updateCredentials();
-        }
-        else if ( !readonlyUrl )
-        {
-            Combo combo = getComboBoxComponent();
-            String[] values = combo.getItems();
-            if ( values.length > 0 )
-            {
-                combo.setText( values[0] );
-                updateCredentials();
-            }
-        }
+        createControls();
 
-        // 3. add change listeners
         urlComponent.addModifyListener( new ModifyListener()
         {
             public void modifyText( ModifyEvent e )
             {
                 updateCredentials();
-                validate();
             }
         } );
         urlComponent.addSelectionListener( new SelectionAdapter()
@@ -153,25 +164,57 @@ public class UrlInputComposite
             public void widgetSelected( SelectionEvent e )
             {
                 updateCredentials();
-                validate();
+            }
+        } );
+        SwtValidationGroup.setComponentName( urlComponent.getWrappedControl(), Messages.urlInput_url_name );
+        addToValidationGroup( urlComponent.getWrappedControl(), new Validator<String>()
+        {
+            public Class<String> modelType()
+            {
+                return String.class;
+            }
+
+            public void validate( Problems problems, String compName, String model )
+            {
+                if ( model.startsWith( "scm:" ) )
+                {
+                    int n = model.indexOf( ':', 5 );
+                    if ( n > 0 )
+                    {
+                        model = model.substring( n + 1 );
+                    }
+                }
+                StringValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
             }
         } );
 
-        modifyListener = new ModifyListener()
-        {
-            public void modifyText( ModifyEvent e )
-            {
-                if ( !updating )
-                {
-                    validate();
-                }
-            }
-        };
-        usernameText.addModifyListener( modifyListener );
-        passwordText.addModifyListener( modifyListener );
+        SwtValidationGroup.setComponentName( usernameText, Messages.urlInput_username_name );
+        SwtValidationGroup.setComponentName( passwordText, Messages.urlInput_password_name );
+        addToValidationGroup( usernameText, new CredentialsValidator() );
+        addToValidationGroup( passwordText, new CredentialsValidator() );
 
         setTabList( new Control[] { urlComponent.getWrappedControl(), usernameText, passwordText } );
+
+        updateCredentials();
+        initialized = true;
     }
+
+    public class CredentialsValidator
+        implements Validator<String>
+    {
+        public Class<String> modelType()
+        {
+            return String.class;
+        }
+
+        public void validate( Problems problems, String compName, String model )
+        {
+            if ( AnonymousAccessType.NOT_ALLOWED.equals( getAuthData().getAnonymousAccessType() ) )
+            {
+                StringValidators.REQUIRE_NON_EMPTY_STRING.validate( problems, compName, model );
+            }
+        }
+    };
 
     public void setInputHistory( InputHistory hist )
     {
@@ -179,7 +222,7 @@ public class UrlInputComposite
         inputHistory = hist;
         if ( urlComponent != null )
         {
-            // setting different iput history after the ui component hierarchy was constructed
+            // setting different input history after the ui component hierarchy was constructed
             Control c = urlComponent.getWrappedControl();
             if ( c instanceof Combo )
             {
@@ -189,14 +232,24 @@ public class UrlInputComposite
         }
     }
 
-    protected void createControls( String urlLabelText, String url )
+    public void setUrlLabelText( String text )
     {
-        Label urlLabel = new Label( this, SWT.NONE );
+        urlLabelText = text;
+        if ( urlLabel != null && !urlLabel.isDisposed() )
+        {
+            urlLabel.setText( text );
+        }
+        setInputHistory( new InputHistory( SETTINGS ) );
+    }
+
+    protected void createControls()
+    {
+        urlLabel = new Label( this, SWT.NONE );
         urlLabel.setText( urlLabelText );
         urlLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
         widthGroup.addControl( urlLabel );
 
-        createUrlControl( urlLabelText );
+        createUrlControl();
 
         createCredentialControls();
     }
@@ -204,7 +257,7 @@ public class UrlInputComposite
     protected void createCredentialControls()
     {
         Label usernameLabel = new Label( this, SWT.NONE );
-        usernameLabel.setText( Messages.urlInput_username );
+        usernameLabel.setText( Messages.urlInput_username_label );
         GridData usernameLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         usernameLabelData.horizontalIndent = INPUT_INDENT;
         usernameLabel.setLayoutData( usernameLabelData );
@@ -213,14 +266,19 @@ public class UrlInputComposite
         usernameText = new Text( this, SWT.BORDER );
         GridData usernameGridData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         usernameGridData.widthHint = INPUT_WIDTH;
+        usernameGridData.horizontalIndent = INPUT_INDENT;
         usernameText.setLayoutData( usernameGridData );
 
-        Label anonymousLabel = new Label( this, SWT.NONE );
-        anonymousLabel.setText( allowAnonymous ? Messages.urlInput_anonymousIfEmpty : "" );
+        anonymousLabel = new Label( this, SWT.NONE );
+        anonymousLabel.setText( Messages.urlInput_anonymousIfEmpty );
+        if ( !allowAnonymous )
+        {
+            anonymousLabel.setVisible( false );
+        }
         anonymousLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, true, false, 2, 1 ) );
 
         Label passwordLabel = new Label( this, SWT.NONE );
-        passwordLabel.setText( Messages.urlInput_password );
+        passwordLabel.setText( Messages.urlInput_password_label );
         GridData passwordLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         passwordLabelData.horizontalIndent = INPUT_INDENT;
         passwordLabel.setLayoutData( passwordLabelData );
@@ -258,97 +316,64 @@ public class UrlInputComposite
                     }
 
                     getShell().pack();
-                    validate();
+                    if ( validationGroup != null )
+                    {
+                        validationGroup.performValidation();
+                    }
                 }
             } );
         }
     }
 
-    protected void createUrlControl( String urlLabelText )
+    protected void createUrlControl()
     {
         UrlFieldFacade facade;
-        if ( url != null && readonlyUrl )
+        if ( readonlyUrl )
         {
-            try
+            final Text urlText = new Text( this, SWT.READ_ONLY );
+            GridData gd = new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 );
+            gd.widthHint = 100;
+            gd.horizontalIndent = INPUT_INDENT;
+            urlText.setLayoutData( gd );
+            urlText.setBackground( urlText.getDisplay().getSystemColor( SWT.COLOR_WIDGET_BACKGROUND ) );
+            facade = new UrlFieldFacade()
             {
-                new URL( url );
-                final Text urlText = new Text( this, SWT.READ_ONLY );
-                GridData gd = new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 );
-                gd.widthHint = 100;
-                urlText.setLayoutData( gd );
-                urlText.setBackground( urlText.getDisplay().getSystemColor( SWT.COLOR_WIDGET_BACKGROUND ) );
-                facade = new UrlFieldFacade()
+
+                public void setText( String text )
                 {
+                    urlText.setText( text );
+                }
 
-                    public void setText( String text )
-                    {
-                        urlText.setText( text );
-                    }
-
-                    public void setEnabled( boolean enabled )
-                    {
-                    }
-
-                    public String getText()
-                    {
-                        return urlText.getText();
-                    }
-
-                    public void addModifyListener( ModifyListener listener )
-                    {
-                    }
-
-                    public void addSelectionListener( SelectionListener listener )
-                    {
-                    }
-
-                    public Control getWrappedControl()
-                    {
-                        return urlText;
-                    }
-                };
-            }
-            catch ( MalformedURLException e1 )
-            {
-                final Label realmIdLabel = new Label( this, SWT.NONE );
-                GridData gd = new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 );
-                gd.widthHint = 100;
-                realmIdLabel.setLayoutData( gd );
-                facade = new UrlFieldFacade()
+                public void setEnabled( boolean enabled )
                 {
-                    public void setText( String text )
-                    {
-                        realmIdLabel.setText( text );
-                    }
+                }
 
-                    public void setEnabled( boolean enabled )
-                    {
-                    }
+                public String getText()
+                {
+                    return urlText.getText();
+                }
 
-                    public String getText()
-                    {
-                        return realmIdLabel.getText();
-                    }
+                public void addModifyListener( ModifyListener listener )
+                {
+                }
 
-                    public void addModifyListener( ModifyListener listener )
-                    {
-                    }
+                public void addSelectionListener( SelectionListener listener )
+                {
+                }
 
-                    public void addSelectionListener( SelectionListener listener )
-                    {
-                    }
-
-                    public Control getWrappedControl()
-                    {
-                        return realmIdLabel;
-                    }
-                };
-            }
+                public Control getWrappedControl()
+                {
+                    return urlText;
+                }
+            };
         }
         else
         {
             final Combo combo = new Combo( this, SWT.NONE );
-            combo.setLayoutData( new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 ) );
+            GridData gd = new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 );
+            gd.widthHint = 100;
+            gd.horizontalIndent = INPUT_INDENT;
+            combo.setLayoutData( gd );
 
             inputHistory.add( urlLabelText, combo );
             inputHistory.load();
@@ -407,14 +432,16 @@ public class UrlInputComposite
         GridData certificateLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         certificateLabelData.horizontalIndent = INPUT_INDENT * 2;
         certificateLabel.setLayoutData( certificateLabelData );
-        certificateLabel.setText( Messages.urlInput_certificateFile );
+        certificateLabel.setText( Messages.urlInput_certificateFile_label );
 
         certificateText = new Text( this, SWT.BORDER );
         certificateText.setData( "name", "certificateText" );
         GridData certificateData = new GridData( SWT.FILL, SWT.CENTER, true, false, 2, 1 );
         certificateData.widthHint = 100;
+        certificateData.horizontalIndent = INPUT_INDENT;
         certificateText.setLayoutData( certificateData );
-        certificateText.addModifyListener( modifyListener );
+        SwtValidationGroup.setComponentName( certificateText, Messages.urlInput_certificateFile_name );
+        addToValidationGroup( certificateText, StringValidators.REQUIRE_NON_EMPTY_STRING );
 
         browseCertificateButton = new Button( this, SWT.PUSH );
         browseCertificateButton.setData( "name", "browseCertificateButton" );
@@ -448,13 +475,16 @@ public class UrlInputComposite
         GridData passphraseLabelData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         passphraseLabelData.horizontalIndent = INPUT_INDENT * 2;
         passphraseLabel.setLayoutData( passphraseLabelData );
-        passphraseLabel.setText( Messages.urlInput_passphrase );
+        passphraseLabel.setText( Messages.urlInput_passphrase_label );
 
         passphraseText = new Text( this, SWT.BORDER | SWT.PASSWORD );
         passphraseText.setData( "name", "passphraseText" );
         GridData passphraseData = new GridData( SWT.LEFT, SWT.CENTER, false, false, 3, 1 );
         passphraseData.widthHint = INPUT_WIDTH;
+        passphraseData.horizontalIndent = INPUT_INDENT;
         passphraseText.setLayoutData( passphraseData );
+        SwtValidationGroup.setComponentName( passphraseText, Messages.urlInput_passphrase_name );
+        addToValidationGroup( passphraseText, StringValidators.REQUIRE_NON_EMPTY_STRING );
     }
 
     public String getUrlText()
@@ -462,103 +492,75 @@ public class UrlInputComposite
         return urlComponent.getText();
     }
 
-    public String validate()
-    {
-        String url = getUrlText();
-
-        if ( url.length() == 0 )
-        {
-            return Messages.urlInput_validation_enterUrl;
-        }
-        else
-        {
-            try
-            {
-                if ( !readonlyUrl )
-                {
-                    new URL( url );
-                }
-            }
-            catch ( MalformedURLException e )
-            {
-                return NLS.bind( Messages.urlInput_validation_invalidUrl, e.getMessage() );
-            }
-
-            if ( !allowAnonymous && usernameText.getText().length() == 0 )
-            {
-                return Messages.urlInput_validation_enterUserCredentials;
-            }
-        }
-
-        if ( displayCertificateControls && useCertificateButton.getSelection() )
-        {
-            String filename = certificateText.getText().trim();
-            if ( filename.length() == 0 )
-            {
-                return Messages.urlInput_fileSelect_empty;
-            }
-            else
-            {
-                File file = new File( filename );
-                if ( !file.exists() )
-                {
-                    return NLS.bind( Messages.urlInput_fileSelect_notFound, filename );
-                }
-            }
-        }
-
-        return null;
-    }
-
     private void updateCredentials()
     {
-        updating = true;
-
-        IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
-        if ( authData == null )
+        IAuthData newAuthData = AuthFacade.getAuthService().select( getUrlText() );
+        if ( authData == newAuthData )
         {
             return;
         }
 
-        if ( authData != null )
-        {
-            // TODO Disable username and password controls if anonymous is required
-            if ( authData.allowsUsernameAndPassword() )
-            {
-                usernameText.setText( authData.getUsername() );
-                passwordText.setText( authData.getPassword() );
-            }
+        updating = true;
+        authData = newAuthData;
 
-            if ( displayCertificateControls && authData.allowsCertificate() )
+        if ( getAuthData().allowsUsernameAndPassword() )
+        {
+            usernameText.setEnabled( true );
+            passwordText.setEnabled( true );
+            usernameText.setText( getAuthData().getUsername() );
+            passwordText.setText( getAuthData().getPassword() );
+        }
+        else
+        {
+            usernameText.setEnabled( false );
+            passwordText.setEnabled( true );
+            usernameText.setText( "" );
+            passwordText.setText( "" );
+        }
+
+        AnonymousAccessType anonymousAccessType = getAuthData().getAnonymousAccessType();
+        anonymousLabel.setVisible( !AnonymousAccessType.NOT_ALLOWED.equals( anonymousAccessType ) );
+
+        if ( displayCertificateControls )
+        {
+            if ( getAuthData().allowsCertificate() )
             {
-                if ( !useCertificateButton.getSelection() )
+                useCertificateButton.setEnabled( true );
+
+                String certificateFilename = null;
+                String passphrase = null;
+                File file = getAuthData().getCertificatePath();
+                if ( file != null )
+                {
+                    certificateFilename = file.getAbsolutePath();
+                }
+                passphrase = getAuthData().getCertificatePassphrase();
+
+                if ( ( passphrase != null || certificateFilename != null || AuthenticationType.CERTIFICATE.equals( getAuthData().getAuthenticationType() ) )
+                    && !useCertificateButton.getSelection() )
                 {
                     useCertificateButton.setSelection( true );
                     createCertificateControls();
-                    getShell().pack();
+                    if ( initialized )
+                    {
+                        getShell().pack();
+                    }
                 }
 
                 if ( useCertificateButton.getSelection() )
                 {
-                    String certificateFilename = "";
-                    String passphrase = "";
-                    File file = authData.getCertificatePath();
-                    if ( file != null )
-                    {
-                        certificateFilename = file.getAbsolutePath();
-                    }
-                    passphrase = authData.getCertificatePassphrase();
                     certificateText.setText( certificateFilename == null ? "" : certificateFilename );
                     passphraseText.setText( passphrase == null ? "" : passphrase );
                 }
             }
-        }
-        else
-        {
-            // MECLIPSE-946 when no realm is found, just keep the previously entered/filled value..
-            // setAnonymous( true );
-            // usernameText.setText( "" );
-            // passwordText.setText( "" );
+            else
+            {
+                if ( useCertificateButton.getSelection() )
+                {
+                    removeCertificateControls();
+                }
+                useCertificateButton.setEnabled( false );
+            }
         }
 
         updating = false;
@@ -569,6 +571,15 @@ public class UrlInputComposite
         inputHistory.save();
         saveAuthRealm();
         return getUrlText();
+    }
+
+    public void setUrl( String text )
+    {
+        if ( text != null )
+        {
+            urlComponent.setText( text );
+            updateCredentials();
+        }
     }
 
     public void enableControls( boolean b )
@@ -633,5 +644,24 @@ public class UrlInputComposite
         void setEnabled( boolean enabled );
 
         Control getWrappedControl();
+    }
+
+    @SuppressWarnings( "unchecked" )
+    protected void addToValidationGroup( Control control, Validator<String> validator )
+    {
+        if ( validationGroup != null )
+        {
+            validationGroup.add( control, validator );
+        }
+    }
+
+    private IAuthData getAuthData()
+    {
+        return authData == null ? defaultAuthData : authData;
+    }
+
+    public void addModifyListener( ModifyListener modifyListener )
+    {
+        urlComponent.addModifyListener( modifyListener );
     }
 }

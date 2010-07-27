@@ -78,7 +78,7 @@ public class ComboSwtValidationListenerFactory extends ValidationListenerFactory
         @Override
         protected void performValidation(Problems ps) {
             Combo component = getTarget();
-            if (!component.isEnabled()) {
+            if (component.isDisposed()||!component.isEnabled()) {
                 return;
             }
             validator.validate(ps, SwtValidationGroup.nameForComponent(component), component.getText());

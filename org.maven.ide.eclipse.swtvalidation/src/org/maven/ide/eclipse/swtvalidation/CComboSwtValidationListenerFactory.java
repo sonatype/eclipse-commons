@@ -78,7 +78,7 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
         @Override
         protected void performValidation(Problems ps) {
             CCombo component = getTarget();
-            if (!component.isEnabled()) {
+            if (component.isDisposed()||!component.isEnabled()) {
                 return;
             }
             validator.validate(ps, SwtValidationGroup.nameForComponent(component), component.getText());

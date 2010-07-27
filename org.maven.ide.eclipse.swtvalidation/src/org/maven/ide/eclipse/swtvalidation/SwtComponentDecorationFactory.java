@@ -144,13 +144,18 @@ public abstract class SwtComponentDecorationFactory {
     private static class ControlValidationUI implements ValidationUI {
 
         private ControlDecoration dec;
-        private ControlValidationUI(Control combo) {
-            dec = new ControlDecoration(combo, SWT.TOP | SWT.LEFT);
+        private Control control;
+        private ControlValidationUI(Control control) {
+            this.control = control;
+            dec = new ControlDecoration(control, SWT.TOP | SWT.LEFT);
             dec.setMarginWidth(1);
             dec.setShowHover(true);
         }
 
         public void showProblem(Problem prblm) {
+            if ( control.isDisposed() ) {
+                return;
+            }
             dec.setDescriptionText(prblm.getMessage());
             if (prblm.isFatal()) {
                 dec.setImage(Images.ERROR);
@@ -167,6 +172,9 @@ public abstract class SwtComponentDecorationFactory {
         }
 
         public void clearProblem() {
+            if ( control.isDisposed() ) {
+                return;
+            }
             dec.setImage(null);
             dec.hide();
         }
