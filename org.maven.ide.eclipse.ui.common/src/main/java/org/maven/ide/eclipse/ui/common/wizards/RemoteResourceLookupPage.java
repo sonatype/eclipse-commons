@@ -1,26 +1,23 @@
-package org.maven.ide.eclipse.ui.common.dialogs;
+package org.maven.ide.eclipse.ui.common.wizards;
+
+import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -37,17 +34,12 @@ import org.netbeans.validation.api.ui.ValidationUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @deprecated
- */
-public abstract class RemoteResourceLookupDialog
-    extends TitleAreaDialog
+abstract public class RemoteResourceLookupPage
+    extends WizardPage
 {
-    private Logger log = LoggerFactory.getLogger( RemoteResourceLookupDialog.class );
+    private Logger log = LoggerFactory.getLogger( RemoteResourceLookupPage.class );
 
     private String serverUrl;
-
-    private String title;
 
     private String selectMessage;
 
@@ -58,8 +50,6 @@ public abstract class RemoteResourceLookupDialog
     private String resourceLabelText;
 
     private String loadButtonText;
-
-    private volatile Job loadJob;
 
     private Object input;
 
@@ -73,27 +63,13 @@ public abstract class RemoteResourceLookupDialog
 
     private SwtValidationGroup validationGroup;
 
-    public RemoteResourceLookupDialog( Shell parentShell, String serverUrl )
+    public RemoteResourceLookupPage( String serverUrl )
     {
-        super( parentShell );
+        super( RemoteResourceLookupPage.class.getName() );
         this.serverUrl = serverUrl;
-        setShellStyle( SWT.CLOSE | SWT.RESIZE | SWT.TITLE | SWT.APPLICATION_MODAL );
+        setPageComplete( false );
 
         validationGroup = SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
-    }
-
-    @Override
-    protected void configureShell( Shell newShell )
-    {
-        super.configureShell( newShell );
-        newShell.setText( title );
-    }
-
-    @Override
-    public void setTitle( String newTitle )
-    {
-        super.setTitle( newTitle );
-        this.title = newTitle;
     }
 
     public void setServerName( String name )
@@ -121,21 +97,9 @@ public abstract class RemoteResourceLookupDialog
         loadButtonText = text;
     }
 
-    @Override
-    protected Control createButtonBar( Composite parent )
+    public void createControl( Composite parent )
     {
-        Control control = super.createButtonBar( parent );
-        updateOkState( false );
-        return control;
-    }
-
-    @Override
-    protected Control createDialogArea( Composite parent )
-    {
-        Composite dialogArea = (Composite) super.createDialogArea( parent );
-        super.setTitle( title );
-
-        Composite panel = new Composite( dialogArea, SWT.NONE );
+        Composite panel = new Composite( parent, SWT.NONE );
         GridLayout gl = new GridLayout( 1, false );
         gl.marginLeft = 10;
         gl.marginRight = 10;
@@ -147,14 +111,14 @@ public abstract class RemoteResourceLookupDialog
         createExpandableComposite( panel );
         resourceComposite = createResourcePanel( panel );
 
-        applyDialogFont( dialogArea );
         validationGroup.performValidation();
         if ( serverUrl != null )
         {
             reload();
         }
 
-        return dialogArea;
+        setControl( panel );
+//        updateExpandableState();
     }
 
     private void createExpandableComposite( final Composite parent )
@@ -165,7 +129,7 @@ public abstract class RemoteResourceLookupDialog
 
         urlInputComposite =
             new UrlInputComposite( expandableComposite, null, validationGroup, UrlInputComposite.ALLOW_ANONYMOUS );
-        urlInputComposite.setUrlLabelText( NLS.bind( Messages.remoteResourceLookupDialog_server_label, serverName ) );
+        urlInputComposite.setUrlLabelText( NLS.bind( Messages.remoteResourceLookupPage_server_label, serverName ) );
         urlInputComposite.setUrl( serverUrl );
 
         Composite reloadPanel = new Composite( parent, SWT.NONE );
@@ -232,7 +196,7 @@ public abstract class RemoteResourceLookupDialog
             {
                 if ( !url.equals( serverUrl ) )
                 {
-                    setInput( null );
+                    setInput( input = null );
                     serverUrl = url;
                     problems.add( readyToLoadMessage, Severity.FATAL );
                 }
@@ -250,65 +214,75 @@ public abstract class RemoteResourceLookupDialog
     {
         updateExpandableTitle();
 
-        Shell shell = getShell();
-        Point minSize = shell.getMinimumSize();
-        shell.setMinimumSize( shell.getSize().x, minSize.y );
-        shell.pack();
+//        Shell shell = getShell();
+//        Point minSize = shell.getMinimumSize();
+//        shell.setMinimumSize( shell.getSize().x, minSize.y );
+//        shell.pack();
         expandableComposite.getParent().layout();
-        shell.setMinimumSize( minSize );
+//        shell.setMinimumSize( minSize );
     }
 
     private void updateExpandableTitle()
     {
         expandableComposite.setText( expandableComposite.isExpanded() ? NLS.bind(
-                                                                                  Messages.remoteResourceLookupDialog_server_expanded,
+                                                                                  Messages.remoteResourceLookupPage_server_expanded,
                                                                                   serverName )
-                        : NLS.bind( Messages.remoteResourceLookupDialog_server_collapsed, serverName,
+                        : NLS.bind( Messages.remoteResourceLookupPage_server_collapsed, serverName,
                                     urlInputComposite.getUrl() ) );
     }
 
     private void reload()
     {
-        if ( loadJob != null )
-        {
-            return;
-        }
-
         input = null;
         final String url = urlInputComposite.getUrl();
-        updateLoadControls( false, Messages.remoteResourceLookupDialog_loading, IMessageProvider.INFORMATION );
-        loadJob = new Job( Messages.remoteResourceLookupDialog_loading )
+        updateLoadControls( false, Messages.remoteResourceLookupPage_loading, IMessageProvider.INFORMATION );
+
+        final Exception[] exception = new Exception[1];
+        try
         {
-            @Override
-            protected IStatus run( IProgressMonitor monitor )
+            getContainer().run( true, true, new IRunnableWithProgress()
             {
-                try
+                public void run( IProgressMonitor monitor )
+                    throws InvocationTargetException, InterruptedException
                 {
-                    input = loadResources( url, monitor );
-                }
-                catch ( Exception e )
-                {
-                    String message = exceptionToUIText( e );
+                    monitor.beginTask( Messages.remoteResourceLookupPage_loading, 2 );
 
-                    if ( message == null )
+                    try
                     {
-                        message = NLS.bind( Messages.remoteResourceLookupDialog_error_other, e.getMessage() );
+                        input = loadResources( url, monitor );
+                        updateLoadControls( true, selectMessage, IMessageProvider.NONE );
                     }
-                    log.error( message, e );
-
-                    updateLoadControls( true, message, IMessageProvider.ERROR );
-                    return Status.OK_STATUS;
+                    catch ( Exception e )
+                    {
+                        exception[0] = e;
+                    }
+                    finally
+                    {
+                        monitor.done();
+                    }
                 }
-                finally
-                {
-                    loadJob = null;
-                }
+            } );
+        }
+        catch ( InvocationTargetException e )
+        {
+            exception[0] = e;
+        }
+        catch ( InterruptedException e )
+        {
+            exception[0] = e;
+        }
+        
+        if ( exception[0] != null ) {
+            String message = exceptionToUIText( exception[0] );
 
-                updateLoadControls( true, selectMessage, IMessageProvider.NONE );
-                return Status.OK_STATUS;
+            if ( message == null )
+            {
+                message = NLS.bind( Messages.remoteResourceLookupPage_error_other, exception[0].getMessage() );
             }
-        };
-        loadJob.schedule();
+            log.error( message, exception[0] );
+
+            updateLoadControls( true, message, IMessageProvider.ERROR );
+        }
     }
 
     protected String exceptionToUIText( Exception e )
@@ -336,7 +310,7 @@ public abstract class RemoteResourceLookupDialog
                     updateExpandableState();
                     urlInputComposite.setFocus();
                     setMessage( message, messageType );
-                    updateOkState( false );
+                    setPageComplete( false );
                 }
                 else
                 {
@@ -348,15 +322,6 @@ public abstract class RemoteResourceLookupDialog
                 }
             }
         } );
-    }
-
-    protected void updateOkState( boolean enable )
-    {
-        Button ok = getButton( IDialogConstants.OK_ID );
-        if ( ok != null )
-        {
-            ok.setEnabled( enable );
-        }
     }
 
     protected String getServerUrl()

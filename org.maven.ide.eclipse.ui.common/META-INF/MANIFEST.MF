@@ -22,7 +22,8 @@ Export-Package: org.maven.ide.eclipse.ui.common,
  org.maven.ide.eclipse.ui.common.composites,
  org.maven.ide.eclipse.ui.common.dialogs,
  org.maven.ide.eclipse.ui.common.layout,
- org.maven.ide.eclipse.ui.common.validation
+ org.maven.ide.eclipse.ui.common.validation,
+ org.maven.ide.eclipse.ui.common.wizards
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.maven.ide.eclipse.ui.common.Activator
 Bundle-Vendor: SONATYPE

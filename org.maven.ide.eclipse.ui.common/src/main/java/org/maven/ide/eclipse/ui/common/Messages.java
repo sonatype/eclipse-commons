@@ -38,6 +38,16 @@ public class Messages
 
     public static String remoteResourceLookupDialog_server_label;
 
+    public static String remoteResourceLookupPage_error_other;
+
+    public static String remoteResourceLookupPage_loading;
+
+    public static String remoteResourceLookupPage_server_collapsed;
+
+    public static String remoteResourceLookupPage_server_expanded;
+
+    public static String remoteResourceLookupPage_server_label;
+
     public static String secureStorageDialog_errors_noMatch;
 
     public static String secureStorageDialog_errors_emptyPassword;
