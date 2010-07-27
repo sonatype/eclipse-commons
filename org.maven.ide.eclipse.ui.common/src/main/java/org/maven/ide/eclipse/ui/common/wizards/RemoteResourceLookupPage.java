@@ -80,6 +80,7 @@ abstract public class RemoteResourceLookupPage
     public void setSelectMessage( String message )
     {
         selectMessage = message;
+        setDescription( selectMessage );
     }
 
     public void setReadyToLoadMessage( String message )
@@ -118,7 +119,7 @@ abstract public class RemoteResourceLookupPage
         }
 
         setControl( panel );
-//        updateExpandableState();
+        // updateExpandableState();
     }
 
     private void createExpandableComposite( final Composite parent )
@@ -214,12 +215,12 @@ abstract public class RemoteResourceLookupPage
     {
         updateExpandableTitle();
 
-//        Shell shell = getShell();
-//        Point minSize = shell.getMinimumSize();
-//        shell.setMinimumSize( shell.getSize().x, minSize.y );
-//        shell.pack();
+        // Shell shell = getShell();
+        // Point minSize = shell.getMinimumSize();
+        // shell.setMinimumSize( shell.getSize().x, minSize.y );
+        // shell.pack();
         expandableComposite.getParent().layout();
-//        shell.setMinimumSize( minSize );
+        // shell.setMinimumSize( minSize );
     }
 
     private void updateExpandableTitle()
@@ -271,8 +272,9 @@ abstract public class RemoteResourceLookupPage
         {
             exception[0] = e;
         }
-        
-        if ( exception[0] != null ) {
+
+        if ( exception[0] != null )
+        {
             String message = exceptionToUIText( exception[0] );
 
             if ( message == null )
