@@ -27,14 +27,15 @@ public class GAVComposite
 
     private Text versionText;
 
-    public GAVComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, boolean formMode )
+    public GAVComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, boolean formMode,
+                         boolean validateProjectName )
     {
         super( parent, widthGroup, validationGroup, formMode );
 
         setLayout( new GridLayout( 2, false ) );
 
         createGroupIdControls();
-        createArtifactIdControls();
+        createArtifactIdControls( validateProjectName );
         createVersionControls();
     }
 
@@ -60,7 +61,7 @@ public class GAVComposite
     }
 
     @SuppressWarnings( "unchecked" )
-    private void createArtifactIdControls()
+    private void createArtifactIdControls( boolean validateProjectName )
     {
         Label artifactIdLabel = new Label( this, SWT.NONE );
         artifactIdLabel.setText( Messages.gavComposite_artifactId_label );
@@ -80,8 +81,10 @@ public class GAVComposite
         SwtValidationGroup.setComponentName( artifactIdText, Messages.gavComposite_artifactId_name );
 
         Validator<String> validator = SonatypeValidators.createArtifactIdValidators();
-        addToValidationGroup( artifactIdText, isFormMode() ? validator
-                        : ValidatorUtils.merge( validator, SonatypeValidators.EXISTS_IN_WORKSPACE ) );
+        addToValidationGroup( artifactIdText,
+                              validateProjectName ? ValidatorUtils.merge( validator,
+                                                                          SonatypeValidators.EXISTS_IN_WORKSPACE )
+                                              : validator );
     }
 
     private void createVersionControls()
@@ -158,5 +161,12 @@ public class GAVComposite
 
     protected void saveVersion( String version )
     {
+    }
+
+    public void setEditable( boolean b )
+    {
+        groupIdText.setEditable( b );
+        artifactIdText.setEditable( b );
+        versionText.setEditable( b );
     }
 }
