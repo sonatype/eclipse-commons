@@ -46,6 +46,8 @@ public class AuthRegistry
 
     private static volatile AuthRegistryStates state = AuthRegistryStates.NOT_LOADED;
 
+    public static Object loadLock = new Integer( 0 );
+
     public static AuthRegistryStates getState()
     {
         return state;
@@ -218,44 +220,48 @@ public class AuthRegistry
 
     private void load( IProgressMonitor monitor )
     {
-        log.debug( "Loading security realms from persistent storage..." );
-
-        long start = System.currentTimeMillis();
-        state = AuthRegistryStates.LOADING;
-        try
+        synchronized ( loadLock )
         {
-            loadSecurityRealmPersistence();
-            if ( persistence == null )
+            log.debug( "Loading security realms from persistent storage..." );
+
+            long start = System.currentTimeMillis();
+            state = AuthRegistryStates.LOADING;
+            try
             {
-                // Nothing to load
-                return;
-            }
+                loadSecurityRealmPersistence();
+                if ( persistence == null )
+                {
+                    // Nothing to load
+                    return;
+                }
 
-            Set<IAuthRealm> persistedRealms = persistence.getRealms( monitor );
-            log.debug( "Found {} persisted security realms.", persistedRealms.size() );
-            for ( IAuthRealm realm : persistedRealms )
+                Set<IAuthRealm> persistedRealms = persistence.getRealms( monitor );
+                log.debug( "Found {} persisted security realms.", persistedRealms.size() );
+                for ( IAuthRealm realm : persistedRealms )
+                {
+                    log.debug( "Found persisted security realm with id={}", realm.getId() );
+
+                    ( (AuthRealm) realm ).loadFromSecureStorage( secureStorage );
+                    realms.put( realm.getId(), realm );
+                }
+
+                Set<ISecurityRealmURLAssoc> persistedUrls = persistence.getURLToRealmAssocs( monitor );
+                log.debug( "Found {} persisted URL to security realm associations.", persistedUrls.size() );
+                for ( ISecurityRealmURLAssoc url : persistedUrls )
+                {
+                    log.debug( "Found persisted URL to security realm association URL={} <--> realm id={}",
+                               url.getUrl(), url.getRealmId() );
+
+                    urlAssocsById.put( url.getId(), url );
+                    urlAssocsByUrl.put( url.getUrl(), url );
+                }
+            }
+            finally
             {
-                log.debug( "Found persisted security realm with id={}", realm.getId() );
-
-                ( (AuthRealm) realm ).loadFromSecureStorage( secureStorage );
-                realms.put( realm.getId(), realm );
+                state = AuthRegistryStates.LOADED;
+                log.debug( "Loaded security realms from persistent storage in {} ms", System.currentTimeMillis()
+                    - start );
             }
-
-            Set<ISecurityRealmURLAssoc> persistedUrls = persistence.getURLToRealmAssocs( monitor );
-            log.debug( "Found {} persisted URL to security realm associations.", persistedUrls.size() );
-            for ( ISecurityRealmURLAssoc url : persistedUrls )
-            {
-                log.debug( "Found persisted URL to security realm association URL={} <--> realm id={}", url.getUrl(),
-                           url.getRealmId() );
-
-                urlAssocsById.put( url.getId(), url );
-                urlAssocsByUrl.put( url.getUrl(), url );
-            }
-        }
-        finally
-        {
-            state = AuthRegistryStates.LOADED;
-            log.debug( "Loaded security realms from persistent storage in {} ms", System.currentTimeMillis() - start );
         }
     }
 

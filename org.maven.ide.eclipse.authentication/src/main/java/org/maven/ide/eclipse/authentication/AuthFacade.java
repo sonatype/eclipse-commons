@@ -23,16 +23,21 @@ public class AuthFacade
 
     public static IAuthService getAuthService()
     {
-        if ( AuthRegistry.getState() == AuthRegistryStates.LOADING )
+        synchronized ( AuthRegistry.loadLock )
         {
-            return new SimpleAuthService( SecurePreferencesFactory.getDefault() );
-        }
+            if ( AuthRegistry.getState() == AuthRegistryStates.LOADING )
+            {
+                // The request for auth service is made from the same thread that loads the registry,
+                // so auth data is needed for the loading of the registry itself.
+                return new SimpleAuthService( SecurePreferencesFactory.getDefault() );
+            }
 
-        if ( authRegistry != null )
-        {
-            return authRegistry;
+            if ( authRegistry != null )
+            {
+                return authRegistry;
+            }
+            return loadAuthRegistry();
         }
-        return loadAuthRegistry();
     }
 
     public static IAuthRegistry getAuthRegistry()
