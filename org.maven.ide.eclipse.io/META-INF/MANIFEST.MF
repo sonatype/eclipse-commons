@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: com.sonatype.s2.io
 Bundle-SymbolicName: org.maven.ide.eclipse.io;singleton:=true
 Bundle-Version: 1.1.3.qualifier
-Bundle-Vendor: SONATYPE
+Bundle-Vendor: Sonatype, Inc.
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.net,
  org.eclipse.jetty.client;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",

@@ -26,5 +26,5 @@ Export-Package: org.maven.ide.eclipse.ui.common,
  org.maven.ide.eclipse.ui.common.wizards
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.maven.ide.eclipse.ui.common.Activator
-Bundle-Vendor: SONATYPE
+Bundle-Vendor: Sonatype, Inc.
 

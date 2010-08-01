@@ -12,4 +12,5 @@ Bundle-SymbolicName: org.maven.ide.eclipse.grouplayout;singleton:=true
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
 Require-Bundle: org.eclipse.swt,
  org.eclipse.jface
+Bundle-Vendor: Sonatype, Inc.
 
