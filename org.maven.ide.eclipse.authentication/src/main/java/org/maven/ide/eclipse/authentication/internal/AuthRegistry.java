@@ -223,6 +223,8 @@ public class AuthRegistry
         {
             log.debug( "Loading security realms from persistent storage..." );
 
+            loadCount++;
+
             long start = System.currentTimeMillis();
             state = AuthRegistryStates.LOADING;
             try
@@ -601,5 +603,12 @@ public class AuthRegistry
             ISecurityRealmURLAssoc urlAssoc = urlAssocsById.remove( urlToRealmAssocId );
             urlAssocsByUrl.remove( urlAssoc.getUrl() );
         }
+    }
+
+    private int loadCount = 0;
+
+    public int getLoadCount()
+    {
+        return loadCount;
     }
 }
