@@ -534,7 +534,7 @@ public class UrlInputComposite
 
     public String getUrlText()
     {
-        return url;
+        return url == null ? "" : url;
     }
 
     private void updateCredentials()
