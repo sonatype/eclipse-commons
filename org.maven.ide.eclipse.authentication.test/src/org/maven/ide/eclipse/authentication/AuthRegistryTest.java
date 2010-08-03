@@ -472,8 +472,7 @@ public class AuthRegistryTest
     public void testUpdateRealmIdNull()
         throws Exception
     {
-        IAuthRealm realm =
-            AuthFacade.newAuthRealm( null /* id */, "realm-name", "desc", AuthenticationType.CERTIFICATE );
+        IAuthRealm realm = new AuthRealm( null /* id */, "realm-name", "desc", AuthenticationType.CERTIFICATE );
         try
         {
             registry.updateRealm( realm, monitor );
@@ -491,7 +490,7 @@ public class AuthRegistryTest
     public void testUpdateRealmIdEmpty()
         throws Exception
     {
-        IAuthRealm realm = AuthFacade.newAuthRealm( " " /* id */, "realm-name", "desc", AuthenticationType.CERTIFICATE );
+        IAuthRealm realm = new AuthRealm( " " /* id */, "realm-name", "desc", AuthenticationType.CERTIFICATE );
         try
         {
             registry.updateRealm( realm, monitor );

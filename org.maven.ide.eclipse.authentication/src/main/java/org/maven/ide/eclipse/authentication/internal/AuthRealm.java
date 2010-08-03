@@ -92,14 +92,9 @@ public class AuthRealm
 
     private String description;
 
-    public AuthRealm( ISecurePreferences secureStorage, String id ) {
-        this.secureStorage = secureStorage;
-        this.id = id;
-    }
-
     AuthRealm( ISecurePreferences secureStorage, String id, String username, String password, File sslCertificate,
                String sslCertificatePassphrase )
-{
+    {
         this.secureStorage = secureStorage;
         this.id = id;
         this.username = username;
