@@ -293,9 +293,7 @@ public class AuthRegistryTest
             registry.addURLToRealmAssoc( url, realmId, AnonymousAccessType.NOT_ALLOWED, monitor );
         String urlAssocId = urlAssoc.getId();
         assertNotNull( urlAssocId );
-
         registry = new AuthRegistry( preferences );
-
         urlAssoc = registry.getURLToRealmAssoc( urlAssocId );
         assertNotNull( urlAssoc );
         assertNotNull( urlAssoc.getId() );
@@ -304,13 +302,13 @@ public class AuthRegistryTest
         assertEquals( AnonymousAccessType.NOT_ALLOWED, urlAssoc.getAnonymousAccess() );
 
         // Update
-        realm = (AuthRealm) registry.getRealm( "realm-id-1" );
-        realm.setName( "realm-name-updated" );
-        registry.updateRealm( realm, monitor );
+        String newUrl = "http://testPersistence_URLToRealmAssocs";
+        urlAssoc.setUrl( newUrl );
+        registry.updateURLToRealmAssoc( urlAssoc, monitor );
         registry = new AuthRegistry( preferences );
-        realm = (AuthRealm) registry.getRealm( "realm-id-1" );
-        assertNotNull( realm );
-        assertEquals( "realm-name-updated", realm.getName() );
+        urlAssoc = registry.getURLToRealmAssoc( urlAssocId );
+        assertNotNull( urlAssoc );
+        assertEquals( newUrl, urlAssoc.getUrl() );
 
         // Remove
         registry.removeURLToRealmAssoc( urlAssocId, monitor );
