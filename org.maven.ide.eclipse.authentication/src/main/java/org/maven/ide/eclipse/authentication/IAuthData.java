@@ -16,9 +16,9 @@ public interface IAuthData
 
     AnonymousAccessType getAnonymousAccessType();
 
-    boolean allowsUsernameAndPassword();
+    public boolean allowsUsernameAndPassword();
 
-    boolean allowsCertificate();
+    public boolean allowsCertificate();
 
     public void setUsernameAndPassword( String username, String password );
 
