@@ -122,14 +122,18 @@ abstract public class RemoteResourceLookupPage
         // updateExpandableState();
     }
 
+    protected UrlInputComposite createUrlInputComposite( Composite parent )
+    {
+        return new UrlInputComposite( parent, null, getValidationGroup(), UrlInputComposite.ALLOW_ANONYMOUS );
+    }
+
     private void createExpandableComposite( final Composite parent )
     {
         expandableComposite =
             new ExpandableComposite( parent, ExpandableComposite.COMPACT | ExpandableComposite.TWISTIE );
         expandableComposite.setLayoutData( new GridData( SWT.FILL, SWT.TOP, true, false ) );
 
-        urlInputComposite =
-            new UrlInputComposite( expandableComposite, null, validationGroup, UrlInputComposite.ALLOW_ANONYMOUS );
+        urlInputComposite = createUrlInputComposite( expandableComposite );
         urlInputComposite.setUrlLabelText( NLS.bind( Messages.remoteResourceLookupPage_server_label, serverName ) );
         urlInputComposite.setUrl( serverUrl );
 
