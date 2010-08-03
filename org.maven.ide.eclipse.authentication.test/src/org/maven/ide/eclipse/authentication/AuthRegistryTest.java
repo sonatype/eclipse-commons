@@ -223,7 +223,7 @@ public class AuthRegistryTest
         }
     }
 
-    public void testPersistence()
+    public void testPersistence_Realms()
         throws Exception
     {
         ISecurePreferences preferences = registry.getSecureStorage();
@@ -275,6 +275,47 @@ public class AuthRegistryTest
         registry.removeRealm( "realm-id-1", monitor );
         registry = new AuthRegistry( preferences );
         assertNull( registry.getRealm( "realm-id-1" ) );
+    }
+
+    public void testPersistence_URLToRealmAssocs()
+        throws Exception
+    {
+        ISecurePreferences preferences = registry.getSecureStorage();
+        AuthRealm realm =
+            (AuthRealm) registry.addRealm( "realm-id-1", "realm-name-1", "realm-description-1",
+                                           AuthenticationType.USERNAME_PASSWORD, monitor );
+        realm.setUsernameAndPassword( "user", "pass" );
+        String realmId = realm.getId();
+
+        // Add
+        String url = "http://testPersistence_URLToRealmAssocs";
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( url, realmId, AnonymousAccessType.NOT_ALLOWED, monitor );
+        String urlAssocId = urlAssoc.getId();
+        assertNotNull( urlAssocId );
+
+        registry = new AuthRegistry( preferences );
+
+        urlAssoc = registry.getURLToRealmAssoc( urlAssocId );
+        assertNotNull( urlAssoc );
+        assertNotNull( urlAssoc.getId() );
+        assertEquals( url, urlAssoc.getUrl() );
+        assertEquals( realmId, urlAssoc.getRealmId() );
+        assertEquals( AnonymousAccessType.NOT_ALLOWED, urlAssoc.getAnonymousAccess() );
+
+        // Update
+        realm = (AuthRealm) registry.getRealm( "realm-id-1" );
+        realm.setName( "realm-name-updated" );
+        registry.updateRealm( realm, monitor );
+        registry = new AuthRegistry( preferences );
+        realm = (AuthRealm) registry.getRealm( "realm-id-1" );
+        assertNotNull( realm );
+        assertEquals( "realm-name-updated", realm.getName() );
+
+        // Remove
+        registry.removeURLToRealmAssoc( urlAssocId, monitor );
+        registry = new AuthRegistry( preferences );
+        assertNull( registry.getURLToRealmAssoc( urlAssocId ) );
     }
 
     public void testOrphanURL()
@@ -400,6 +441,24 @@ public class AuthRegistryTest
         }
     }
 
+    public void testRemoveRealmIdDoesNotExist()
+        throws Exception
+    {
+        String realmId = "testRemoveRealmIdDoesNotExist";
+        try
+        {
+            registry.removeRealm( realmId, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "A security realm with id='" + realmId + "' does not exists." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
     public void testRemoveRealm()
         throws CoreException
     {
@@ -503,5 +562,471 @@ public class AuthRegistryTest
         registry.updateRealm( realm, monitor );
         realm = registry.getRealm( "testUpdateRealm" );
         assertEquals( "realm-name-updated", realm.getName() );
+    }
+
+    public void testAddUrlNull()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testAddUrlNull", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        try
+        {
+            registry.addURLToRealmAssoc( null /* url */, realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The url cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testAddUrlEmpty()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testAddUrlEmpty", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        try
+        {
+            registry.addURLToRealmAssoc( " " /* url */, realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The url cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testAddUrlRealmIdNull()
+        throws Exception
+    {
+        try
+        {
+            registry.addURLToRealmAssoc( "http://testAddUrlRealmIdNull", null /* realmid */,
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The realm id cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testAddUrlRealmIdEmpty()
+        throws Exception
+    {
+        try
+        {
+            registry.addURLToRealmAssoc( "http://testAddUrlRealmIdEmpty", " " /* realmid */,
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The realm id cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testAddUrlAnonymousAccessTypeNull()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testAddUrlAnonymousAccessTypeNull", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        try
+        {
+            registry.addURLToRealmAssoc( "http://testAddUrlRealmIdNull", realm.getId(), null /* AnonymousAccessType */,
+                                         monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The anonymousAccessType cannot be null." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testAddUrlWithEndSlash()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testAddUrlWithEndSlash", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testAddUrlWithEndSlash/", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        assertEquals( "http://testAddUrlWithEndSlash", urlAssoc.getUrl() );
+    }
+
+    public void testAddUrlAlreadyExists()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testAddUrlAlreadyExists", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        String url = "http://testAddUrlAlreadyExists";
+        registry.addURLToRealmAssoc( url, realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+        try
+        {
+            registry.addURLToRealmAssoc( url, realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The '" + url + "' URL is already associated with a security realm." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testAddUrlRealmIdDoesNotExist()
+        throws Exception
+    {
+        String realmId = "testAddUrlRealmIdDoesNotExist";
+        try
+        {
+            registry.addURLToRealmAssoc( "http://testAddUrlRealmIdDoesNotExist", realmId,
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "A security realm with id='" + realmId + "' does not exist." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testRemoveUrlIdNull()
+        throws Exception
+    {
+        try
+        {
+            registry.removeURLToRealmAssoc( null /* urlToRealmAssocId */, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The id of a URL to realm association cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testRemoveUrlIdEmpty()
+        throws Exception
+    {
+        try
+        {
+            registry.removeURLToRealmAssoc( " " /* urlToRealmAssocId */, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The id of a URL to realm association cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testRemoveUrlIdDoesNotExist()
+        throws Exception
+    {
+        String urlToRealmAssocId = "testRemoveUrlIdDoesNotExist";
+        try
+        {
+            registry.removeURLToRealmAssoc( urlToRealmAssocId, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "A URL to realm association with id='" + urlToRealmAssocId
+                                                    + "' does not exists." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlNull()
+        throws Exception
+    {
+        try
+        {
+            registry.updateURLToRealmAssoc( null /* urlToRealmAssoc */, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The URL to realm association cannot be null." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlUrlNull()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlUrlNull", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlUrlNull", realm.getId(), AnonymousAccessType.NOT_ALLOWED,
+                                         monitor );
+        urlAssoc.setUrl( null );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The url cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlUrlEmpty()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlUrlEmpty", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlUrlEmpty", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED,
+                                         monitor );
+        urlAssoc.setUrl( " " );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The url cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlRealmIdNull()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlRealmIdNull", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlRealmIdNull", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        urlAssoc.setRealmId( null );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The realm id cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlRealmIdEmpty()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlRealmIdEmpty", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlRealmIdEmpty", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        urlAssoc.setRealmId( " " );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The realm id cannot be null or empty." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlAnonymousAccessTypeNull()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlAnonymousAccessTypeNull", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlAnonymousAccessTypeNull", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        urlAssoc.setAnonymousAccess( null );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The anonymousAccessType cannot be null." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlDoesNotExist()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlDoesNotExist", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        String urlAssocId = "testUpdateUrlDoesNotExist";
+        ISecurityRealmURLAssoc urlAssoc =
+            new SecurityRealmURLAssoc( urlAssocId, "http://testUpdateUrlDoesNotExist",
+                                       realm.getId(), AnonymousAccessType.NOT_ALLOWED );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "A URL to realm association with id='" + urlAssocId
+                                                    + "' does not exist." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlRealmIdDoesNotExist()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlRealmIdDoesNotExist", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlRealmIdDoesNotExist", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        String newRealmId = "testUpdateUrlRealmIdDoesNotExist1";
+        urlAssoc.setRealmId( newRealmId );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "A security realm with id='" + newRealmId + "' does not exist." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrlWithEndSlash()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlWithEndSlash", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlWithEndSlash", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        urlAssoc.setUrl( "http://foo/testUpdateUrlWithEndSlash/bar/" );
+        registry.updateURLToRealmAssoc( urlAssoc, monitor );
+        urlAssoc = registry.getURLToRealmAssoc( urlAssoc.getId() );
+        assertEquals( "http://foo/testUpdateUrlWithEndSlash/bar", urlAssoc.getUrl() );
+    }
+
+    public void testUpdateUrlWithDoubleSlash()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlWithDoubleSlash", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlWithDoubleSlash", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        urlAssoc.setUrl( "http://foo/testUpdateUrlWithDoubleSlash//bar/" );
+        registry.updateURLToRealmAssoc( urlAssoc, monitor );
+        urlAssoc = registry.getURLToRealmAssoc( urlAssoc.getId() );
+        assertEquals( "http://foo/testUpdateUrlWithDoubleSlash/bar", urlAssoc.getUrl() );
+    }
+
+    public void testUpdateUrlAlreadyAssociated()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrlAlreadyAssociated", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        String url = "http://testUpdateUrlAlreadyAssociated";
+        registry.addURLToRealmAssoc( url, realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( "http://testUpdateUrlAlreadyAssociated1", realm.getId(),
+                                         AnonymousAccessType.NOT_ALLOWED, monitor );
+        urlAssoc.setUrl( url );
+        try
+        {
+            registry.updateURLToRealmAssoc( urlAssoc, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The '" + url + "' URL is already associated with a security realm." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateUrl()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateUrl", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        String url = "http://testUpdateUrl";
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( url, realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+        String newUrl = "http://testUpdateUrl1";
+        urlAssoc.setUrl( newUrl );
+        registry.updateURLToRealmAssoc( urlAssoc, monitor );
+        urlAssoc = registry.getURLToRealmAssoc( urlAssoc.getId() );
+        assertNotNull( urlAssoc );
+        assertEquals( newUrl, urlAssoc.getUrl() );
+        assertNull( registry.getRealmForURI( url ) );
+        assertNotNull( registry.getRealmForURI( newUrl ) );
     }
 }

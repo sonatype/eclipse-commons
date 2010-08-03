@@ -42,7 +42,7 @@ public class AuthRegistry
 
     private final ISecurePreferences secureStorage;
 
-    private ISecurityRealmPersistence persistence = null;
+    private volatile ISecurityRealmPersistence persistence = null;
 
     private static volatile AuthRegistryStates state = AuthRegistryStates.NOT_LOADED;
 
@@ -358,6 +358,10 @@ public class AuthRegistry
         {
             throw new AuthRegistryException( "The anonymousAccessType cannot be null." );
         }
+        if ( !realms.containsKey( realmId ) )
+        {
+            throw new AuthRegistryException( "A security realm with id='" + realmId + "' does not exist." );
+        }
 
         url = url.trim();
         if ( url.endsWith( "/" ) )
@@ -368,7 +372,7 @@ public class AuthRegistry
 
         if ( urlAssocsByUrl.containsKey( url ) )
         {
-            throw new AuthRegistryException( "The '{}' URL is already associated with a security realm." );
+            throw new AuthRegistryException( "The '" + url + "' URL is already associated with a security realm." );
         }
 
         ISecurityRealmURLAssoc newUrlAssoc;
@@ -385,6 +389,67 @@ public class AuthRegistry
         urlAssocsById.put( newUrlAssoc.getId(), newUrlAssoc );
         urlAssocsByUrl.put( newUrlAssoc.getUrl(), newUrlAssoc );
         return newUrlAssoc;
+    }
+
+    public void updateURLToRealmAssoc( ISecurityRealmURLAssoc urlToRealmAssoc, IProgressMonitor monitor )
+    {
+        if ( urlToRealmAssoc == null )
+        {
+            throw new AuthRegistryException( "The URL to realm association cannot be null." );
+        }
+        if ( urlToRealmAssoc.getUrl() == null || urlToRealmAssoc.getUrl().trim().length() == 0 )
+        {
+            throw new AuthRegistryException( "The url cannot be null or empty." );
+        }
+        if ( urlToRealmAssoc.getRealmId() == null || urlToRealmAssoc.getRealmId().trim().length() == 0 )
+        {
+            throw new AuthRegistryException( "The realm id cannot be null or empty." );
+        }
+        if ( urlToRealmAssoc.getAnonymousAccess() == null )
+        {
+            throw new AuthRegistryException( "The anonymousAccessType cannot be null." );
+        }
+        if ( !urlAssocsById.containsKey( urlToRealmAssoc.getId() ) )
+        {
+            throw new AuthRegistryException( "A URL to realm association with id='" + urlToRealmAssoc.getId()
+                + "' does not exist." );
+        }
+        if ( !realms.containsKey( urlToRealmAssoc.getRealmId() ) )
+        {
+            throw new AuthRegistryException( "A security realm with id='" + urlToRealmAssoc.getRealmId()
+                + "' does not exist." );
+        }
+
+        String url = urlToRealmAssoc.getUrl().trim();
+        if ( url.endsWith( "/" ) )
+        {
+            url = url.substring( 0, url.length() - 1 );
+        }
+        url = URIHelper.normalize( url ).toString();
+        urlToRealmAssoc.setUrl( url );
+
+        ISecurityRealmURLAssoc otherAssoc = urlAssocsByUrl.get( url );
+        if ( otherAssoc != null && !otherAssoc.getId().equals( urlToRealmAssoc.getId() ) )
+        {
+            throw new AuthRegistryException( "The '" + url + "' URL is already associated with a security realm." );
+        }
+
+        if ( persistence != null )
+        {
+            persistence.updateURLToRealmAssoc( urlToRealmAssoc, monitor );
+        }
+
+        urlAssocsById.put( urlToRealmAssoc.getId(), urlToRealmAssoc );
+        for ( String urlKey : urlAssocsByUrl.keySet() )
+        {
+            ISecurityRealmURLAssoc someUrlAssoc = urlAssocsByUrl.get( urlKey );
+            if ( someUrlAssoc.getId().equals( urlToRealmAssoc.getId() ) )
+            {
+                urlAssocsByUrl.remove( urlKey );
+                break;
+            }
+        }
+        urlAssocsByUrl.put( urlToRealmAssoc.getUrl(), urlToRealmAssoc );
     }
 
     public void save( String uri, String username, String password )
@@ -462,5 +527,37 @@ public class AuthRegistry
         ( (AuthRealm) authRealm ).loadFromSecureStorage( secureStorage );
 
         realms.put( authRealm.getId(), authRealm );
+    }
+
+    public ISecurityRealmURLAssoc getURLToRealmAssoc( String urlToRealmAssocId )
+    {
+        if ( urlToRealmAssocId == null || urlToRealmAssocId.trim().length() <= 0 )
+        {
+            return null;
+        }
+        return urlAssocsById.get( urlToRealmAssocId );
+    }
+
+    public void removeURLToRealmAssoc( String urlToRealmAssocId, IProgressMonitor monitor )
+    {
+        log.debug( "Removing URL to realm association {}", urlToRealmAssocId );
+
+        if ( urlToRealmAssocId == null || urlToRealmAssocId.trim().length() == 0 )
+        {
+            throw new AuthRegistryException( "The id of a URL to realm association cannot be null or empty." );
+        }
+        if ( !urlAssocsById.containsKey( urlToRealmAssocId ) )
+        {
+            throw new AuthRegistryException( "A URL to realm association with id='" + urlToRealmAssocId
+                + "' does not exists." );
+        }
+
+        if ( persistence != null )
+        {
+            persistence.deleteURLToRealmAssoc( urlToRealmAssocId, monitor );
+        }
+
+        ISecurityRealmURLAssoc urlAssoc = urlAssocsById.remove( urlToRealmAssocId );
+        urlAssocsByUrl.remove( urlAssoc.getUrl() );
     }
 }

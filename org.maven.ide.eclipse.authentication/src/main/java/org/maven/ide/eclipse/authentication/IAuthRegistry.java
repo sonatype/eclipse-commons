@@ -4,7 +4,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 public interface IAuthRegistry
 {
-    /** Returns a realm with a given id or null if no such realm exists */
+    /** @return The realm with the given id or null if no such realm exists. */
     public IAuthRealm getRealm( String realmId );
 
     /**
@@ -40,6 +40,11 @@ public interface IAuthRegistry
     public void removeRealm( String id, IProgressMonitor monitor );
 
     /**
+     * @return The URL to realm association with the given id or null if no such association exists.
+     */
+    public ISecurityRealmURLAssoc getURLToRealmAssoc( String urlToRealmAssocId );
+
+    /**
      * @param url The URL to associate. Must not be null.
      * @param realmId The id of the realm to associate. Must not be null.
      * @param anonymousAccessType The type of access for anonymous. Must not be null.
@@ -47,6 +52,25 @@ public interface IAuthRegistry
      */
     public ISecurityRealmURLAssoc addURLToRealmAssoc( String url, String realmId,
                                                       AnonymousAccessType anonymousAccessType, IProgressMonitor monitor );
+
+    /**
+     * Updates a URL to realm association. If a persistence mechanism for security realms is available, the association
+     * is persisted.
+     * 
+     * @param urlToRealmAssoc The URL to realm association to be updated. Must not be null.
+     * @throws AuthRegistryException If the URL to realm association does not exist or the persistence mechanism cannot
+     *             persist the association.
+     */
+    public void updateURLToRealmAssoc( ISecurityRealmURLAssoc urlToRealmAssoc, IProgressMonitor monitor );
+
+    /**
+     * Removes the URL to realm association with the given id. If a persistence mechanism for security realms is
+     * available, the association is removed from persistent storage.
+     * 
+     * @throws AuthRegistryException If a URL to realm association with the provided id does not exist or the
+     *             persistence mechanism cannot delete the association.
+     */
+    public void removeURLToRealmAssoc( String urlToRealmAssocId, IProgressMonitor monitor );
 
     IAuthRealm getRealmForURI( String uri );
 
