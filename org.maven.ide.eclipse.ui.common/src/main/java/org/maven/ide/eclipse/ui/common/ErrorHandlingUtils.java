@@ -56,7 +56,7 @@ public class ErrorHandlingUtils
             return Messages.errors_unresolvedAddress;
         }
         if ( exc != null && exc.getCause() != null && exc != exc.getCause() )
-            return convertNexusIOExceptionToUIText( exc, auth, forbidden, notFound );
+            return convertNexusIOExceptionToUIText( exc.getCause(), auth, forbidden, notFound );
         return null;
     }
 
