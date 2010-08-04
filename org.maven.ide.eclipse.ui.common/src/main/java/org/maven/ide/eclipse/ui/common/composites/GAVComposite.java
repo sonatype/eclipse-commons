@@ -3,6 +3,7 @@ package org.maven.ide.eclipse.ui.common.composites;
 import static org.maven.ide.eclipse.ui.common.FormUtils.nvl;
 import static org.maven.ide.eclipse.ui.common.FormUtils.toNull;
 
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -15,12 +16,19 @@ import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
 import org.maven.ide.eclipse.ui.common.validation.SonatypeValidators;
+import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.ValidatorUtils;
+import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
+import org.osgi.framework.Version;
 
 public class GAVComposite
     extends ValidatingComposite
 {
+    public static final int VALIDATE_PROJECT_NAME = 1;
+
+    public static final int VALIDATE_OSGI_VERSION = 2;
+
     private Text groupIdText;
 
     private Text artifactIdText;
@@ -28,15 +36,15 @@ public class GAVComposite
     private Text versionText;
 
     public GAVComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, boolean formMode,
-                         boolean validateProjectName )
+                         int style )
     {
         super( parent, widthGroup, validationGroup, formMode );
 
         setLayout( new GridLayout( 2, false ) );
 
         createGroupIdControls();
-        createArtifactIdControls( validateProjectName );
-        createVersionControls();
+        createArtifactIdControls( ( style & VALIDATE_PROJECT_NAME ) == VALIDATE_PROJECT_NAME );
+        createVersionControls( ( style & VALIDATE_OSGI_VERSION ) == VALIDATE_OSGI_VERSION );
     }
 
     private void createGroupIdControls()
@@ -87,7 +95,8 @@ public class GAVComposite
                                               : validator );
     }
 
-    private void createVersionControls()
+    @SuppressWarnings( "unchecked" )
+    private void createVersionControls( boolean validateOsgiVersion )
     {
         Label versionLabel = new Label( this, SWT.NONE );
         versionLabel.setText( Messages.gavComposite_version_label );
@@ -105,7 +114,29 @@ public class GAVComposite
             }
         } );
         SwtValidationGroup.setComponentName( versionText, Messages.gavComposite_version_name );
-        addToValidationGroup( versionText, SonatypeValidators.createVersionValidators() );
+        addToValidationGroup( versionText, validateOsgiVersion ? //
+        ValidatorUtils.merge( StringValidators.REQUIRE_NON_EMPTY_STRING, StringValidators.NO_WHITESPACE,
+                              new Validator<String>()
+                              {
+                                  public void validate( Problems problems, String compName, String model )
+                                  {
+                                      try
+                                      {
+                                          new Version( model );
+                                      }
+                                      catch ( IllegalArgumentException e )
+                                      {
+                                          problems.add( NLS.bind( Messages.gavComposite_invalidOsgiVersion,
+                                                                  compName ) );
+                                      }
+                                  }
+
+                                  public Class<String> modelType()
+                                  {
+                                      return String.class;
+                                  }
+                              } )
+                        : SonatypeValidators.createVersionValidators() );
     }
 
     @Override

@@ -28,6 +28,8 @@ public class Messages
 
     public static String gavComposite_groupId_name;
 
+    public static String gavComposite_invalidOsgiVersion;
+
     public static String gavComposite_version_label;
 
     public static String gavComposite_version_name;
