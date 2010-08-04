@@ -1,14 +1,15 @@
 package org.maven.ide.eclipse.ui.common.validation;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.osgi.util.NLS;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.netbeans.validation.api.Problems;
-import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.ValidatorUtils;
 import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
@@ -46,14 +47,14 @@ public final class SonatypeValidators
 
     public static Validator<String> createRemoteHttpUrlValidators()
     {
-        return ValidatorUtils.merge( HTTP_URL, StringValidators.URL_MUST_BE_VALID );
+        return ValidatorUtils.merge( HTTP_URL, URL_MUST_BE_VALID );
 
     }
 
     /**
      * 
      */
-    public static Validator<String> HTTP_URL = new Validator<String>()
+    public static Validator<String> HTTP_URL = new StringVal()
     {
 
         public void validate( Problems problems, String compName, String model )
@@ -63,18 +64,12 @@ public final class SonatypeValidators
                 problems.add( MessageFormat.format( Messages.validation_errors_remoteUrlRequired, compName ) );
             }
         }
-
-        public Class<String> modelType()
-        {
-            return String.class;
-        }
-
     };
 
     /**
      * 
      */
-    public static Validator<String> EXISTS_IN_WORKSPACE = new Validator<String>()
+    public static Validator<String> EXISTS_IN_WORKSPACE = new StringVal()
     {
 
         public void validate( Problems problems, String compName, String model )
@@ -92,14 +87,9 @@ public final class SonatypeValidators
                 problems.add( MessageFormat.format( Messages.validation_errors_projectExists, model ) );
             }
         }
-
-        public Class<String> modelType()
-        {
-            return String.class;
-        }
     };
 
-    public static Validator<String> EMPTY_OR_URL = new Validator<String>()
+    public static Validator<String> EMPTY_OR_URL = new StringVal()
     {
         public void validate( Problems problems, String compName, String model )
         {
@@ -108,12 +98,42 @@ public final class SonatypeValidators
                 return;
             }
 
-            StringValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
+            URL_MUST_BE_VALID.validate( problems, compName, model );
         }
+    };
+    
+    public static Validator<String> URL_MUST_BE_VALID = new  StringVal() 
+    {
+            public void validate(Problems problems, String compName, String model) {
+                
+                try {
+                    URL url = new URL (model);
+                    String host = url.getHost();
+                    if (host.indexOf(" ") > 0 || host.indexOf ("\t") > 0) {
+                        problems.add (NLS.bind( Messages.errors_host_may_not_contain_space, host )); //NOI18N
+                        return;
+                    }
 
+                    String protocol = url.getProtocol();
+                    if ("mailto".equals(protocol)) { //NOI18N
+                        String emailAddress = url.toString().substring("mailto:".length()); //NOI18N
+                        emailAddress = emailAddress == null ? "" : emailAddress;
+                        StringValidators.EMAIL_ADDRESS.validate(problems, compName,
+                                emailAddress);
+                        return;
+                    }
+                } catch (MalformedURLException e) {
+                    String problem = NLS.bind( Messages.errors_not_valid_url, model); 
+                    problems.add(problem);
+                }
+            }
+
+    };
+    
+    private static abstract class StringVal implements Validator<String> {
         public Class<String> modelType()
         {
             return String.class;
         }
-    };
+    }
 }

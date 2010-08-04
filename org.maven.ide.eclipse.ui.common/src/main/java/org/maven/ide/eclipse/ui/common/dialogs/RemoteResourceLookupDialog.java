@@ -234,7 +234,7 @@ public abstract class RemoteResourceLookupDialog
                 {
                     setInput( null );
                     serverUrl = url;
-                    problems.add( readyToLoadMessage, Severity.FATAL );
+                    problems.add( readyToLoadMessage, Severity.INFO );
                 }
                 loadButton.setEnabled( true );
             }
@@ -343,6 +343,8 @@ public abstract class RemoteResourceLookupDialog
                     resourceComposite.setFocus();
                     if ( validationGroup.performValidation() == null )
                     {
+                        //clear any previous error messages or the error icon keeps sticked in..
+                        setMessage( null, IMessageProvider.ERROR );
                         setMessage( message, messageType );
                     }
                 }

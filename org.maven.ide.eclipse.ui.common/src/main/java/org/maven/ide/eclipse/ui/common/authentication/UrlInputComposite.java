@@ -28,6 +28,7 @@ import org.maven.ide.eclipse.ui.common.InputHistory;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.composites.ValidatingComposite;
 import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
+import org.maven.ide.eclipse.ui.common.validation.SonatypeValidators;
 import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
@@ -194,7 +195,7 @@ public class UrlInputComposite
                         model = model.substring( n + 1 );
                     }
                 }
-                StringValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
+                SonatypeValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
             }
         } );
 

@@ -20,6 +20,10 @@ public class Messages
 
     public static String errors_unresolvedAddress;
 
+    public static String errors_not_valid_url; 
+    
+    public static String errors_host_may_not_contain_space;
+
     public static String gavComposite_artifactId_label;
 
     public static String gavComposite_artifactId_name;
