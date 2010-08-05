@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Log
 Bundle-SymbolicName: org.maven.ide.eclipse.log;singleton:=true
 Bundle-Version: 1.1.3.qualifier
-Bundle-Vendor: SONATYPE
+Bundle-Vendor: Sonatype, Inc.
 Bundle-Activator: org.maven.ide.eclipse.log.internal.LogPlugin
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
