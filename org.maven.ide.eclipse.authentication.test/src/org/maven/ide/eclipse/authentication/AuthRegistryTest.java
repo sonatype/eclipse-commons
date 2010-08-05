@@ -2,6 +2,7 @@ package org.maven.ide.eclipse.authentication;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -1025,5 +1026,31 @@ public class AuthRegistryTest
         assertEquals( newUrl, urlAssoc.getUrl() );
         assertNull( registry.getRealmForURI( url ) );
         assertNotNull( registry.getRealmForURI( newUrl ) );
+    }
+
+    public void testGetRealms()
+    {
+        Collection<IAuthRealm> realms = registry.getRealms();
+        assertNotNull( realms );
+        int count = realms.size();
+        registry.addRealm( "testGetRealms", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        realms = registry.getRealms();
+        assertNotNull( realms );
+        assertEquals( count + 1, realms.size() );
+    }
+
+    public void testGetUrls()
+    {
+        Collection<ISecurityRealmURLAssoc> urls = registry.getURLToRealmAssocs();
+        assertNotNull( urls );
+        int count = urls.size();
+        IAuthRealm realm =
+            registry.addRealm( "testGetUrls", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        registry.addURLToRealmAssoc( "http://testGetUrls", realm.getId(), AnonymousAccessType.NOT_ALLOWED, monitor );
+        urls = registry.getURLToRealmAssocs();
+        assertNotNull( urls );
+        assertEquals( count + 1, urls.size() );
     }
 }

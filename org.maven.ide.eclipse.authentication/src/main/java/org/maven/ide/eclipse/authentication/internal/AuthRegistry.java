@@ -2,6 +2,9 @@ package org.maven.ide.eclipse.authentication.internal;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -610,5 +613,23 @@ public class AuthRegistry
     public int getLoadCount()
     {
         return loadCount;
+    }
+
+    public Collection<IAuthRealm> getRealms()
+    {
+        synchronized ( lock )
+        {
+            Collection<IAuthRealm> result = new ArrayList<IAuthRealm>( realms.values() );
+            return Collections.unmodifiableCollection( result );
+        }
+    }
+
+    public Collection<ISecurityRealmURLAssoc> getURLToRealmAssocs()
+    {
+        synchronized ( lock )
+        {
+            Collection<ISecurityRealmURLAssoc> result = new ArrayList<ISecurityRealmURLAssoc>( urlAssocsById.values() );
+            return Collections.unmodifiableCollection( result );
+        }
     }
 }
