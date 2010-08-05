@@ -22,7 +22,6 @@ import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthData;
-import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.ui.common.InputHistory;
@@ -661,12 +660,8 @@ public class UrlInputComposite
         {
             return;
         }
-        IAuthData authData = null;
-        IAuthRealm realm = AuthFacade.getAuthRegistry().getRealmForURI( getUrlText() );
-        if ( realm != null )
-            authData = realm.getAuthData();
-        else
-            authData = AuthFacade.getAuthService().select( getUrlText() );
+
+        IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
         if ( authData == null )
         {
             authData = new AuthData();
