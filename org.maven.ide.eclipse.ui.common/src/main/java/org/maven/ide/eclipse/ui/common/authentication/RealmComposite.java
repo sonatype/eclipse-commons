@@ -34,6 +34,7 @@ import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.composites.DropDownComposite;
 import org.netbeans.validation.api.Problems;
+import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.ui.ValidationListenerFactory;
 import org.netbeans.validation.api.ui.ValidationStrategy;
@@ -151,7 +152,7 @@ public class RealmComposite
             {
                 if ( url != null && url.length() > 0 && model.length() == 0 )
                 {
-                    problems.add( NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ) ); //$NON-NLS-2$
+                    problems.add( NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$
                 }
             }
         };
