@@ -37,6 +37,18 @@ public class HttpBaseSupport
                                       Integer timeoutInMilliseconds )
         throws IOException
     {
+        IAuthData authData = null;
+        if ( authService != null )
+        {
+            authData = authService.select( url );
+        }
+        return startClient( url, authData, proxyService, timeoutInMilliseconds );
+    }
+
+    protected HttpClient startClient( final URI url, final IAuthData authData, final IProxyService proxyService,
+                                      Integer timeoutInMilliseconds )
+        throws IOException
+    {
         HttpClient httpClient = new FixedHttpClient();
         httpClient.setConnectorType( HttpClient.CONNECTOR_SELECT_CHANNEL );
         //httpClient.setConnectorType( HttpClient.CONNECTOR_SOCKET );
@@ -74,14 +86,9 @@ public class HttpBaseSupport
             public Realm getRealm( final String realmName, final HttpDestination destination, final String path )
                 throws IOException
             {
-                IAuthData auth = null;
-                if ( authService != null )
+                if ( authData != null )
                 {
-                    auth = authService.select( url );
-                }
-                if ( auth != null )
-                {
-                    return new SimpleRealm( realmName, auth );
+                    return new SimpleRealm( realmName, authData );
                 }
 
                 return null;

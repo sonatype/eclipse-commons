@@ -13,7 +13,10 @@ import org.eclipse.jetty.client.HttpExchange;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.security.B64Code;
 import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.util.StringUtil;
+import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +91,18 @@ public class HttpPublisher
         }
 
         HttpClient httpClient = startClient( url, authService, proxyService, timeoutInMilliseconds );
+        if ( authService != null )
+        {
+            IAuthData authData = authService.select( url );
+            if ( authData != null )
+            {
+                String authenticationString =
+                    "Basic "
+                        + B64Code.encode( authData.getUsername() + ":" + authData.getPassword(),
+                                          StringUtil.__ISO_8859_1 );
+                exchange.setRequestHeader( HttpHeaders.AUTHORIZATION, authenticationString );
+            }
+        }
         httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
         httpClient.send( exchange );
         try
