@@ -1,5 +1,8 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -23,8 +26,12 @@ import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthRegistryException;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
+import org.maven.ide.eclipse.authentication.ISecurityRealmURLAssoc;
+import org.maven.ide.eclipse.authentication.SecurityRealmURLAssoc;
+import org.maven.ide.eclipse.authentication.internal.URIHelper;
 import org.maven.ide.eclipse.swtvalidation.SwtComponentDecorationFactory;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
+import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.composites.DropDownComposite;
 import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Validator;
@@ -45,7 +52,8 @@ public class RealmComposite
             AnonymousAccessType.REQUIRED };
 
     private static final String[] anonymousLabels =
-        new String[] { "Password Required", "Anonymous Allowed", "Anonymous Only" };
+        new String[] { Messages.realmComposite_passwordRequired, Messages.realmComposite_anonymousAllowed,
+            Messages.realmComposite_anonymousOnly };
 
     private boolean dirty;
 
@@ -79,23 +87,39 @@ public class RealmComposite
                 }
 
                 url = text.getText().trim();
-                if ( url.length() == 0 )
+                if ( url.length() > 0 )
+                {
+                    try
+                    {
+                        new URL( url );
+                        URIHelper.normalize( url );
+                    }
+                    catch ( MalformedURLException malformedURLException )
+                    {
+                        // bad URL
+                        url = null;
+                    }
+                    catch ( AuthRegistryException authRegistryException )
+                    {
+                        // filter out normalizing errors from realm lookup
+                        url = null;
+                    }
+                }
+                else
+                {
+                    // empty URL
+                    url = null;
+                }
+
+                if ( url == null )
                 {
                     setEnabled( false );
-                    setText( "" );
+                    setText( "" ); //$NON-NLS-1$
                     dirty = false;
                 }
                 else
                 {
-                    IAuthRealm realm = null;
-                    try
-                    {
-                        realm = AuthFacade.getAuthRegistry().getRealmForURI( url );
-                    }
-                    catch ( AuthRegistryException authRegistryException )
-                    {
-                        // bad url, big deal...
-                    }
+                    IAuthRealm realm = AuthFacade.getAuthRegistry().getRealmForURI( url );
 
                     if ( realm == null )
                     {
@@ -127,7 +151,7 @@ public class RealmComposite
             {
                 if ( url != null && url.length() > 0 && model.length() == 0 )
                 {
-                    problems.add( NLS.bind( "Select security realm for {0}", urlText.getData( "_name" ) ) );
+                    problems.add( NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ) ); //$NON-NLS-2$
                 }
             }
         };
@@ -204,7 +228,7 @@ public class RealmComposite
         list.addListener( SWT.Selection, listener );
 
         Label label = new Label( composite, SWT.NONE );
-        label.setText( "Access:" );
+        label.setText( Messages.realmComposite_access_label );
         label.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
 
         combo = new Combo( composite, SWT.NONE );
@@ -231,8 +255,14 @@ public class RealmComposite
 
     private void updateText()
     {
+        setText( lastSelectedRealm == null ? "" : lastSelectedRealm.getName() ); //$NON-NLS-1$
+    }
+
+    @Override
+    public void setText( String text )
+    {
         updating = true;
-        setText( lastSelectedRealm == null ? "" : lastSelectedRealm.getName() );
+        super.setText( text );
         updating = false;
     }
 
@@ -249,6 +279,16 @@ public class RealmComposite
     public boolean isDirty()
     {
         return dirty;
+    }
+
+    public void clearDirty()
+    {
+        dirty = false;
+    }
+
+    public ISecurityRealmURLAssoc getSecurityRealmURLAssoc()
+    {
+        return dirty ? new SecurityRealmURLAssoc( null, url, lastSelectedRealm.getId(), anonymousAccessType ) : null;
     }
 
     public void save( IProgressMonitor monitor )

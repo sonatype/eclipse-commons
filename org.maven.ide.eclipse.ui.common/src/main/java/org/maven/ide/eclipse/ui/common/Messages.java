@@ -46,6 +46,16 @@ public class Messages
 
     public static String listEditorComposite_remove;
 
+    public static String realmComposite_access_label;
+
+    public static String realmComposite_anonymousAllowed;
+
+    public static String realmComposite_anonymousOnly;
+
+    public static String realmComposite_passwordRequired;
+
+    public static String realmComposite_selectRealmFor;
+
     public static String remoteResourceLookupDialog_error_other;
 
     public static String remoteResourceLookupDialog_loading;
