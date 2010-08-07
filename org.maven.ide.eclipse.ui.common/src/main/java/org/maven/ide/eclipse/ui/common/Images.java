@@ -7,6 +7,8 @@ public class Images
 {
     public static final Image ARTIFACT = getImage( "artifact.gif" );
 
+    public static final Image AUTH_REALM = getImage( "authrealm.png" );
+
     public static final Image GROUP = getImage( "group.gif" );
 
     public static final Image VERSION = getImage( "version.gif" );

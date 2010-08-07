@@ -52,9 +52,55 @@ public class Messages
 
     public static String realmComposite_anonymousOnly;
 
+    public static String realmComposite_manageRealms;
+
     public static String realmComposite_passwordRequired;
 
     public static String realmComposite_selectRealmFor;
+
+    public static String realmManagementComposite_authenticationType_password;
+
+    public static String realmManagementComposite_authenticationType_passwordAndSsl;
+
+    public static String realmManagementComposite_authenticationType_ssl;
+
+    public static String realmManagementComposite_realmAuthentication_label;
+
+    public static String realmManagementComposite_realmDescription_label;
+
+    public static String realmManagementComposite_realmId_exists;
+
+    public static String realmManagementComposite_realmId_label;
+
+    public static String realmManagementComposite_realmId_name;
+
+    public static String realmManagementComposite_realmName_label;
+
+    public static String realmManagementComposite_realmName_name;
+
+    public static String realmManagementDialog_apply;
+
+    public static String realmManagementDialog_errorSavingRealm;
+
+    public static String realmManagementDialog_title;
+
+    public static String realmManagementPage_add_action;
+
+    public static String realmManagementPage_add_tooltip;
+
+    public static String realmManagementPage_description;
+
+    public static String realmManagementPage_remove_action;
+
+    public static String realmManagementPage_remove_error;
+
+    public static String realmManagementPage_remove_message;
+
+    public static String realmManagementPage_remove_title;
+
+    public static String realmManagementPage_remove_tooltip;
+
+    public static String realmManagementPage_title;
 
     public static String remoteResourceLookupDialog_error_other;
 

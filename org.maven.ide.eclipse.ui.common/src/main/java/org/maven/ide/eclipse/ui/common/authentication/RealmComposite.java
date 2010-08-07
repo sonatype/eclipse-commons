@@ -2,6 +2,8 @@ package org.maven.ide.eclipse.ui.common.authentication;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
@@ -18,6 +20,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -152,7 +155,8 @@ public class RealmComposite
             {
                 if ( url != null && url.length() > 0 && model.length() == 0 )
                 {
-                    problems.add( NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$
+                    problems.add(
+                                  NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$
                 }
             }
         };
@@ -175,6 +179,14 @@ public class RealmComposite
             public void shellActivated( ShellEvent e )
             {
                 realms = AuthFacade.getAuthRegistry().getRealms().toArray( new IAuthRealm[0] );
+                Arrays.sort( realms, new Comparator<IAuthRealm>()
+                {
+                    public int compare( IAuthRealm o1, IAuthRealm o2 )
+                    {
+                        return o1.getName().compareToIgnoreCase( o2.getName() );
+                    }
+                } );
+
                 String[] names = new String[realms.length];
                 int selection = -1;
                 for ( int i = realms.length - 1; i >= 0; i-- )
@@ -232,7 +244,7 @@ public class RealmComposite
         label.setText( Messages.realmComposite_access_label );
         label.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
 
-        combo = new Combo( composite, SWT.NONE );
+        combo = new Combo( composite, SWT.READ_ONLY );
         combo.setLayoutData( new GridData( SWT.FILL, SWT.CENTER, true, false ) );
         combo.setItems( anonymousLabels );
         combo.addSelectionListener( new SelectionAdapter()
@@ -250,6 +262,18 @@ public class RealmComposite
             }
         } );
         combo.select( 0 );
+
+        Link link = new Link( composite, SWT.NONE );
+        link.setText( NLS.bind( "<a>{0}</a>", Messages.realmComposite_manageRealms ) ); //$NON-NLS-1$
+        link.setLayoutData( new GridData( SWT.RIGHT, SWT.BOTTOM, false, false, 2, 1 ) );
+        link.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                new RealmManagementDialog( getShell() ).open();
+            }
+        } );
 
         return composite;
     }
