@@ -31,6 +31,7 @@
       <module>org.maven.ide.eclipse.io</module>
       <module>org.maven.ide.eclipse.ui.common</module>
       <module>org.maven.ide.eclipse.ui.common.test</module>
+      <module>org.maven.ide.eclipse.ui.tests.common</module>
       <!-- just comment this one out until we have the validationAPI jars in a maven repo-->
       <!--module>simplevalidation-swt</module-->
   </modules>

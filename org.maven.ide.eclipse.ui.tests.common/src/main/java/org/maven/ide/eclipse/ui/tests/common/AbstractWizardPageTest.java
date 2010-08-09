@@ -1,4 +1,4 @@
-package org.maven.ide.eclipse.ui.common.test;
+package org.maven.ide.eclipse.ui.tests.common;
 
 import junit.framework.TestCase;
 
