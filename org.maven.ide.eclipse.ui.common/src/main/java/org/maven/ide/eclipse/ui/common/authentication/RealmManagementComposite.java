@@ -447,6 +447,10 @@ public class RealmManagementComposite
         if ( realm == null )
         {
             newRealm = true;
+            id = ""; //$NON-NLS-1$
+            name = ""; //$NON-NLS-1$
+            description = ""; //$NON-NLS-1$
+            authenticationType = authenticationOptions[0];
 
             idText.setText( "" ); //$NON-NLS-1$
             nameText.setText( "" ); //$NON-NLS-1$
