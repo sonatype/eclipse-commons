@@ -1,7 +1,5 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -95,13 +93,7 @@ public class RealmComposite
                 {
                     try
                     {
-                        new URL( url );
                         URIHelper.normalize( url );
-                    }
-                    catch ( MalformedURLException malformedURLException )
-                    {
-                        // bad URL
-                        url = null;
                     }
                     catch ( AuthRegistryException authRegistryException )
                     {
