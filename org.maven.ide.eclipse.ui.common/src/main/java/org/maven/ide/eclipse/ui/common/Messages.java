@@ -58,6 +58,8 @@ public class Messages
 
     public static String realmComposite_selectRealmFor;
 
+    public static String realmManagementComposite_addUrl;
+
     public static String realmManagementComposite_authenticationType_password;
 
     public static String realmManagementComposite_authenticationType_passwordAndSsl;
@@ -77,6 +79,14 @@ public class Messages
     public static String realmManagementComposite_realmName_label;
 
     public static String realmManagementComposite_realmName_name;
+
+    public static String realmManagementComposite_removeUrl;
+
+    public static String realmManagementComposite_urlViewer_accessColumn;
+
+    public static String realmManagementComposite_urlViewer_label;
+
+    public static String realmManagementComposite_urlViewer_urlColumn;
 
     public static String realmManagementDialog_apply;
 

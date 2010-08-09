@@ -51,11 +51,11 @@ public class RealmComposite
 
     private Combo combo;
 
-    private static final AnonymousAccessType[] anonymousOptions =
+    public static final AnonymousAccessType[] ANONYMOUS_OPTIONS =
         new AnonymousAccessType[] { AnonymousAccessType.NOT_ALLOWED, AnonymousAccessType.ALLOWED,
             AnonymousAccessType.REQUIRED };
 
-    private static final String[] anonymousLabels =
+    public static final String[] ANONYMOUS_LABELS =
         new String[] { Messages.realmComposite_passwordRequired, Messages.realmComposite_anonymousAllowed,
             Messages.realmComposite_anonymousOnly };
 
@@ -156,7 +156,7 @@ public class RealmComposite
                 if ( url != null && url.length() > 0 && model.length() == 0 )
                 {
                     problems.add(
-                                  NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$
+                                  NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$ //$NON-NLS-1$
                 }
             }
         };
@@ -246,7 +246,7 @@ public class RealmComposite
 
         combo = new Combo( composite, SWT.READ_ONLY );
         combo.setLayoutData( new GridData( SWT.FILL, SWT.CENTER, true, false ) );
-        combo.setItems( anonymousLabels );
+        combo.setItems( ANONYMOUS_LABELS );
         combo.addSelectionListener( new SelectionAdapter()
         {
             @Override
@@ -255,7 +255,7 @@ public class RealmComposite
                 int n = combo.getSelectionIndex();
                 if ( n >= 0 )
                 {
-                    anonymousAccessType = anonymousOptions[n];
+                    anonymousAccessType = ANONYMOUS_OPTIONS[n];
                 }
                 updateText();
                 dirty = true;

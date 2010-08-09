@@ -54,6 +54,7 @@ public class RealmManagementDialog
 
                 if ( t == null )
                 {
+                    realmManagementPage.setMessage( null, IMessageProvider.ERROR );
                     realmManagementPage.refreshSelection();
                 }
                 else
