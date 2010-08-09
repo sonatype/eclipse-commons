@@ -7,6 +7,9 @@ Bundle-Vendor: Sonatype, Inc.
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
 Require-Bundle: org.junit,
+ org.eclipse.ui,
  org.maven.ide.eclipse.ui.common,
  org.maven.ide.eclipse.io,
- org.maven.ide.eclipse.swtvalidation
+ org.maven.ide.eclipse.swtvalidation,
+ org.eclipse.core.runtime
+Export-Package: org.maven.ide.eclipse.ui.common.test
