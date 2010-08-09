@@ -1,18 +1,16 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -35,12 +33,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.statushandlers.StatusManager;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
+import org.maven.ide.eclipse.authentication.IAuthRegistry;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
-import org.maven.ide.eclipse.ui.common.Activator;
 import org.maven.ide.eclipse.ui.common.Images;
 import org.maven.ide.eclipse.ui.common.Messages;
 
@@ -59,12 +56,15 @@ public class RealmManagementPage
 
     private Collection<IAuthRealm> realms;
 
+    private Set<IAuthRealm> toRemove;
+
     public RealmManagementPage()
     {
         super( RealmManagementPage.class.getName() );
         setTitle( Messages.realmManagementPage_title );
         setDescription( Messages.realmManagementPage_description );
 
+        toRemove = new HashSet<IAuthRealm>();
         validationGroup = SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
     }
 
@@ -123,48 +123,15 @@ public class RealmManagementPage
                 if ( !selection.isEmpty() )
                 {
                     final IAuthRealm authRealm = (IAuthRealm) selection.getFirstElement();
-                    if ( MessageDialog.openConfirm(
-                                                    getShell(),
-                                                    Messages.realmManagementPage_remove_title,
-                                                    NLS.bind(
-                                                              Messages.realmManagementPage_remove_message,
+                    if ( MessageDialog.openConfirm( getShell(), Messages.realmManagementPage_remove_title,
+                                                    NLS.bind( Messages.realmManagementPage_remove_message,
                                                               authRealm.getName() ) ) )
                     {
-                        Throwable t = null;
-                        try
-                        {
-                            getContainer().run( true, true, new IRunnableWithProgress()
-                            {
+                        toRemove.add( authRealm );
+                        realms.remove( authRealm );
 
-                                public void run( IProgressMonitor monitor )
-                                    throws InvocationTargetException, InterruptedException
-                                {
-                                    AuthFacade.getAuthRegistry().removeRealm( authRealm.getId(), monitor );
-                                }
-                            } );
-                        }
-                        catch ( InvocationTargetException e )
-                        {
-                            t = e.getTargetException();
-                        }
-                        catch ( InterruptedException e )
-                        {
-                            t = e;
-                        }
-
-                        if ( t == null )
-                        {
-                            loadRealms();
-                            updateSelection( null );
-                        }
-                        else
-                        {
-                            String message = NLS.bind( Messages.realmManagementPage_remove_error, t.getMessage() );
-                            setMessage( message, IMessageProvider.ERROR );
-                            StatusManager.getManager().handle(
-                                                               new Status( IStatus.ERROR, Activator.PLUGIN_ID, message,
-                                                                           t ) );
-                        }
+                        realmViewer.refresh();
+                        updateSelection( null );
                     }
                 }
             }
@@ -262,7 +229,7 @@ public class RealmManagementPage
 
     private void loadRealms()
     {
-        realms = AuthFacade.getAuthRegistry().getRealms();
+        realms = new ArrayList<IAuthRealm>(AuthFacade.getAuthRegistry().getRealms());
         realmViewer.setInput( realms );
     }
 
@@ -295,6 +262,15 @@ public class RealmManagementPage
 
     public void save( IProgressMonitor monitor )
     {
+        if ( !toRemove.isEmpty() )
+        {
+            IAuthRegistry authRegistry = AuthFacade.getAuthRegistry();
+            for ( IAuthRealm realm : toRemove )
+            {
+                authRegistry.removeRealm( realm.getId(), monitor );
+            }
+            toRemove.clear();
+        }
         if ( realmManagementComposite.isDirty() )
         {
             final String realmId = realmManagementComposite.save( monitor );
