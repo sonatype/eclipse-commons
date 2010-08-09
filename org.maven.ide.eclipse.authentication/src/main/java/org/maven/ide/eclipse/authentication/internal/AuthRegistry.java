@@ -340,6 +340,10 @@ public class AuthRegistry
             {
                 throw new AuthRegistryException( "The name of a security realm cannot be null or empty." );
             }
+            if ( authenticationType == null )
+            {
+                throw new AuthRegistryException( "The authentication type of a security realm cannot be null." );
+            }
             if ( realms.containsKey( id ) )
             {
                 throw new AuthRegistryException( "A security realm with id='" + id + "' already exists." );
@@ -545,6 +549,10 @@ public class AuthRegistry
             if ( authRealm.getName() == null || authRealm.getName().trim().length() == 0 )
             {
                 throw new AuthRegistryException( "The name of a security realm cannot be null or empty." );
+            }
+            if ( authRealm.getAuthenticationType() == null )
+            {
+                throw new AuthRegistryException( "The authentication type of a security realm cannot be null." );
             }
             if ( !realms.containsKey( authRealm.getId() ) )
             {

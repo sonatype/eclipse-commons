@@ -188,6 +188,45 @@ public class AuthRegistryTest
         }
     }
 
+    public void testAddRealmAuthenticationTypeNull()
+        throws Exception
+    {
+        try
+        {
+            registry.addRealm( "testAddRealmAuthenticationTypeNull", "realm-name-1", "realm-description-1",
+                               null /* AuthenticationType */, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The authentication type of a security realm cannot be null." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
+    public void testUpdateRealmAuthenticationTypeNull()
+        throws Exception
+    {
+        IAuthRealm realm =
+            registry.addRealm( "testUpdateRealmAuthenticationTypeNull", "realm-name-1", "realm-description-1",
+                               AuthenticationType.USERNAME_PASSWORD, monitor );
+        try
+        {
+            realm.setAuthenticationType( null );
+            registry.updateRealm( realm, monitor );
+            fail( "Expected AuthRegistryException" );
+        }
+        catch ( AuthRegistryException expected )
+        {
+            if ( !expected.getMessage().equals( "The authentication type of a security realm cannot be null." ) )
+            {
+                throw expected;
+            }
+        }
+    }
+
     public void testAddRealmNameNull()
         throws Exception
     {
