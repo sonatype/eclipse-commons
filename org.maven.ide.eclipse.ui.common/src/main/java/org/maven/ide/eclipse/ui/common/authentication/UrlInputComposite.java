@@ -50,6 +50,12 @@ import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
 public class UrlInputComposite
     extends ValidatingComposite
 {
+    public static final String URL_CONTROL_NAME = "urlControl";
+
+    public static final String USERNAME_TEXT_NAME = "usernameText";
+
+    public static final String PASSWORD_TEXT_NAME = "passwordText";
+
     public static final int READ_ONLY_URL = 1;
 
     public static final int ALLOW_ANONYMOUS = 2;
@@ -275,6 +281,7 @@ public class UrlInputComposite
         addToWidthGroup( usernameLabel );
 
         usernameText = new Text( this, SWT.BORDER );
+        usernameText.setData( "name", USERNAME_TEXT_NAME );
         GridData usernameGridData = new GridData( SWT.LEFT, SWT.CENTER, false, false );
         usernameGridData.widthHint = INPUT_WIDTH;
         usernameGridData.horizontalIndent = INPUT_INDENT;
@@ -304,6 +311,7 @@ public class UrlInputComposite
         addToWidthGroup( passwordLabel );
 
         passwordText = new Text( this, SWT.BORDER | SWT.PASSWORD );
+        passwordText.setData( "name", PASSWORD_TEXT_NAME );
         passwordText.setLayoutData( usernameGridData );
         passwordText.addModifyListener( new ModifyListener()
         {
@@ -361,6 +369,7 @@ public class UrlInputComposite
         if ( readonlyUrl )
         {
             final Text urlText = new Text( this, SWT.READ_ONLY );
+            urlText.setData( "name", URL_CONTROL_NAME );
             GridData gd = new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 );
             gd.widthHint = 100;
             gd.horizontalIndent = INPUT_INDENT;
@@ -400,6 +409,7 @@ public class UrlInputComposite
         else
         {
             final Combo combo = new Combo( this, SWT.NONE );
+            combo.setData( "name", URL_CONTROL_NAME );
             GridData gd = new GridData( SWT.FILL, SWT.CENTER, true, false, 3, 1 );
             gd.widthHint = 100;
             gd.horizontalIndent = INPUT_INDENT;
