@@ -388,7 +388,7 @@ public class RealmComposite
 
     public void save( IProgressMonitor monitor )
     {
-        if ( isDirty() && lastSelectedRealm != UNSELECT && lastSelectedRealm != null && url != null && url.length() > 0 )
+        if ( isDirty() && url != null && url.length() > 0 )
         {
             AuthFacade.getAuthRegistry().addURLToRealmAssoc( url, lastSelectedRealm.getId(), anonymousAccessType,
                                                              monitor );
