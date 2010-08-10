@@ -15,6 +15,10 @@ public class SonatypeValidatorsTest
         Problems p = new Problems();
         SonatypeValidators.createRemoteHttpUrlValidators().validate( p, "testfield", "http://devclone-55.1515.mtvi.com:8081/nexus" );
         assertFalse( p.hasFatal() );
+        
+        p = new Problems();
+        SonatypeValidators.createRemoteHttpUrlValidators().validate( p, "testfield", "http://localhost:8081/nexus/foo%" );
+        assertTrue( p.hasFatal() );
     }
 
 

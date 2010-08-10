@@ -1,6 +1,8 @@
 package org.maven.ide.eclipse.ui.common.validation;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 
@@ -113,7 +115,18 @@ public final class SonatypeValidators
                         problems.add (NLS.bind( Messages.errors_host_may_not_contain_space, host )); //NOI18N
                         return;
                     }
-
+                    //#MECLIPSE-1317
+                    try
+                    {
+                        new URI( model ).normalize();
+                    }
+                    catch ( URISyntaxException e )
+                    {
+                        String problem = NLS.bind( Messages.errors_not_valid_url, model); 
+                        problems.add(problem);
+                        return;
+                    }
+                    
                     String protocol = url.getProtocol();
                     if ("mailto".equals(protocol)) { //NOI18N
                         String emailAddress = url.toString().substring("mailto:".length()); //NOI18N
