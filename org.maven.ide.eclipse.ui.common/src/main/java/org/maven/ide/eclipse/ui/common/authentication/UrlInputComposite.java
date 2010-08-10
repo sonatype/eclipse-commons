@@ -122,23 +122,6 @@ public class UrlInputComposite
 
     private boolean dirty;
 
-    public UrlInputComposite( Composite parent, String urlLabelText )
-    {
-        this( parent, urlLabelText, null, ALLOW_ANONYMOUS );
-    }
-
-    /**
-     * @wbp.parser.constructor
-     */
-    public UrlInputComposite( Composite parent, String urlLabelText, String url, int style )
-    {
-        this( parent, (WidthGroup) null, (SwtValidationGroup) null, style );
-        initialized = false;
-        setUrlLabelText( urlLabelText );
-        setUrl( url );
-        initialized = true;
-    }
-
     public UrlInputComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, int style )
     {
         super( parent, widthGroup, validationGroup, false );
