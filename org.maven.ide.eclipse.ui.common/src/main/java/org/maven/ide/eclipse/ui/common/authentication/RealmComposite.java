@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -44,6 +45,8 @@ import org.netbeans.validation.api.ui.ValidationStrategy;
 public class RealmComposite
     extends DropDownComposite
 {
+    private ListenerList listeners;
+
     private Text urlText;
 
     private List list;
@@ -77,7 +80,9 @@ public class RealmComposite
         super( parent, formMode ? SWT.FLAT : 0 );
         setClient( urlText );
         setValidationGroup( validationGroup );
+
         realms = new IAuthRealm[0];
+        listeners = new ListenerList();
     }
 
     private void setClient( final Text text )
@@ -271,6 +276,7 @@ public class RealmComposite
             public void widgetSelected( SelectionEvent e )
             {
                 new RealmManagementDialog( getShell() ).open();
+                notifyRealmChangeListeners();
             }
         } );
 
@@ -380,5 +386,27 @@ public class RealmComposite
                                                              monitor );
         }
         dirty = false;
+    }
+
+    public void addRealmChangeListener( IRealmChangeListener listener )
+    {
+        assert listener instanceof IRealmChangeListener;
+        listeners.add( listener );
+    }
+
+    public void removeRealmChangeListener( IRealmChangeListener listener )
+    {
+        listeners.remove( listener );
+    }
+
+    protected void notifyRealmChangeListeners()
+    {
+        if ( !updating )
+        {
+            for ( Object listener : listeners.getListeners() )
+            {
+                ( (IRealmChangeListener) listener ).realmsChanged();
+            }
+        }
     }
 }
