@@ -277,6 +277,9 @@ public class UrlInputComposite
                 setDirty();
             }
         } );
+        // Set focus to username if the URL is read-only
+        if ( readonlyUrl )
+            usernameText.setFocus();
 
         anonymousLabel = new Label( this, SWT.NONE );
         anonymousLabel.setText( Messages.urlInput_anonymousIfEmpty );
