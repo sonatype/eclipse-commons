@@ -5,13 +5,15 @@ import org.eclipse.swt.graphics.Image;
 
 public class Images
 {
-    public static final Image ARTIFACT = getImage( "artifact.gif" );
+    public static final Image ARTIFACT = getImage( "artifact.gif" ); //$NON-NLS-1$
 
-    public static final Image AUTH_REALM = getImage( "authrealm.png" );
+    public static final Image AUTH_REALM = getImage( "authrealm.png" ); //$NON-NLS-1$
 
-    public static final Image GROUP = getImage( "group.gif" );
+    public static final Image GROUP = getImage( "group.gif" ); //$NON-NLS-1$
 
-    public static final Image VERSION = getImage( "version.gif" );
+    public static final ImageDescriptor REFRESH_DESCRIPTOR = getImageDescriptor( "refresh.gif" ); //$NON-NLS-1$
+
+    public static final Image VERSION = getImage( "version.gif" ); //$NON-NLS-1$
 
     private Images()
     {

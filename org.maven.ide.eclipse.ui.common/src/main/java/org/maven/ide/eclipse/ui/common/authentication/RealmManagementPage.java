@@ -1,16 +1,21 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,11 +38,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.statushandlers.StatusManager;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.IAuthRegistry;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
+import org.maven.ide.eclipse.ui.common.Activator;
 import org.maven.ide.eclipse.ui.common.Images;
 import org.maven.ide.eclipse.ui.common.Messages;
 
@@ -47,6 +54,8 @@ public class RealmManagementPage
     private IAction addRealmAction;
 
     private IAction removeRealmAction;
+
+    private IAction reloadRegistryAction;
 
     private TableViewer realmViewer;
 
@@ -79,7 +88,7 @@ public class RealmManagementPage
 
         createRealmList( sash );
         createRealmDetails( sash );
-        sash.setWeights( new int[] { 1, 3 } );
+        sash.setWeights( new int[] { 2, 5 } );
 
         setControl( composite );
 
@@ -141,7 +150,55 @@ public class RealmManagementPage
                                                                                                               ISharedImages.IMG_ELCL_REMOVE ) );
         addToolbarAction( toolBarManager, removeRealmAction );
 
-        // toolBarManager.update( true );
+        toolBarManager.add( new Separator() );
+
+        reloadRegistryAction = new Action()
+        {
+            @Override
+            public void run()
+            {
+                Throwable t = null;
+                try
+                {
+                    getContainer().run( true, true, new IRunnableWithProgress()
+                    {
+                        public void run( IProgressMonitor monitor )
+                            throws InvocationTargetException, InterruptedException
+                        {
+                            AuthFacade.getAuthRegistry().reload( monitor );
+                            monitor.done();
+                        }
+                    } );
+                }
+                catch ( InvocationTargetException e )
+                {
+                    t = e.getTargetException();
+                }
+                catch ( InterruptedException e )
+                {
+                    t = e;
+                }
+
+                if ( t == null )
+                {
+                    loadRealms();
+                    updateSelection( null );
+                }
+                else
+                {
+                    StatusManager.getManager().handle(
+                                                       new Status(
+                                                                   IStatus.ERROR,
+                                                                   Activator.PLUGIN_ID,
+                                                                   NLS.bind(
+                                                                             Messages.realmManagementPage_reload_error,
+                                                                             t.getMessage() ), t ) );
+                }
+            }
+        };
+        reloadRegistryAction.setToolTipText( Messages.realmManagementPage_reload_tooltip );
+        reloadRegistryAction.setImageDescriptor( Images.REFRESH_DESCRIPTOR );
+        toolBarManager.add( reloadRegistryAction );
 
         ToolBar toolBar = toolBarManager.createControl( viewForm );
         toolBar.setBackground( viewForm.getParent().getBackground() );
@@ -229,7 +286,7 @@ public class RealmManagementPage
 
     private void loadRealms()
     {
-        realms = new ArrayList<IAuthRealm>(AuthFacade.getAuthRegistry().getRealms());
+        realms = new ArrayList<IAuthRealm>( AuthFacade.getAuthRegistry().getRealms() );
         realmViewer.setInput( realms );
     }
 

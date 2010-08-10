@@ -100,6 +100,10 @@ public class Messages
 
     public static String realmManagementPage_description;
 
+    public static String realmManagementPage_reload_error;
+
+    public static String realmManagementPage_reload_tooltip;
+
     public static String realmManagementPage_remove_action;
 
     public static String realmManagementPage_remove_error;
