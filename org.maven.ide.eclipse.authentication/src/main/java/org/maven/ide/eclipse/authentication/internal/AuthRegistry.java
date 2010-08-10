@@ -100,11 +100,15 @@ public class AuthRegistry
 
     public IAuthData select( String sUri )
     {
+        log.debug( "Finding auth data for URI '{}'.", sUri );
+        if ( sUri == null || sUri.trim().length() == 0 )
+        {
+            return null;
+        }
         synchronized ( lock )
         {
             try
             {
-                log.debug( "Finding auth data for URI {}.", sUri );
                 URI uri = URIHelper.normalize( sUri );
                 ISecurityRealmURLAssoc urlAssoc = findUrlAssoc( uri );
                 if ( urlAssoc == null )
@@ -500,6 +504,11 @@ public class AuthRegistry
 
     public void save( String sUri, IAuthData authData )
     {
+        log.debug( "Saving auth data for URI '{}'.", sUri );
+        if ( sUri == null || sUri.trim().length() == 0 )
+        {
+            return;
+        }
         synchronized ( lock )
         {
             URI uri = URIHelper.normalize( sUri );

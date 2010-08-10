@@ -97,6 +97,24 @@ public class AuthRegistryTest
         assertSame( realm, registry.getRealm( realmId ) );
     }
 
+    public void testNullUrl()
+        throws Exception
+    {
+        String sUri = null;
+        registry.save( sUri, "username", "password" );
+        assertNull( registry.select( sUri ) );
+    }
+
+    public void testEmptyUrl()
+        throws Exception
+    {
+        String sUri = " ";
+        registry.save( sUri, "username", "password" );
+        assertNull( registry.select( sUri ) );
+        URI uri = new URI( "" );
+        assertNull( registry.select( uri ) );
+    }
+
     public void testSelectPrefixOfUrl()
         throws Exception
     {

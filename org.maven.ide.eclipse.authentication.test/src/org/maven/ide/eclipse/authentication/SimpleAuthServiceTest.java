@@ -1,6 +1,7 @@
 package org.maven.ide.eclipse.authentication;
 
 import java.io.File;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,30 @@ public class SimpleAuthServiceTest
     extends TestCase
 {
     // private static final IProgressMonitor monitor = new NullProgressMonitor();
+
+    public void testNullUrl()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String sUri = null;
+        service.save( sUri, "username", "password" );
+        assertNull( service.select( sUri ) );
+    }
+
+    public void testEmptyUrl()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String sUri = " ";
+        service.save( sUri, "username", "password" );
+        assertNull( service.select( sUri ) );
+        URI uri = new URI( "" );
+        assertNull( service.select( uri ) );
+    }
 
     private ISecurePreferences newSecureStorage()
         throws Exception

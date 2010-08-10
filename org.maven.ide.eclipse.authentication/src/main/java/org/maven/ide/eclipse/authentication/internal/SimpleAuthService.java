@@ -70,10 +70,14 @@ public class SimpleAuthService
 
     public IAuthData select( String sUri )
     {
+        log.debug( "Loading authentication for URI '{}'", sUri );
+        if ( sUri == null || sUri.trim().length() == 0 )
+        {
+            return null;
+        }
+
         try
         {
-            log.debug( "Loading authentication for URI {}", sUri );
-
             URI uri = URIHelper.normalize( sUri );
             ISecurePreferences uriNode = findNode( uri );
             if ( uriNode == null )
@@ -159,7 +163,11 @@ public class SimpleAuthService
 
     public void save( String sUri, IAuthData authData )
     {
-        log.debug( "Saving authentication for URI {}", sUri );
+        log.debug( "Saving authentication for URI '{}'", sUri );
+        if ( sUri == null || sUri.trim().length() == 0 )
+        {
+            return;
+        }
         URI uri = URIHelper.normalize( sUri );
         try
         {
