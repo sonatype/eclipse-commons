@@ -1,6 +1,8 @@
 package org.maven.ide.eclipse.ui.common.authentication;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,6 +33,7 @@ import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.ISecurityRealmURLAssoc;
 import org.maven.ide.eclipse.authentication.SecurityRealmURLAssoc;
+import org.maven.ide.eclipse.authentication.internal.AuthRealm;
 import org.maven.ide.eclipse.authentication.internal.URIHelper;
 import org.maven.ide.eclipse.swtvalidation.SwtComponentDecorationFactory;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
@@ -45,6 +48,8 @@ import org.netbeans.validation.api.ui.ValidationStrategy;
 public class RealmComposite
     extends DropDownComposite
 {
+    private static final IAuthRealm UNSELECT = new AuthRealm( "", "", "", null );
+
     private ListenerList listeners;
 
     private Text urlText;
@@ -184,7 +189,9 @@ public class RealmComposite
             @Override
             public void shellActivated( ShellEvent e )
             {
-                realms = AuthFacade.getAuthRegistry().getRealms().toArray( new IAuthRealm[0] );
+                Collection<IAuthRealm> newRealms = new ArrayList<IAuthRealm>( AuthFacade.getAuthRegistry().getRealms() );
+                newRealms.add( UNSELECT );
+                realms = newRealms.toArray( new IAuthRealm[newRealms.size()] );
                 Arrays.sort( realms, new Comparator<IAuthRealm>()
                 {
                     public int compare( IAuthRealm o1, IAuthRealm o2 )
@@ -365,7 +372,7 @@ public class RealmComposite
 
     public boolean isDirty()
     {
-        return dirty;
+        return dirty && lastSelectedRealm != UNSELECT;
     }
 
     public void clearDirty()
@@ -380,7 +387,7 @@ public class RealmComposite
 
     public void save( IProgressMonitor monitor )
     {
-        if ( dirty && lastSelectedRealm != null && url != null && url.length() > 0 )
+        if ( dirty && lastSelectedRealm != UNSELECT && lastSelectedRealm != null && url != null && url.length() > 0 )
         {
             AuthFacade.getAuthRegistry().addURLToRealmAssoc( url, lastSelectedRealm.getId(), anonymousAccessType,
                                                              monitor );
