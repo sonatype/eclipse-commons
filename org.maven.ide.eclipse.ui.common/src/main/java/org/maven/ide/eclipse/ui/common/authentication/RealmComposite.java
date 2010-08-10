@@ -372,7 +372,7 @@ public class RealmComposite
 
     public boolean isDirty()
     {
-        return dirty && lastSelectedRealm != UNSELECT;
+        return dirty && lastSelectedRealm != UNSELECT && lastSelectedRealm != null;
     }
 
     public void clearDirty()
@@ -382,17 +382,18 @@ public class RealmComposite
 
     public ISecurityRealmURLAssoc getSecurityRealmURLAssoc()
     {
-        return dirty ? new SecurityRealmURLAssoc( null, url, lastSelectedRealm.getId(), anonymousAccessType ) : null;
+        return isDirty() ? new SecurityRealmURLAssoc( null, url, lastSelectedRealm.getId(), anonymousAccessType )
+                        : null;
     }
 
     public void save( IProgressMonitor monitor )
     {
-        if ( dirty && lastSelectedRealm != UNSELECT && lastSelectedRealm != null && url != null && url.length() > 0 )
+        if ( isDirty() && lastSelectedRealm != UNSELECT && lastSelectedRealm != null && url != null && url.length() > 0 )
         {
             AuthFacade.getAuthRegistry().addURLToRealmAssoc( url, lastSelectedRealm.getId(), anonymousAccessType,
                                                              monitor );
         }
-        dirty = false;
+        clearDirty();
     }
 
     public void addRealmChangeListener( IRealmChangeListener listener )
