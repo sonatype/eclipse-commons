@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Text;
 import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthRegistryException;
+import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.ISecurityRealmURLAssoc;
 import org.maven.ide.eclipse.authentication.SecurityRealmURLAssoc;
@@ -67,6 +68,8 @@ public class RealmComposite
 
     private IAuthRealm lastSelectedRealm;
 
+    private String selectedRealmId;
+
     private AnonymousAccessType anonymousAccessType = AnonymousAccessType.NOT_ALLOWED;
 
     public RealmComposite( Composite parent, Text urlText, SwtValidationGroup validationGroup, boolean formMode )
@@ -74,6 +77,7 @@ public class RealmComposite
         super( parent, formMode ? SWT.FLAT : 0 );
         setClient( urlText );
         setValidationGroup( validationGroup );
+        realms = new IAuthRealm[0];
     }
 
     private void setClient( final Text text )
@@ -107,9 +111,14 @@ public class RealmComposite
                     url = null;
                 }
 
+                setEnabled( true );
+
                 if ( url == null )
                 {
-                    setEnabled( false );
+                    selectedRealmId = null;
+                    list.deselectAll();
+                    combo.deselectAll();
+                    setControlsEnabled( false );
                     setText( "" ); //$NON-NLS-1$
                     dirty = false;
                 }
@@ -117,15 +126,15 @@ public class RealmComposite
                 {
                     IAuthRealm realm = AuthFacade.getAuthRegistry().getRealmForURI( url );
 
+                    setControlsEnabled( true );
                     if ( realm == null )
                     {
-                        setEnabled( true );
-                        updateText();
+                        updateSelection( lastSelectedRealm );
                     }
                     else
                     {
-                        setEnabled( false );
-                        setText( realm.getName() );
+                        updateSelection( realm );
+                        setControlsEnabled( false );
                         dirty = false;
                     }
                 }
@@ -183,9 +192,8 @@ public class RealmComposite
                 int selection = -1;
                 for ( int i = realms.length - 1; i >= 0; i-- )
                 {
-                    String name = realms[i].getName();
-                    names[i] = name;
-                    if ( lastSelectedRealm != null && name.equals( lastSelectedRealm.getName() ) )
+                    names[i] = realms[i].getName();
+                    if ( realms[i].getId().equals( selectedRealmId ) )
                     {
                         selection = i;
                     }
@@ -218,8 +226,8 @@ public class RealmComposite
                             if ( n >= 0 )
                             {
                                 lastSelectedRealm = realms[n];
-                                updateText();
-                                dirty = true;
+                                selectedRealmId = lastSelectedRealm.getId();
+                                setDirty();
                             }
                             break;
                         case SWT.MouseDoubleClick:
@@ -249,8 +257,7 @@ public class RealmComposite
                 {
                     anonymousAccessType = ANONYMOUS_OPTIONS[n];
                 }
-                updateText();
-                dirty = true;
+                setDirty();
             }
         } );
         combo.select( 0 );
@@ -275,6 +282,48 @@ public class RealmComposite
         setText( lastSelectedRealm == null ? "" : lastSelectedRealm.getName() ); //$NON-NLS-1$
     }
 
+    private void updateSelection( IAuthRealm realm )
+    {
+        list.deselectAll();
+        combo.select( 0 );
+        if ( realm == null )
+        {
+            selectedRealmId = null;
+            setText( "" );
+            return;
+        }
+
+        updating = true;
+
+        setText( realm.getName() );
+
+        selectedRealmId = realm.getId();
+        for ( int i = realms.length - 1; i >= 0; i-- )
+        {
+            if ( realms[i].getId().equals( selectedRealmId ) )
+            {
+                list.setSelection( i );
+                break;
+            }
+        }
+
+        IAuthData authData = AuthFacade.getAuthService().select( url );
+        if ( authData != null )
+        {
+            anonymousAccessType = authData.getAnonymousAccessType();
+            for ( int i = ANONYMOUS_OPTIONS.length - 1; i >= 0; i-- )
+            {
+                if ( ANONYMOUS_OPTIONS[i].equals( anonymousAccessType ) )
+                {
+                    combo.select( i );
+                    break;
+                }
+            }
+        }
+
+        updating = false;
+    }
+
     @Override
     public void setText( String text )
     {
@@ -291,6 +340,21 @@ public class RealmComposite
             return true;
         }
         return super.isFocusControl();
+    }
+
+    public void setControlsEnabled( boolean enable )
+    {
+        combo.setEnabled( enable );
+        list.setEnabled( enable );
+    }
+
+    public void setDirty()
+    {
+        if ( !updating )
+        {
+            updateText();
+            dirty = true;
+        }
     }
 
     public boolean isDirty()
