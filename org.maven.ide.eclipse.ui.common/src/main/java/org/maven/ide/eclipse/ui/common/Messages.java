@@ -54,6 +54,8 @@ public class Messages
 
     public static String realmComposite_manageRealms;
 
+	public static String realmComposite_noSelection;
+
     public static String realmComposite_passwordRequired;
 
     public static String realmComposite_selectRealmFor;

@@ -104,8 +104,16 @@ public abstract class DropDownComposite
                     {
                         case SWT.Close:
                             event.doit = false;
-                        case SWT.Deactivate:
                             showPopup( false );
+                            break;
+                        case SWT.Deactivate:
+            				Point point = button.toControl(getDisplay().getCursorLocation());
+            				Point size = button.getSize();
+            				Rectangle rect = new Rectangle(0, 0, size.x, size.y);
+            				if ( !rect.contains(point) ) 
+            			    {
+            					showPopup(false);
+            				}
                             break;
                     }
                 }
@@ -144,6 +152,7 @@ public abstract class DropDownComposite
                 }
                 popup.setBounds( x, y, width, height );
                 popup.setVisible( true );
+                popup.setActive();
                 if ( isFocusControl() )
                 {
                     popupComposite.setFocus();

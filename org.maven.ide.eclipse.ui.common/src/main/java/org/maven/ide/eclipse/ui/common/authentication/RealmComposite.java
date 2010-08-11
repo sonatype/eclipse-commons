@@ -48,7 +48,7 @@ import org.netbeans.validation.api.ui.ValidationStrategy;
 public class RealmComposite
     extends DropDownComposite
 {
-    private static final IAuthRealm UNSELECT = new AuthRealm( "", "", "", null );
+    private static final IAuthRealm UNSELECT = new AuthRealm( "", Messages.realmComposite_noSelection, "", null ); //$NON-NLS-1$ //$NON-NLS-3$
 
     private ListenerList listeners;
 
@@ -167,7 +167,7 @@ public class RealmComposite
                 if ( url != null && url.length() > 0 && model.length() == 0 )
                 {
                     problems.add(
-                                  NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$ //$NON-NLS-1$
+                                  NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$ //$NON-NLS-1$ //$NON-NLS-1$
                 }
             }
         };
@@ -189,6 +189,8 @@ public class RealmComposite
             @Override
             public void shellActivated( ShellEvent e )
             {
+            	updating = true;
+
                 Collection<IAuthRealm> newRealms = new ArrayList<IAuthRealm>( AuthFacade.getAuthRegistry().getRealms() );
                 newRealms.add( UNSELECT );
                 realms = newRealms.toArray( new IAuthRealm[newRealms.size()] );
@@ -212,6 +214,8 @@ public class RealmComposite
                 }
                 list.setItems( names );
                 list.setSelection( selection );
+
+                updating = false;
             }
         } );
 
@@ -242,6 +246,12 @@ public class RealmComposite
                                 setDirty();
                             }
                             break;
+                        case SWT.KeyDown:
+                        	if ( event.keyCode == SWT.CR )
+                        	{
+                                showPopup( false );
+                        	}
+                        	break;
                         case SWT.MouseDoubleClick:
                             showPopup( false );
                             break;
@@ -251,6 +261,7 @@ public class RealmComposite
         };
         list.addListener( SWT.MouseDoubleClick, listener );
         list.addListener( SWT.Selection, listener );
+        list.addListener( SWT.KeyDown, listener );
 
         Label label = new Label( composite, SWT.NONE );
         label.setText( Messages.realmComposite_access_label );
@@ -292,7 +303,7 @@ public class RealmComposite
 
     private void updateText()
     {
-        setText( lastSelectedRealm == null ? "" : lastSelectedRealm.getName() ); //$NON-NLS-1$
+        setText( lastSelectedRealm == null || lastSelectedRealm == UNSELECT ? "" : lastSelectedRealm.getName() ); //$NON-NLS-1$
     }
 
     private void updateSelection( IAuthRealm realm )
@@ -302,7 +313,7 @@ public class RealmComposite
         if ( realm == null )
         {
             selectedRealmId = null;
-            setText( "" );
+            setText( "" ); //$NON-NLS-1$
             return;
         }
 
