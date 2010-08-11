@@ -112,14 +112,13 @@ abstract public class RemoteResourceLookupPage
         createExpandableComposite( panel );
         resourceComposite = createResourcePanel( panel );
 
+        setControl( panel );
+
         validationGroup.performValidation();
         if ( serverUrl != null )
         {
             reload();
         }
-
-        setControl( panel );
-        // updateExpandableState();
     }
 
     protected UrlInputComposite createUrlInputComposite( Composite parent )
@@ -255,7 +254,6 @@ abstract public class RemoteResourceLookupPage
                     try
                     {
                         input = loadResources( url, monitor );
-                        updateLoadControls( true, selectMessage, IMessageProvider.NONE );
                     }
                     catch ( Exception e )
                     {
@@ -277,7 +275,11 @@ abstract public class RemoteResourceLookupPage
             exception[0] = e;
         }
 
-        if ( exception[0] != null )
+        if ( exception[0] == null )
+        {
+            updateLoadControls( true, selectMessage, IMessageProvider.NONE );
+        }
+        else
         {
             String message = exceptionToUIText( exception[0] );
 
