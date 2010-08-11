@@ -90,7 +90,7 @@ public class RealmComposite
         listeners = new ListenerList();
     }
 
-    private void setClient( final Text text )
+    private void setClient( Text text )
     {
         urlText = text;
         text.addModifyListener( new ModifyListener()
@@ -102,7 +102,7 @@ public class RealmComposite
                     return;
                 }
 
-                url = text.getText().trim();
+                url = getUrl();
                 if ( url.length() > 0 )
                 {
                     try
@@ -152,6 +152,11 @@ public class RealmComposite
         } );
     }
 
+    protected String getUrl()
+    {
+        return urlText.getText().trim();
+    }
+
     private void setValidationGroup( SwtValidationGroup validationGroup )
     {
         Validator<String> validator = new Validator<String>()
@@ -189,7 +194,7 @@ public class RealmComposite
             @Override
             public void shellActivated( ShellEvent e )
             {
-            	updating = true;
+                updating = true;
 
                 Collection<IAuthRealm> newRealms = new ArrayList<IAuthRealm>( AuthFacade.getAuthRegistry().getRealms() );
                 newRealms.add( UNSELECT );
@@ -247,11 +252,11 @@ public class RealmComposite
                             }
                             break;
                         case SWT.KeyDown:
-                        	if ( event.keyCode == SWT.CR )
-                        	{
+                            if ( event.keyCode == SWT.CR )
+                            {
                                 showPopup( false );
-                        	}
-                        	break;
+                            }
+                            break;
                         case SWT.MouseDoubleClick:
                             showPopup( false );
                             break;
