@@ -12,6 +12,7 @@ import junit.framework.TestCase;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.provider.IProviderHints;
+import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.authentication.internal.SimpleAuthService;
 
 public class SimpleAuthServiceTest
@@ -52,6 +53,59 @@ public class SimpleAuthServiceTest
         secOpts.put( IProviderHints.PROMPT_USER, Boolean.FALSE );
         secOpts.put( IProviderHints.DEFAULT_PASSWORD, new PBEKeySpec( new char[] { 't', 'e', 's', 't' } ) );
         return SecurePreferencesFactory.open( storageFile.toURI().toURL(), secOpts );
+    }
+
+    public void testSaveAndSelectUsernamePassword()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String url = "http://testSaveAndSelectUsernamePassword";
+        assertNull( service.select( url ) );
+        service.save( url, "username", "password" );
+        IAuthData authData = service.select( url );
+        assertNotNull( authData );
+        assertEquals( AuthenticationType.USERNAME_PASSWORD, authData.getAuthenticationType() );
+        assertEquals( "username", authData.getUsername() );
+        assertEquals( "password", authData.getPassword() );
+    }
+
+    public void testSaveAndSelectCertificate()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String url = "http://testSaveAndSelectCertificate";
+        assertNull( service.select( url ) );
+        service.save( url, new File( "foocertificate" ), "passphrase" );
+        IAuthData authData = service.select( url );
+        assertNotNull( authData );
+        assertEquals( AuthenticationType.CERTIFICATE, authData.getAuthenticationType() );
+        assertEquals( new File( "foocertificate" ).getAbsolutePath(), authData.getCertificatePath().getAbsolutePath() );
+        assertEquals( "passphrase", authData.getCertificatePassphrase() );
+    }
+
+    public void testSaveAndSelectUsernamePasswordAndCertificate()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String url = "http://testSaveAndSelectUsernamePasswordAndCertificate";
+        assertNull( service.select( url ) );
+        IAuthData authData =
+            new AuthData( "username", "password", new File( "foocertificate" ), "passphrase",
+                          AnonymousAccessType.NOT_ALLOWED );
+        service.save( url, authData );
+        authData = service.select( url );
+        assertNotNull( authData );
+        assertEquals( AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD, authData.getAuthenticationType() );
+        assertEquals( "username", authData.getUsername() );
+        assertEquals( "password", authData.getPassword() );
+        assertEquals( new File( "foocertificate" ).getAbsolutePath(), authData.getCertificatePath().getAbsolutePath() );
+        assertEquals( "passphrase", authData.getCertificatePassphrase() );
     }
 
     public void testSaveAndSelectNoEndSlash()

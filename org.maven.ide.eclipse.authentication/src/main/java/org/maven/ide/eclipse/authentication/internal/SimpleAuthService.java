@@ -17,7 +17,6 @@ import org.maven.ide.eclipse.authentication.IAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//TODO Add unit tests
 public class SimpleAuthService
     implements IAuthService
 {
@@ -32,6 +31,8 @@ public class SimpleAuthService
     private static final String SECURE_SSL_CERTIFICATE_PATH = "sslCertificatePath";
 
     private static final String SECURE_SSL_CERTIFICATE_PASSPHRASE = "sslCertificatePassphrase";
+
+    private static final String SECURE_AUTH_TYPE = "authenticationType";
 
     private final ISecurePreferences secureStorage;
 
@@ -86,10 +87,29 @@ public class SimpleAuthService
                 return null;
             }
 
-            String username = uriNode.get( SECURE_USERNAME, "" );
-            String password = uriNode.get( SECURE_PASSWORD, "" );
-            log.debug( "Found authentication data for URI {}: username={}", uri, username );
-            return new AuthData( username, password, null /* anonymousAccessType */);
+            AuthenticationType authenticationType = null;
+            String sAuthType = uriNode.get( SECURE_AUTH_TYPE, null );
+            if ( sAuthType != null )
+            {
+                authenticationType = AuthenticationType.valueOf( sAuthType );
+            }
+            AuthData authData = new AuthData( authenticationType );
+            if ( authData.allowsUsernameAndPassword() )
+            {
+                String username = uriNode.get( SECURE_USERNAME, "" );
+                String password = uriNode.get( SECURE_PASSWORD, "" );
+                authData.setUsernameAndPassword( username, password );
+                log.debug( "Found authentication data for URI {}: username={}", uri, username );
+            }
+            if ( authData.allowsCertificate() )
+            {
+                File certificatePath = new File( uriNode.get( SECURE_SSL_CERTIFICATE_PATH, null ) );
+                String certificatePassphrase = uriNode.get( SECURE_SSL_CERTIFICATE_PASSPHRASE, null );
+                authData.setSSLCertificate( certificatePath, certificatePassphrase );
+                log.debug( "Found authentication data for URI {}: certificatePath={}", uri,
+                           certificatePath.getAbsolutePath() );
+            }
+            return authData;
         }
         catch ( Exception e )
         {
@@ -182,13 +202,22 @@ public class SimpleAuthService
             ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
             ISecurePreferences realmNode = authNode.node( sURI );
 
-            realmNode.put( SECURE_USERNAME, authData.getUsername(), true );
-            realmNode.put( SECURE_PASSWORD, authData.getPassword(), true );
-
-            String sslCertificatePathString =
-                authData.getCertificatePath() != null ? authData.getCertificatePath().getCanonicalPath() : null;
-            realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePathString, false );
-            realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, authData.getCertificatePassphrase(), true );
+            if ( authData.allowsUsernameAndPassword() )
+            {
+                realmNode.put( SECURE_USERNAME, authData.getUsername(), true );
+                realmNode.put( SECURE_PASSWORD, authData.getPassword(), true );
+            }
+            if ( authData.allowsCertificate() )
+            {
+                String sslCertificatePathString =
+                    authData.getCertificatePath() != null ? authData.getCertificatePath().getCanonicalPath() : null;
+                realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePathString, false );
+                realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, authData.getCertificatePassphrase(), true );
+            }
+            if ( authData.getAuthenticationType() != null )
+            {
+                realmNode.put( SECURE_AUTH_TYPE, authData.getAuthenticationType().toString(), false );
+            }
 
             authNode.flush();
         }
