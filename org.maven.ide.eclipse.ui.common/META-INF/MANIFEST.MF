@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 MavenArtifact-BaseVersion: 1.0.0-SNAPSHOT
-Bundle-Version: 1.1.3.qualifier
+Bundle-Version: 1.1.3.20100811
 MavenArtifact-ArtifactId: org.maven.ide.eclipse.ui.common
 MavenArtifact-GroupId: org.maven.ide.eclipse.commons
 Bundle-Name: Maven Eclipse UI Commons
