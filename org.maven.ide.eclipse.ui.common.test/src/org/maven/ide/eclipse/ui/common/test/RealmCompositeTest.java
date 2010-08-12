@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.junit.Test;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.authentication.RealmComposite;
@@ -51,6 +52,12 @@ public class RealmCompositeTest
     // realmComposite.setDirty();
     // assertNull( realmComposite.getSecurityRealmURLAssoc() );
     // }
+
+    @Test
+    public void testDummy()
+    {
+        // Dummy test until the real test is enabled
+    }
 
     private class DummyDialog
         extends StatusDialog
