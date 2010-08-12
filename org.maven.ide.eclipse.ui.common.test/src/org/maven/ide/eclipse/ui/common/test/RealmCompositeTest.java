@@ -27,7 +27,7 @@ public class RealmCompositeTest
     @Override
     public void setUp() throws Exception 
     {
-        dialog = new DummyDialog( new Shell( Display.getDefault() ) );
+        dialog = new DummyDialog( new Shell( Display.getCurrent() ) );
         dialog.open();
         super.setUp();
     }
