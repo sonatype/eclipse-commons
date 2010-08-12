@@ -12,7 +12,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.junit.Test;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.authentication.RealmComposite;
@@ -45,8 +44,7 @@ public class RealmCompositeTest
      * When the RealmComposite was marked as dirty, but no realm had been selected, calling getSecurityRealmURLAssoc()
      * resulted in an NPE. See MECLIPSE-1486
      */
-    @Test
-    public void testNPEDirtyNoSelection()
+    public void noTestNPEDirtyNoSelection()
     {
         realmComposite.setDirty();
         assertNull( realmComposite.getSecurityRealmURLAssoc() );
