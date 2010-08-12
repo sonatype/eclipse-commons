@@ -107,7 +107,7 @@ public final class SonatypeValidators
     public static Validator<String> URL_MUST_BE_VALID = new  StringVal() 
     {
             public void validate(Problems problems, String compName, String model) {
-                
+                StringValidators.REQUIRE_NON_EMPTY_STRING.validate( problems, compName, model );
                 try {
                     URL url = new URL (model);
                     String host = url.getHost();
