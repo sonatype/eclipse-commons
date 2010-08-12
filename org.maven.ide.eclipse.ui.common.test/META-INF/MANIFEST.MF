@@ -13,3 +13,4 @@ Require-Bundle: org.junit4,
  org.maven.ide.eclipse.swtvalidation,
  org.eclipse.core.runtime
 Export-Package: org.maven.ide.eclipse.ui.common.test
+Import-Package: org.maven.ide.eclipse.authentication
