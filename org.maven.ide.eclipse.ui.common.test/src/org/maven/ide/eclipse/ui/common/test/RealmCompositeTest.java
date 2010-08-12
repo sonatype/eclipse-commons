@@ -9,7 +9,6 @@ import org.eclipse.jface.dialogs.StatusDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
@@ -23,32 +22,35 @@ public class RealmCompositeTest
 
     private DummyDialog dialog;
 
-    @Override
-    public void setUp() throws Exception 
-    {
-        dialog = new DummyDialog( new Shell( Display.getCurrent() ) );
-        dialog.open();
-        super.setUp();
-    }
-
-    @Override
-    public void tearDown()
-        throws Exception
-    {
-        realmComposite = null;
-        dialog.close();
-        super.tearDown();
-    }
+    // @Override
+    // public void setUp() throws Exception
+    // {
+    // dialog = new DummyDialog( new Shell( Display.getCurrent() ) );
+    // dialog.open();
+    // super.setUp();
+    // }
+    //
+    // @Override
+    // public void tearDown()
+    // throws Exception
+    // {
+    // dialog.close();
+    // realmComposite.dispose();
+    // dialog = null;
+    // realmComposite = null;
+    // super.tearDown();
+    // }
 
     /*
      * When the RealmComposite was marked as dirty, but no realm had been selected, calling getSecurityRealmURLAssoc()
      * resulted in an NPE. See MECLIPSE-1486
      */
-    public void noTestNPEDirtyNoSelection()
-    {
-        realmComposite.setDirty();
-        assertNull( realmComposite.getSecurityRealmURLAssoc() );
-    }
+    // @Ignore
+    // public void testNPEDirtyNoSelection()
+    // {
+    // realmComposite.setDirty();
+    // assertNull( realmComposite.getSecurityRealmURLAssoc() );
+    // }
 
     private class DummyDialog
         extends StatusDialog
