@@ -74,7 +74,7 @@
 
                   <serverId>forge-releases</serverId>
                   <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>eclipse-commons/${unqualifiedVersion}/N/${buildQualifier}</repositoryPath>
+                  <repositoryPath>eclipse-commons/${unqualifiedVersion}/N/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
                 </configuration>
               </execution>
             </executions>
