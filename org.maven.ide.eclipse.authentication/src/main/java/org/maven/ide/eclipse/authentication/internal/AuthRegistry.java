@@ -220,9 +220,9 @@ public class AuthRegistry
         {
             log.info( "Using security realm persistence implementation: "
                 + selectedPersistence.getClass().getCanonicalName() );
+            selectedPersistence.setActive( true );
         }
 
-        selectedPersistence.setActive( true );
         persistence = selectedPersistence;
     }
 
