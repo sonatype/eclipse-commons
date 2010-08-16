@@ -23,9 +23,7 @@
         <configuration>
           <useUIHarness>true</useUIHarness>
           <useUIThread>false</useUIThread>
-          <product>org.eclipse.sdk.ide</product>
-          <application>org.eclipse.ui.ide.workbench</application>
-          <argLine>-Xmx800m -XX:MaxPermSize=256m</argLine>
+          <argLine>${tycho.test.jvmArgs}</argLine>
           <appArgLine>-eclipse.keyring target/keyring -eclipse.password resources/secure-storage-password.txt -pluginCustomization ${basedir}/plugin_customization.ini</appArgLine>
           <forkedProcessTimeoutInSeconds>180</forkedProcessTimeoutInSeconds>
         </configuration>
