@@ -28,15 +28,6 @@ public abstract class AbstractWizardPageTest
         text.setText( content );
     }
 
-    protected void assertText( DialogPage page, String name, String content, boolean isEnabled )
-    {
-        assertText( page, name, content, isEnabled, true /* isVisible */);
-        Control control = getControlByName( page, name );
-        Text text = (Text) control;
-        Assert.assertEquals( "Incorrect expected value for control " + name, content, text.getText() );
-        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, text.isEnabled() );
-    }
-
     protected void assertText( DialogPage page, String name, String content, boolean isEnabled, boolean isVisible )
     {
         Control control = getControlByName( page, name, false /* assertExists */);
@@ -75,11 +66,6 @@ public abstract class AbstractWizardPageTest
         Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, combo.isEnabled() );
     }
 
-    protected void assertButton( DialogPage page, String name, boolean isEnabled )
-    {
-        assertButton( page, name, isEnabled, true /* isVisible */);
-    }
-
     protected void assertButton( DialogPage page, String name, boolean isEnabled, boolean isVisible )
     {
         Control control = getControlByName( page, name, false /* assertExists */);
@@ -89,8 +75,8 @@ public abstract class AbstractWizardPageTest
         }
         assertNotNull( "Cannot find control with name=" + name, control );
         Button button = (Button) control;
-        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, button.isEnabled() );
-        // Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, button.isVisible() );
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, button.getEnabled() );
+        Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, button.getVisible() );
     }
 
     protected void assertCheckbox( DialogPage page, String name, boolean isChecked, boolean isEnabled, boolean isVisible )
@@ -103,8 +89,8 @@ public abstract class AbstractWizardPageTest
         assertNotNull( "Cannot find control with name=" + name, control );
         Button button = (Button) control;
         Assert.assertEquals( "Incorrect expected value for control " + name, isChecked, button.getSelection() );
-        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, button.isEnabled() );
-        // Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, button.isVisible() );
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, button.getEnabled() );
+        Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, button.getVisible() );
     }
 
     protected Control getControlByName( DialogPage page, String name )
