@@ -255,7 +255,7 @@ public class UrlInputCompositeTest
 
         dialog = new WizardDialog( shell, wizard );
         dialog.create();
-        dialog.open();
+        // dialog.open();
         return page;
     }
 }
