@@ -20,6 +20,17 @@ public class SimpleAuthServiceTest
 {
     // private static final IProgressMonitor monitor = new NullProgressMonitor();
 
+    public void testSelectShortUrl()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        assertNull( service.select( "a" ) );
+        assertNull( service.select( "aa" ) );
+        assertNull( service.select( "aaa" ) );
+    }
+
     public void testNullUrl()
         throws Exception
     {

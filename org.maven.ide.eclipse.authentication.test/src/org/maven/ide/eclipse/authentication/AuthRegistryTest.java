@@ -115,6 +115,14 @@ public class AuthRegistryTest
         assertNull( registry.select( uri ) );
     }
 
+    public void testSelectShortUrl()
+        throws Exception
+    {
+        assertNull( registry.select( "a" ) );
+        assertNull( registry.select( "aa" ) );
+        assertNull( registry.select( "aaa" ) );
+    }
+
     public void testSelectPrefixOfUrl()
         throws Exception
     {

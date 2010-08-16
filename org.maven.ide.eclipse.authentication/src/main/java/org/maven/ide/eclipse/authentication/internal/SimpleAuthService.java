@@ -48,6 +48,10 @@ public class SimpleAuthService
         while ( true )
         {
             String sURI = uri.toString();
+            if ( sURI.trim().length() == 0 )
+            {
+                return null;
+            }
             if ( sURI.endsWith( "/" ) )
             {
                 sURI = sURI.substring( 0, sURI.length() - 1 );
@@ -60,13 +64,11 @@ public class SimpleAuthService
             }
             if ( uri.getPath() == null || uri.getPath().length() <= 1 )
             {
-                break;
+                return null;
             }
             uri = uri.resolve( relativeUrl );
             relativeUrl = "../";
         }
-
-        return null;
     }
 
     public IAuthData select( String sUri )

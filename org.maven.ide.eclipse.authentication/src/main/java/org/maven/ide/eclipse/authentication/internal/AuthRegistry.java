@@ -144,6 +144,10 @@ public class AuthRegistry
         while ( true )
         {
             String sURL = uri.toString();
+            if ( sURL.trim().length() == 0 )
+            {
+                return null;
+            }
             if ( sURL.endsWith( "/" ) )
             {
                 sURL = sURL.substring( 0, sURL.length() - 1 );
@@ -155,13 +159,11 @@ public class AuthRegistry
             }
             if ( uri.getPath() == null || uri.getPath().length() <= 1 )
             {
-                break;
+                return null;
             }
             uri = uri.resolve( relativeUrl );
             relativeUrl = "../";
         }
-
-        return null;
     }
 
     private boolean securityRealmPersistenceWasLoaded = false;
