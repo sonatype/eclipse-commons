@@ -4,10 +4,8 @@ import javax.crypto.spec.PBEKeySpec;
 
 import org.eclipse.equinox.security.storage.provider.IPreferencesContainer;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.maven.ide.eclipse.authentication.internal.storage.PasswordProvider;
 import org.maven.ide.eclipse.ui.common.dialogs.SecureStorageLoginDialog;
 
@@ -21,13 +19,12 @@ public class PasswordProviderDelegate
 
         final PBEKeySpec[] password = new PBEKeySpec[1];
 
-        final IWorkbench workbench = PlatformUI.getWorkbench();
-        workbench.getDisplay().syncExec( new Runnable()
+        final Display display = Display.getCurrent() != null ? Display.getCurrent() : new Display();
+        display.syncExec( new Runnable()
         {
             public void run()
             {
-                IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-                Shell shell = window != null ? window.getShell() : null;
+                Shell shell = display.getActiveShell();
                 SecureStorageLoginDialog dialog = new SecureStorageLoginDialog( shell, newPassword, passwordChange );
 
                 if ( dialog.open() == Dialog.OK )
