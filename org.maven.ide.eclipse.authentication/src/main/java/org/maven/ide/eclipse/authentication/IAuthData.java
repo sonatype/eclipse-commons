@@ -20,6 +20,8 @@ public interface IAuthData
 
     public boolean allowsCertificate();
 
+    public boolean allowsAnonymousAccess();
+
     public void setUsernameAndPassword( String username, String password );
 
     public void setSSLCertificate( File certificatePath, String certificatePassphrase );

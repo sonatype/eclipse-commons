@@ -4,53 +4,121 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.wizard.WizardPage;
+import org.eclipse.jface.dialogs.DialogPage;
+import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.junit.Assert;
 
 public abstract class AbstractWizardPageTest
     extends TestCase
 {
+    protected Wizard wizard;
+
     protected static final IProgressMonitor monitor = new NullProgressMonitor();
 
-    protected void setText( WizardPage page, String name, String content )
+    protected void setText( DialogPage page, String name, String content )
     {
         Control control = getControlByName( page, name );
         Text text = (Text) control;
         text.setText( content );
     }
 
-    protected void assertText( WizardPage page, String name, String content, boolean isEnabled )
+    protected void assertText( DialogPage page, String name, String content, boolean isEnabled )
     {
+        assertText( page, name, content, isEnabled, true /* isVisible */);
         Control control = getControlByName( page, name );
         Text text = (Text) control;
-        Assert.assertEquals( content, text.getText() );
-        Assert.assertEquals( isEnabled, text.getEditable() );
+        Assert.assertEquals( "Incorrect expected value for control " + name, content, text.getText() );
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, text.isEnabled() );
     }
 
-    protected void assertCombo( WizardPage page, String name, String content, boolean isEnabled )
+    protected void assertText( DialogPage page, String name, String content, boolean isEnabled, boolean isVisible )
+    {
+        Control control = getControlByName( page, name, false /* assertExists */);
+        if ( !isVisible && control == null )
+        {
+            return;
+        }
+        assertNotNull( "Cannot find control with name=" + name, control );
+        Text text = (Text) control;
+        if ( isVisible )
+        {
+            Assert.assertEquals( "Incorrect expected value for control " + name, content, text.getText() );
+        }
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled,
+                             text.getEnabled() && text.getEditable() );
+        Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, text.getVisible() );
+    }
+
+    protected void assertLabel( DialogPage page, String name, boolean isVisible )
+    {
+        Control control = getControlByName( page, name, false /* assertExists */);
+        if ( !isVisible && control == null )
+        {
+            return;
+        }
+        assertNotNull( "Cannot find control with name=" + name, control );
+        Label label = (Label) control;
+        Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, label.getVisible() );
+    }
+
+    protected void assertCombo( DialogPage page, String name, String content, boolean isEnabled )
     {
         Control control = getControlByName( page, name );
         Combo combo = (Combo) control;
-        Assert.assertEquals( content, combo.getText() );
-        Assert.assertEquals( isEnabled, combo.isEnabled() );
+        Assert.assertEquals( "Incorrect expected value for control " + name, content, combo.getText() );
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, combo.isEnabled() );
     }
 
-    protected void assertButton( WizardPage page, String name, boolean isEnabled )
+    protected void assertButton( DialogPage page, String name, boolean isEnabled )
     {
-        Control control = getControlByName( page, name );
-        Button text = (Button) control;
-        Assert.assertEquals( isEnabled, text.isEnabled() );
+        assertButton( page, name, isEnabled, true /* isVisible */);
     }
 
-    protected Control getControlByName( WizardPage page, String name )
+    protected void assertButton( DialogPage page, String name, boolean isEnabled, boolean isVisible )
+    {
+        Control control = getControlByName( page, name, false /* assertExists */);
+        if ( !isVisible && control == null )
+        {
+            return;
+        }
+        assertNotNull( "Cannot find control with name=" + name, control );
+        Button button = (Button) control;
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, button.isEnabled() );
+        // Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, button.isVisible() );
+    }
+
+    protected void assertCheckbox( DialogPage page, String name, boolean isChecked, boolean isEnabled, boolean isVisible )
+    {
+        Control control = getControlByName( page, name, false /* assertExists */);
+        if ( !isVisible && control == null )
+        {
+            return;
+        }
+        assertNotNull( "Cannot find control with name=" + name, control );
+        Button button = (Button) control;
+        Assert.assertEquals( "Incorrect expected value for control " + name, isChecked, button.getSelection() );
+        Assert.assertEquals( "Incorrect enabled status for control " + name, isEnabled, button.isEnabled() );
+        // Assert.assertEquals( "Incorrect visible status for control " + name, isVisible, button.isVisible() );
+    }
+
+    protected Control getControlByName( DialogPage page, String name )
+    {
+        return getControlByName( page, name, true /* assertExists */);
+    }
+
+    protected Control getControlByName( DialogPage page, String name, boolean assertExists )
     {
         Control result = getControlByName( (Composite) ( page.getControl() ), name );
-        assertNotNull( "Cannot find control with name=" + name, result );
+        if ( assertExists )
+        {
+            assertNotNull( "Cannot find control with name=" + name, result );
+        }
         return result;
     }
 
@@ -59,7 +127,8 @@ public abstract class AbstractWizardPageTest
         for ( Control control : composite.getChildren() )
         {
             Object controlName = control.getData( "name" );
-            System.out.println( control.getClass().getCanonicalName() + ": Name: " + controlName );
+            System.out.println( control.getClass().getCanonicalName() + ": Name: " + controlName + ", Focus: "
+                + control.isFocusControl() );
             if ( name.equals( control.getData( "name" ) ) )
             {
                 return control;
@@ -74,5 +143,22 @@ public abstract class AbstractWizardPageTest
             }
         }
         return null;
+    }
+
+    @Override
+    protected void tearDown()
+        throws Exception
+    {
+        try
+        {
+            if ( wizard != null )
+            {
+                wizard.dispose();
+            }
+        }
+        finally
+        {
+            super.tearDown();
+        }
     }
 }

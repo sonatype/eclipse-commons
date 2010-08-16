@@ -73,6 +73,11 @@ public class AuthData
         return anonymousAccessType;
     }
 
+    public void setAnonymousAccessType( AnonymousAccessType anonymousAccessType )
+    {
+        this.anonymousAccessType = anonymousAccessType;
+    }
+
     public AuthenticationType getAuthenticationType()
     {
         return authenticationType;
@@ -147,5 +152,108 @@ public class AuthData
     public boolean isAnonymousAccessRequired()
     {
         return AnonymousAccessType.REQUIRED.equals( anonymousAccessType );
+    }
+
+    public boolean allowsAnonymousAccess()
+    {
+        return anonymousAccessType == null || AnonymousAccessType.ALLOWED.equals( anonymousAccessType )
+            || AnonymousAccessType.REQUIRED.equals( anonymousAccessType );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( anonymousAccessType == null ) ? 0 : anonymousAccessType.hashCode() );
+        result = prime * result + ( ( authenticationType == null ) ? 0 : authenticationType.hashCode() );
+        if ( allowsCertificate() )
+        {
+            result = prime * result + ( ( certificatePassphrase == null ) ? 0 : certificatePassphrase.hashCode() );
+            result = prime * result + ( ( certificatePath == null ) ? 0 : certificatePath.getAbsolutePath().hashCode() );
+        }
+        if ( allowsUsernameAndPassword() )
+        {
+            result = prime * result + ( ( password == null ) ? 0 : password.hashCode() );
+            result = prime * result + ( ( username == null ) ? 0 : username.hashCode() );
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        AuthData other = (AuthData) obj;
+        if ( anonymousAccessType != other.anonymousAccessType )
+        {
+            return false;
+        }
+        if ( authenticationType != other.authenticationType )
+        {
+            return false;
+        }
+        if ( allowsCertificate() )
+        {
+            if ( certificatePassphrase == null )
+            {
+                if ( other.certificatePassphrase != null )
+                {
+                    return false;
+                }
+            }
+            else if ( !certificatePassphrase.equals( other.certificatePassphrase ) )
+            {
+                return false;
+            }
+            if ( certificatePath == null )
+            {
+                if ( other.certificatePath != null )
+                {
+                    return false;
+                }
+            }
+            else if ( !certificatePath.getAbsolutePath().equals( other.certificatePath.getAbsolutePath() ) )
+            {
+                return false;
+            }
+        }
+        if ( allowsUsernameAndPassword() )
+        {
+            if ( password == null )
+            {
+                if ( other.password != null )
+                {
+                    return false;
+                }
+            }
+            else if ( !password.equals( other.password ) )
+            {
+                return false;
+            }
+            if ( username == null )
+            {
+                if ( other.username != null )
+                {
+                    return false;
+                }
+            }
+            else if ( !username.equals( other.username ) )
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -80,6 +80,24 @@ public class SimpleAuthServiceTest
         assertEquals( AuthenticationType.USERNAME_PASSWORD, authData.getAuthenticationType() );
         assertEquals( "username", authData.getUsername() );
         assertEquals( "password", authData.getPassword() );
+        assertEquals( AnonymousAccessType.NOT_ALLOWED, authData.getAnonymousAccessType() );
+    }
+
+    public void testSaveAndSelectUsernamePasswordAnonymousAllowed()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String url = "http://testSaveAndSelectUsernamePasswordAnonymousAllowed";
+        assertNull( service.select( url ) );
+        service.save( url, new AuthData( "username", "password", AnonymousAccessType.ALLOWED ) );
+        IAuthData authData = service.select( url );
+        assertNotNull( authData );
+        assertEquals( AuthenticationType.USERNAME_PASSWORD, authData.getAuthenticationType() );
+        assertEquals( "username", authData.getUsername() );
+        assertEquals( "password", authData.getPassword() );
+        assertEquals( AnonymousAccessType.ALLOWED, authData.getAnonymousAccessType() );
     }
 
     public void testSaveAndSelectCertificate()

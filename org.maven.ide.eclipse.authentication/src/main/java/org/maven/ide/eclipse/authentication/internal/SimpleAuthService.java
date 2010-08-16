@@ -34,6 +34,8 @@ public class SimpleAuthService
 
     private static final String SECURE_AUTH_TYPE = "authenticationType";
 
+    private static final String ANONYMOUS_ACCESS_TYPE = "anonymousAccessType";
+
     private final ISecurePreferences secureStorage;
 
     public SimpleAuthService( ISecurePreferences secureStorage ) {
@@ -110,6 +112,14 @@ public class SimpleAuthService
                 authData.setSSLCertificate( certificatePath, certificatePassphrase );
                 log.debug( "Found authentication data for URI {}: certificatePath={}", uri,
                            certificatePath.getAbsolutePath() );
+            }
+
+            AnonymousAccessType anonymousAccessType = null;
+            String sAnonymousAccessType = uriNode.get( ANONYMOUS_ACCESS_TYPE, null );
+            if ( sAnonymousAccessType != null )
+            {
+                anonymousAccessType = AnonymousAccessType.valueOf( sAnonymousAccessType );
+                authData.setAnonymousAccessType( anonymousAccessType );
             }
             return authData;
         }
@@ -219,6 +229,10 @@ public class SimpleAuthService
             if ( authData.getAuthenticationType() != null )
             {
                 realmNode.put( SECURE_AUTH_TYPE, authData.getAuthenticationType().toString(), false );
+            }
+            if ( authData.getAnonymousAccessType() != null )
+            {
+                realmNode.put( ANONYMOUS_ACCESS_TYPE, authData.getAnonymousAccessType().toString(), false );
             }
 
             authNode.flush();
