@@ -242,15 +242,16 @@ public class UrlInputCompositeTest
         {
             wizard.dispose();
         }
-        wizard = new DummyWizard();
-        DummyPage page = new DummyPage( url, urlInputStyle );
-        wizard.addPage( page );
 
         display = Display.getCurrent();
         if ( display == null )
         {
             display = new Display();
         }
+
+        wizard = new DummyWizard();
+        DummyPage page = new DummyPage( url, urlInputStyle );
+        wizard.addPage( page );
         Shell shell = new Shell( display );
 
         dialog = new WizardDialog( shell, wizard );
