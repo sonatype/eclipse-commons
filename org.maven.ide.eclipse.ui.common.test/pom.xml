@@ -21,7 +21,8 @@
         <artifactId>maven-osgi-test-plugin</artifactId>
         <version>${tycho-version}</version>
         <configuration>
-          <useUIHarness>false</useUIHarness>
+          <useUIHarness>true</useUIHarness>
+          <useUIThread>false</useUIThread>
           <argLine>${tycho.test.jvmArgs}</argLine>
           <appArgLine>-eclipse.keyring target/keyring -eclipse.password resources/secure-storage-password.txt -pluginCustomization ${basedir}/plugin_customization.ini</appArgLine>
           <forkedProcessTimeoutInSeconds>180</forkedProcessTimeoutInSeconds>
