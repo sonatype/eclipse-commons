@@ -521,7 +521,7 @@ public class AuthRegistry
 
     public void save( String sUri, IAuthData authData )
     {
-        log.debug( "Saving auth data for URI '{}'.", sUri );
+        log.debug( "Saving authentication data for URI '{}'.", sUri );
         if ( sUri == null || sUri.trim().length() == 0 )
         {
             return;

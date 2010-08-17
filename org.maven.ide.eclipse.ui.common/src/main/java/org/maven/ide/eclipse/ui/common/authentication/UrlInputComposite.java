@@ -605,6 +605,7 @@ public class UrlInputComposite
             usernamePasswordLayoutHasChanged = removeUsernamePasswordControls();
         }
 
+
         boolean certificateLayoutHasChanged = false;
         if ( authData.allowsCertificate() )
         {
@@ -628,7 +629,7 @@ public class UrlInputComposite
 
         updating = false;
 
-        if ( initialized && isVisible() && ( usernamePasswordLayoutHasChanged || certificateLayoutHasChanged ) )
+        if ( initialized && ( usernamePasswordLayoutHasChanged || certificateLayoutHasChanged ) )
         {
             getShell().pack();
         }
@@ -679,11 +680,11 @@ public class UrlInputComposite
             return;
         }
         Problem validationProblem = getValidationGroup().performValidation();
-        if ( validationProblem != null && validationProblem.isFatal() )
+        if (validationProblem != null && validationProblem.isFatal())
         {
             return;
         }
-
+        
         IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
         if ( authData == null )
         {

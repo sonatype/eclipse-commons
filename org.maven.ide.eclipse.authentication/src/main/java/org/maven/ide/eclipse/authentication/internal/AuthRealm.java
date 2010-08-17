@@ -292,6 +292,7 @@ public class AuthRealm
         {
             this.username = username;
             this.password = password;
+            log.debug( "Setting authentication for realm id '{}': User name: '{}'", id, username );
             saveToSecureStorage();
         }
     }
@@ -309,6 +310,7 @@ public class AuthRealm
         {
             this.sslCertificatePath = sslCertificatePath;
             this.sslCertificatePassphrase = sslCertificatePassphrase;
+            log.debug( "Setting authentication for realm id '{}': Certificate file name: '{}'", id, sslCertificatePath );
             saveToSecureStorage();
         }
     }
@@ -317,18 +319,15 @@ public class AuthRealm
     {
         if ( authData.getAuthenticationType() != null && !authData.getAuthenticationType().equals( authenticationType ) )
         {
-            throw new AuthRegistryException( "Security realm " + id
-                + ": The authentication type of the realm " + authenticationType
-                + " does not match the authentication type of the provide authentication data "
+            throw new AuthRegistryException( "Security realm " + id + ": The authentication type of the realm "
+                + authenticationType + " does not match the authentication type of the provided authentication data "
                 + authData.getAuthenticationType() );
         }
-        if ( AuthenticationType.USERNAME_PASSWORD.equals( authenticationType )
-            || AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD.equals( authenticationType ) )
+        if ( authData.allowsUsernameAndPassword() )
         {
             setUsernameAndPassword( authData.getUsername(), authData.getPassword() );
         }
-        if ( AuthenticationType.CERTIFICATE.equals( authenticationType )
-            || AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD.equals( authenticationType ) )
+        if ( authData.allowsCertificate() )
         {
             setSSLCertificate( authData.getCertificatePath(), authData.getCertificatePassphrase() );
         }

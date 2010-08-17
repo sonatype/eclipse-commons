@@ -208,7 +208,8 @@ public class SimpleAuthService
             {
                 sURI = sURI.substring( 0, sURI.length() - 1 );
             }
-            log.debug( "Saving authentication for URI {}", uri.toString() );
+            log.debug( "Saving authentication for normalized URI '{}': authentication type: {}", uri.toString(),
+                       authData.getAuthenticationType() );
             sURI = encode( sURI );
 
             ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
@@ -216,6 +217,7 @@ public class SimpleAuthService
 
             if ( authData.allowsUsernameAndPassword() )
             {
+                log.debug( "\tUser name: '{}'", authData.getUsername() );
                 realmNode.put( SECURE_USERNAME, authData.getUsername(), true );
                 realmNode.put( SECURE_PASSWORD, authData.getPassword(), true );
             }
@@ -223,6 +225,7 @@ public class SimpleAuthService
             {
                 String sslCertificatePathString =
                     authData.getCertificatePath() != null ? authData.getCertificatePath().getCanonicalPath() : null;
+                log.debug( "\tCertificate file name: '{}'", sslCertificatePathString );
                 realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePathString, false );
                 realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, authData.getCertificatePassphrase(), true );
             }
