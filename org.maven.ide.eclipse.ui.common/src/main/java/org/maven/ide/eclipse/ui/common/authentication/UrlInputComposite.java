@@ -685,11 +685,6 @@ public class UrlInputComposite
             return;
         }
         
-        IAuthData authData = AuthFacade.getAuthService().select( getUrlText() );
-        if ( authData == null )
-        {
-            authData = new AuthData();
-        }
         if ( authData.allowsUsernameAndPassword() )
         {
             authData.setUsernameAndPassword( username, password );

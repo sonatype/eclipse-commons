@@ -95,12 +95,25 @@ public class UrlInputCompositeTest
     public void testUrlWithCertificate()
     {
         String url = "http://UrlInputCompositeTest/testUrlWithCertificate";
-        IAuthData authData =
-            new AuthData( new File( "testUrlWithUsernamePasswordAndCertificate" ),
-                          "passphrase testUrlWithUsernamePasswordAndCertificate" );
+        IAuthData authData = new AuthData( new File( "testUrlWithCertificate" ), "passphrase testUrlWithCertificate" );
         AuthFacade.getAuthService().save( url, authData );
         int style = 0;
         DummyPage page = createTestPage( url, style );
+        assertIt( page, url, authData, style );
+    }
+
+    public void testUrlWithCertificateNoSavedCertificate()
+    {
+        String url =
+            "http://UrlInputCompositeTest/testUrlWithCertificateNoSavedCertificate" + System.currentTimeMillis();
+        int style = UrlInputComposite.CERTIFICATE_CONTROLS | UrlInputComposite.ALLOW_ANONYMOUS;
+        DummyPage page = createTestPage( url, style );
+        setText( page, UrlInputComposite.CERTIFICATE_TEXT_NAME,
+                 new File( "testUrlWithCertificateNoSavedCertificate" ).getAbsolutePath() );
+        setText( page, UrlInputComposite.PASSPHRASE_TEXT_NAME, "passphrase testUrlWithCertificateNoSavedCertificate" );
+        IAuthData authData =
+            new AuthData( "", "", new File( "testUrlWithCertificateNoSavedCertificate" ),
+                          "passphrase testUrlWithCertificateNoSavedCertificate", AnonymousAccessType.ALLOWED );
         assertIt( page, url, authData, style );
     }
 
