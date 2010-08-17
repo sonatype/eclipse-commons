@@ -531,8 +531,18 @@ public class AuthRegistryTest
         registry.addRealm( realmId, "name", "desc", AuthenticationType.USERNAME_PASSWORD, monitor );
         assertNotNull( registry.getRealm( realmId ) );
 
+        String url = "http://testRemoveRealm/foo";
+        ISecurityRealmURLAssoc urlAssoc =
+            registry.addURLToRealmAssoc( url, realmId, AnonymousAccessType.ALLOWED, monitor );
+        assertNotNull( urlAssoc );
+        IAuthRealm realmForUrl = registry.getRealmForURI( url );
+        assertNotNull( realmForUrl );
+        assertEquals( realmId, realmForUrl.getId() );
+
         registry.removeRealm( realmId, monitor );
         assertNull( registry.getRealm( realmId ) );
+        assertNull( registry.getRealmForURI( url ) );
+        assertNull( registry.getURLToRealmAssoc( urlAssoc.getId() ) );
     }
 
     public void testUpdateRealmIdNull()

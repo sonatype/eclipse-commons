@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -289,6 +290,20 @@ public class AuthRegistry
             if ( !realms.containsKey( realmId ) )
             {
                 throw new AuthRegistryException( "A security realm with id='" + realmId + "' does not exists." );
+            }
+
+            Set<String> urlAssocsToDelete = new LinkedHashSet<String>();
+            for ( String urlAssocId : urlAssocsById.keySet() )
+            {
+                ISecurityRealmURLAssoc urlAssoc = urlAssocsById.get( urlAssocId );
+                if ( realmId.equals( urlAssoc.getRealmId() ) )
+                {
+                    urlAssocsToDelete.add( urlAssocId );
+                }
+            }
+            for ( String urlAssocId : urlAssocsToDelete )
+            {
+                removeURLToRealmAssoc( urlAssocId, monitor );
             }
 
             if ( persistence != null )
