@@ -37,12 +37,10 @@ import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
  * Reusable widget to enter a URL and/or supply the associated credentials.
  * <P/>
  * When the widget is initially displayed, it checks if the auth registry already contains credentials for the given
- * realm or URL, and populates the username/password fields. The URL can be rendered read-only or editable, a drop-down
- * input history is provided. If the URL string does not contain a protocol, it's displayed as read-only and used as a
- * realm id.
+ * URL, and populates the username/password and certificate fields. The URL can be rendered read-only or editable, a
+ * drop-down input history is provided.
  * <P/>
- * The component is ready to be used in dialogs and wizard pages. You may override the validate() method if you need to
- * update the error message in the wizard or do additional validations.
+ * The component is ready to be used in dialogs and wizard pages.
  * <P/>
  * Once the wizard flow is complete, call the getUrl() method to retrieve the URL. The credentials will be automatically
  * saved in the auth registry.
