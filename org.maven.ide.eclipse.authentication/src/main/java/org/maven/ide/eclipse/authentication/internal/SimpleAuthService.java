@@ -34,7 +34,7 @@ public class SimpleAuthService
 
     private static final String SECURE_AUTH_TYPE = "authenticationType";
 
-    private static final String ANONYMOUS_ACCESS_TYPE = "anonymousAccessType";
+    private static final String SECURE_ANONYMOUS_ACCESS_TYPE = "anonymousAccessType";
 
     private final ISecurePreferences secureStorage;
 
@@ -115,12 +115,13 @@ public class SimpleAuthService
             }
 
             AnonymousAccessType anonymousAccessType = null;
-            String sAnonymousAccessType = uriNode.get( ANONYMOUS_ACCESS_TYPE, null );
+            String sAnonymousAccessType = uriNode.get( SECURE_ANONYMOUS_ACCESS_TYPE, null );
             if ( sAnonymousAccessType != null )
             {
                 anonymousAccessType = AnonymousAccessType.valueOf( sAnonymousAccessType );
                 authData.setAnonymousAccessType( anonymousAccessType );
             }
+
             return authData;
         }
         catch ( Exception e )
@@ -135,17 +136,17 @@ public class SimpleAuthService
         return select( uri.toString() );
     }
 
-    public void save( String uri, String username, String password )
+    public boolean save( String uri, String username, String password )
     {
         IAuthData authData = new AuthData( username, password, AnonymousAccessType.NOT_ALLOWED );
-        save( uri, authData );
+        return save( uri, authData );
     }
 
-    public void save( String uri, File certificatePath, String certificatePassphrase )
+    public boolean save( String uri, File certificatePath, String certificatePassphrase )
     {
         IAuthData authData = new AuthData( AuthenticationType.CERTIFICATE );
         authData.setSSLCertificate( certificatePath, certificatePassphrase );
-        save( uri, authData );
+        return save( uri, authData );
     }
 
     public void removeURI( URI uri )
@@ -193,12 +194,12 @@ public class SimpleAuthService
         }
     }
 
-    public void save( String sUri, IAuthData authData )
+    public boolean save( String sUri, IAuthData authData )
     {
         log.debug( "Saving authentication for URI '{}'", sUri );
         if ( sUri == null || sUri.trim().length() == 0 )
         {
-            return;
+            return false;
         }
         URI uri = URIHelper.normalize( sUri );
         try
@@ -210,6 +211,15 @@ public class SimpleAuthService
             }
             log.debug( "Saving authentication for normalized URI '{}': authentication type: {}", uri.toString(),
                        authData.getAuthenticationType() );
+
+            IAuthData oldAuthData = select( sURI );
+            if ( authData.equals( oldAuthData ) )
+            {
+                log.debug( "The authentication data has not changed for URI '{}'. Ignoring request to save authentication data.",
+                           sUri );
+                return false;
+            }
+
             sURI = encode( sURI );
 
             ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
@@ -235,10 +245,12 @@ public class SimpleAuthService
             }
             if ( authData.getAnonymousAccessType() != null )
             {
-                realmNode.put( ANONYMOUS_ACCESS_TYPE, authData.getAnonymousAccessType().toString(), false );
+                realmNode.put( SECURE_ANONYMOUS_ACCESS_TYPE, authData.getAnonymousAccessType().toString(), false );
             }
 
             authNode.flush();
+
+            return true;
         }
         catch ( StorageException e )
         {

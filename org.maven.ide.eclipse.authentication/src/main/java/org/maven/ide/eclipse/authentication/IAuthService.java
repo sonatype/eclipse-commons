@@ -25,11 +25,26 @@ public interface IAuthService
     IAuthData select( String uri );
 
     /**
-     * Saves username and password used to access the specified URI.
+     * Saves username and password used to access the specified URI. The authentication data is saved only if it is
+     * different from authentication data that is already persisted.
+     * 
+     * @return true if the authentication data was saved.
      */
-    void save( String uri, String username, String password );
+    boolean save( String uri, String username, String password );
 
-    void save( String uri, IAuthData authData );
+    /**
+     * Saves authentication data used to access the specified URI. The authentication data is saved only if it is
+     * different from authentication data that is already persisted.
+     * 
+     * @return true if the authentication data was saved.
+     */
+    boolean save( String uri, IAuthData authData );
 
-    void save( String uri, File certificatePath, String certificatePassphrase );
+    /**
+     * Saves SSL certificate and passphrase used to access the specified URI. The authentication data is saved only if
+     * it is different from authentication data that is already persisted.
+     * 
+     * @return true if the authentication data was saved.
+     */
+    boolean save( String uri, File certificatePath, String certificatePassphrase );
 }

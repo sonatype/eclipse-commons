@@ -280,4 +280,55 @@ public class SimpleAuthServiceTest
         }
         assertNull( service.select( url ) );
     }
+
+    public void testSaveAuthDataOnlyWhenChanged_UsernamePassword()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String url = "http://SimpleAuthServiceTest/testSaveAuthDataOnlyWhenChanged_UsernamePassword/";
+        String username = "username";
+        String password = "password";
+        AnonymousAccessType anonymousAccessType = AnonymousAccessType.NOT_ALLOWED;
+        IAuthData authData = new AuthData( username, password, anonymousAccessType );
+        assertTrue( service.save( url, authData ) );
+        authData = service.select( url );
+
+        authData = new AuthData( username, password, anonymousAccessType );
+        assertFalse( service.save( url, authData ) );
+
+        username += "x";
+        authData = new AuthData( username, password, anonymousAccessType );
+        assertTrue( service.save( url, authData ) );
+
+        password += "x";
+        authData = new AuthData( username, password, anonymousAccessType );
+        assertTrue( service.save( url, authData ) );
+    }
+
+    public void testSaveAuthDataOnlyWhenChanged_Certificate()
+        throws Exception
+    {
+        ISecurePreferences secureStorage = newSecureStorage();
+        SimpleAuthService service = new SimpleAuthService( secureStorage );
+
+        String url = "http://SimpleAuthServiceTest/testSaveAuthDataOnlyWhenChanged_Certificate/";
+        File certificate = new File( "foo" );
+        String passphrase = "passphrase";
+        IAuthData authData = new AuthData( certificate, passphrase );
+        assertTrue( service.save( url, authData ) );
+        authData = service.select( url );
+
+        authData = new AuthData( certificate, passphrase );
+        assertFalse( service.save( url, authData ) );
+
+        certificate = new File( "foox" );
+        authData = new AuthData( certificate, passphrase );
+        assertTrue( service.save( url, authData ) );
+
+        passphrase += "x";
+        authData = new AuthData( certificate, passphrase );
+        assertTrue( service.save( url, authData ) );
+    }
 }

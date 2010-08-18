@@ -170,12 +170,12 @@ public class AuthRealm
         }
     }
 
-    private void saveToSecureStorage()
+    private boolean saveToSecureStorage()
     {
         if ( secureStorage == null )
         {
             log.debug( "Secure storage not available, can't save security realm authentication data." );
-            return;
+            return false;
         }
 
         ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
@@ -193,19 +193,20 @@ public class AuthRealm
             String sslCertificatePathString = sslCertificatePath != null ? sslCertificatePath.getCanonicalPath() : null;
             realmNode.put( SECURE_SSL_CERTIFICATE_PATH, sslCertificatePathString, false );
             realmNode.put( SECURE_SSL_CERTIFICATE_PASSPHRASE, sslCertificatePassphrase, true );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Error saving authentication realm " + id, e );
-        }
 
-        try
-        {
             authNode.flush();
+
+            return true;
+        }
+        catch ( StorageException e )
+        {
+            log.error( "Error saving auth data for realm id '" + id + "': " + e.getMessage(), e );
+            throw new AuthRegistryException( e );
         }
         catch ( IOException e )
         {
-            log.error( "Error saving authentication registry", e );
+            log.error( "Error saving auth data for realm id '" + id + "': " + e.getMessage(), e );
+            throw new AuthRegistryException( e );
         }
     }
 
@@ -272,50 +273,7 @@ public class AuthRealm
         return getId();
     }
 
-    public void setUsernameAndPassword( String username, String password )
-    {
-        if ( !AuthenticationType.USERNAME_PASSWORD.equals( authenticationType )
-            && !AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD.equals( authenticationType ) )
-        {
-            throw new AuthRegistryException(
-                                             "The authentication type of this realm does not allow username and password authentication." );
-        }
-        if ( username == null )
-        {
-            username = "";
-        }
-        if ( password == null )
-        {
-            password = "";
-        }
-        if ( !username.equals( this.username ) || !password.equals( this.password ) )
-        {
-            this.username = username;
-            this.password = password;
-            log.debug( "Setting authentication for realm id '{}': User name: '{}'", id, username );
-            saveToSecureStorage();
-        }
-    }
-
-    public void setSSLCertificate( File sslCertificatePath, String sslCertificatePassphrase )
-    {
-        if ( !AuthenticationType.CERTIFICATE.equals( authenticationType )
-            && !AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD.equals( authenticationType ) )
-        {
-            throw new AuthRegistryException(
-                                             "The authentication type of this realm does not allow SSL certificate authentication." );
-        }
-        if ( !sslCertificatePath.equals( this.sslCertificatePath )
-            || !sslCertificatePassphrase.equals( this.sslCertificatePassphrase ) )
-        {
-            this.sslCertificatePath = sslCertificatePath;
-            this.sslCertificatePassphrase = sslCertificatePassphrase;
-            log.debug( "Setting authentication for realm id '{}': Certificate file name: '{}'", id, sslCertificatePath );
-            saveToSecureStorage();
-        }
-    }
-
-    public void setAuthData( IAuthData authData )
+    public boolean setAuthData( IAuthData authData )
     {
         if ( authData.getAuthenticationType() != null && !authData.getAuthenticationType().equals( authenticationType ) )
         {
@@ -323,14 +281,60 @@ public class AuthRealm
                 + authenticationType + " does not match the authentication type of the provided authentication data "
                 + authData.getAuthenticationType() );
         }
+
+        boolean needsSave = false;
         if ( authData.allowsUsernameAndPassword() )
         {
-            setUsernameAndPassword( authData.getUsername(), authData.getPassword() );
+            String newUsername = authData.getUsername();
+            if ( newUsername == null )
+            {
+                newUsername = "";
+            }
+            String newPassword = authData.getPassword();
+            if ( newPassword == null )
+            {
+                newPassword = "";
+            }
+            if ( !eq( username, newUsername ) || !eq( password, newPassword ) )
+            {
+                username = newUsername;
+                password = newPassword;
+                log.debug( "Setting authentication for realm id '{}': User name: '{}'", id, username );
+                needsSave = true;
+            }
         }
         if ( authData.allowsCertificate() )
         {
-            setSSLCertificate( authData.getCertificatePath(), authData.getCertificatePassphrase() );
+            File newSslCertificatePath = authData.getCertificatePath();
+            if ( newSslCertificatePath != null )
+            {
+                try
+                {
+                    newSslCertificatePath = newSslCertificatePath.getCanonicalFile();
+                }
+                catch ( IOException e )
+                {
+                    throw new AuthRegistryException( e );
+                }
+            }
+
+            if ( !eq( sslCertificatePath, newSslCertificatePath )
+                || !eq( sslCertificatePassphrase, authData.getCertificatePassphrase() ) )
+            {
+                sslCertificatePath = newSslCertificatePath;
+                sslCertificatePassphrase = authData.getCertificatePassphrase();
+                log.debug( "Setting authentication for realm id '{}': Certificate file name: '{}'", id,
+                           sslCertificatePath );
+                needsSave = true;
+            }
         }
+
+        if ( needsSave )
+        {
+            return saveToSecureStorage();
+        }
+
+        return false;
     }
 
     public IAuthData getAuthData()

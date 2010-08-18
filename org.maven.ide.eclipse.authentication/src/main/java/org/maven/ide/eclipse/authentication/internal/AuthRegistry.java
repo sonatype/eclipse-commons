@@ -500,31 +500,31 @@ public class AuthRegistry
         }
     }
 
-    public void save( String uri, String username, String password )
+    public boolean save( String uri, String username, String password )
     {
         synchronized ( lock )
         {
             IAuthData authData = new AuthData( username, password, AnonymousAccessType.NOT_ALLOWED );
-            save( uri, authData );
+            return save( uri, authData );
         }
     }
 
-    public void save( String uri, File certificatePath, String certificatePassphrase )
+    public boolean save( String uri, File certificatePath, String certificatePassphrase )
     {
         synchronized ( lock )
         {
             IAuthData authData = new AuthData( AuthenticationType.CERTIFICATE );
             authData.setSSLCertificate( certificatePath, certificatePassphrase );
-            save( uri, authData );
+            return save( uri, authData );
         }
     }
 
-    public void save( String sUri, IAuthData authData )
+    public boolean save( String sUri, IAuthData authData )
     {
         log.debug( "Saving authentication data for URI '{}'.", sUri );
         if ( sUri == null || sUri.trim().length() == 0 )
         {
-            return;
+            return false;
         }
         synchronized ( lock )
         {
@@ -534,12 +534,11 @@ public class AuthRegistry
             {
                 log.debug( "URL {} is not associated with a security realm.", uri );
                 // Fall back to SimpleAuthService
-                new SimpleAuthService( secureStorage ).save( uri.toString(), authData );
-                return;
+                return new SimpleAuthService( secureStorage ).save( uri.toString(), authData );
             }
             log.debug( "Selected authentication realm {} for URL {}", urlAssoc.getRealmId(), uri );
             IAuthRealm realm = realms.get( urlAssoc.getRealmId() );
-            realm.setAuthData( authData );
+            return realm.setAuthData( authData );
         }
     }
 

@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.provider.IProviderHints;
+import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.authentication.internal.AuthRealm;
 import org.maven.ide.eclipse.authentication.internal.AuthRegistry;
 
@@ -26,6 +27,14 @@ public class AuthRegistryTest
     private static final IProgressMonitor monitor = new NullProgressMonitor();
 
     private AuthRegistry registry;
+
+    private static void setRealmUsernameAndPassword( IAuthRealm realm, AuthenticationType authType, String username,
+                                                     String password )
+    {
+        IAuthData authData = new AuthData( authType );
+        authData.setUsernameAndPassword( username, password );
+        realm.setAuthData( authData );
+    }
 
     private ISecurePreferences newSecureStorage()
         throws Exception
@@ -129,7 +138,7 @@ public class AuthRegistryTest
         String realmId = "foo";
 
         IAuthRealm realm = registry.addRealm( realmId, "name", "desc", AuthenticationType.USERNAME_PASSWORD, monitor );
-        realm.setUsernameAndPassword( "testuser", "testpass" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.USERNAME_PASSWORD, "testuser", "testpass" );
         registry.addURLToRealmAssoc( "http://foo", realmId, AnonymousAccessType.ALLOWED, monitor );
 
         IAuthData authData = registry.select( URI.create( "http://foo/catalog.xml" ) );
@@ -162,7 +171,7 @@ public class AuthRegistryTest
         String url = "http://www.sonatype.com//x";
 
         IAuthRealm realm = registry.addRealm( realmId, "name", "desc", AuthenticationType.USERNAME_PASSWORD, monitor );
-        realm.setUsernameAndPassword( "testuser", "testpass" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.USERNAME_PASSWORD, "testuser", "testpass" );
         registry.addURLToRealmAssoc( url, realmId, AnonymousAccessType.ALLOWED, monitor );
 
         assertAuthData( registry.select( URI.create( url ) ), "testuser", "testpass", AnonymousAccessType.ALLOWED );
@@ -298,7 +307,7 @@ public class AuthRegistryTest
         AuthRealm realm =
             (AuthRealm) registry.addRealm( "realm-id-1", "realm-name-1", "realm-description-1",
                                AuthenticationType.USERNAME_PASSWORD, monitor );
-        realm.setUsernameAndPassword( "user", "pass" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.USERNAME_PASSWORD, "user", "pass" );
 
         registry.addRealm( "id-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]", "realm-name-2", "realm-description-2",
                            AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD, monitor );
@@ -313,7 +322,7 @@ public class AuthRegistryTest
         assertEquals( AuthenticationType.USERNAME_PASSWORD, realm.getAuthenticationType() );
         assertEquals( "user", realm.getUsername() );
         assertEquals( "pass", realm.getPassword() );
-        realm.setUsernameAndPassword( "user-1", "pass-1" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.USERNAME_PASSWORD, "user-1", "pass-1" );
         assertEquals( "user-1", realm.getUsername() );
         assertEquals( "pass-1", realm.getPassword() );
 
@@ -323,7 +332,8 @@ public class AuthRegistryTest
         assertEquals( "realm-name-2", realm.getName() );
         assertEquals( "realm-description-2", realm.getDescription() );
         assertEquals( AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD, realm.getAuthenticationType() );
-        realm.setUsernameAndPassword( "user-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]",
+        setRealmUsernameAndPassword( realm, AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD,
+                                     "user-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]",
                                       "pass-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]" );
         assertEquals( "user-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]", realm.getUsername() );
         assertEquals( "pass-_!\"�$%&/()=?\\+*~#',;.:<>|{}[]", realm.getPassword() );
@@ -350,7 +360,7 @@ public class AuthRegistryTest
         AuthRealm realm =
             (AuthRealm) registry.addRealm( "realm-id-1", "realm-name-1", "realm-description-1",
                                            AuthenticationType.USERNAME_PASSWORD, monitor );
-        realm.setUsernameAndPassword( "user", "pass" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.USERNAME_PASSWORD, "user", "pass" );
         String realmId = realm.getId();
 
         // Add
@@ -1127,5 +1137,58 @@ public class AuthRegistryTest
         urls = registry.getURLToRealmAssocs();
         assertNotNull( urls );
         assertEquals( count + 1, urls.size() );
+    }
+
+    public void testSaveAuthDataOnlyWhenChanged_UsernamePassword()
+        throws Exception
+    {
+        String realmId = "AuthRegistryTest_testSaveAuthDataOnlyWhenChanged_UsernamePassword";
+        registry.addRealm( realmId, "realm-name-1", "realm-description-1", AuthenticationType.USERNAME_PASSWORD,
+                               monitor );
+
+        AnonymousAccessType anonymousAccessType = AnonymousAccessType.NOT_ALLOWED;
+        String url = "http://AuthRegistryTest/testSaveAuthDataOnlyWhenChanged_UsernamePassword";
+        registry.addURLToRealmAssoc( url, realmId, anonymousAccessType, monitor );
+
+        String username = "username";
+        String password = "password";
+        IAuthData authData = new AuthData( username, password, anonymousAccessType );
+        assertTrue( registry.save( url, authData ) );
+
+        authData = new AuthData( username, password, anonymousAccessType );
+        assertFalse( registry.save( url, authData ) );
+
+        username += "x";
+        authData = new AuthData( username, password, anonymousAccessType );
+        assertTrue( registry.save( url, authData ) );
+
+        password += "x";
+        authData = new AuthData( username, password, anonymousAccessType );
+        assertTrue( registry.save( url, authData ) );
+    }
+
+    public void testSaveAuthDataOnlyWhenChanged_Certificate()
+        throws Exception
+    {
+        String realmId = "AuthRegistryTest_testSaveAuthDataOnlyWhenChanged_Certificate";
+        registry.addRealm( realmId, "realm-name-1", "realm-description-1", AuthenticationType.CERTIFICATE,
+                           monitor );
+
+        AnonymousAccessType anonymousAccessType = AnonymousAccessType.NOT_ALLOWED;
+        String url = "http://AuthRegistryTest/testSaveAuthDataOnlyWhenChanged_Certificate";
+        registry.addURLToRealmAssoc( url, realmId, anonymousAccessType, monitor );
+
+        File certificate = new File( "foo" );
+        String passphrase = "passphrase";
+        IAuthData authData = new AuthData( certificate, passphrase );
+        assertTrue( registry.save( url, authData ) );
+
+        certificate = new File( "foox" );
+        authData = new AuthData( certificate, passphrase );
+        assertTrue( registry.save( url, authData ) );
+
+        passphrase += "x";
+        authData = new AuthData( certificate, passphrase );
+        assertTrue( registry.save( url, authData ) );
     }
 }

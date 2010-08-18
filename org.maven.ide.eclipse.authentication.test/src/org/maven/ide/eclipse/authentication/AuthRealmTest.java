@@ -5,18 +5,35 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.CoreException;
+import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.authentication.internal.AuthRealm;
 
 public class AuthRealmTest
     extends TestCase
 {
+    private static void setRealmUsernameAndPassword( IAuthRealm realm, AuthenticationType authType, String username,
+                                                     String password )
+    {
+        IAuthData authData = new AuthData( authType );
+        authData.setUsernameAndPassword( username, password );
+        realm.setAuthData( authData );
+    }
+
+    private static void setRealmSSLCertificate( IAuthRealm realm, AuthenticationType authType, File certificatePath,
+                                                String passphrase )
+    {
+        IAuthData authData = new AuthData( authType );
+        authData.setSSLCertificate( certificatePath, passphrase );
+        realm.setAuthData( authData );
+    }
+
     public void testSetUsernameAndPassword_USERNAME_PASSWORD()
         throws CoreException
     {
         AuthRealm realm =
             new AuthRealm( "testSetUsernameAndPassword_USERNAME_PASSWORD", "realm-name", "realm-description",
                            AuthenticationType.USERNAME_PASSWORD );
-        realm.setUsernameAndPassword( "user", "pass" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.USERNAME_PASSWORD, "user", "pass" );
         assertEquals( "user", realm.getUsername() );
         assertEquals( "pass", realm.getPassword() );
     }
@@ -28,7 +45,7 @@ public class AuthRealmTest
             new AuthRealm( "testSetUsernameAndPassword_CERTIFICATE_AND_USERNAME_PASSWORD", "realm-name",
                            "realm-description",
                            AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD );
-        realm.setUsernameAndPassword( "user", "pass" );
+        setRealmUsernameAndPassword( realm, AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD, "user", "pass" );
         assertEquals( "user", realm.getUsername() );
         assertEquals( "pass", realm.getPassword() );
     }
@@ -41,7 +58,7 @@ public class AuthRealmTest
                            AuthenticationType.CERTIFICATE );
         try
         {
-            realm.setUsernameAndPassword( "user", "pass" );
+            setRealmUsernameAndPassword( realm, AuthenticationType.CERTIFICATE, "user", "pass" );
             fail( "Expected AuthRegistryException" );
         }
         catch ( AuthRegistryException expected )
@@ -55,24 +72,24 @@ public class AuthRealmTest
     }
 
     public void testSetSSLCertificate_CERTIFICATE()
-        throws CoreException
+        throws Exception
     {
         AuthRealm realm =
             new AuthRealm( "testSetSSLCertificate_CERTIFICATE", "realm-name", "realm-description",
                            AuthenticationType.CERTIFICATE );
-        realm.setSSLCertificate( new File( "sslp" ), "pp" );
-        assertEquals( new File( "sslp" ), realm.getCertificatePath() );
+        setRealmSSLCertificate( realm, AuthenticationType.CERTIFICATE, new File( "sslp" ), "pp" );
+        assertEquals( new File( "sslp" ).getCanonicalFile(), realm.getCertificatePath() );
         assertEquals( "pp", realm.getCertificatePassphrase() );
     }
 
     public void testSetSSLCertificate_CERTIFICATE_AND_USERNAME_PASSWORD()
-        throws CoreException
+        throws Exception
     {
         AuthRealm realm =
             new AuthRealm( "testSetSSLCertificate_CERTIFICATE_AND_USERNAME_PASSWORD", "realm-name",
                            "realm-description", AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD );
-        realm.setSSLCertificate( new File( "sslp" ), "pp" );
-        assertEquals( new File( "sslp" ), realm.getCertificatePath() );
+        setRealmSSLCertificate( realm, AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD, new File( "sslp" ), "pp" );
+        assertEquals( new File( "sslp" ).getCanonicalFile(), realm.getCertificatePath() );
         assertEquals( "pp", realm.getCertificatePassphrase() );
     }
 
@@ -84,7 +101,7 @@ public class AuthRealmTest
                            AuthenticationType.USERNAME_PASSWORD );
         try
         {
-            realm.setSSLCertificate( new File( "sslp" ), "pp" );
+            setRealmSSLCertificate( realm, AuthenticationType.USERNAME_PASSWORD, new File( "sslp" ), "pp" );
             fail( "Expected AuthRegistryException" );
         }
         catch ( AuthRegistryException expected )
