@@ -370,4 +370,8 @@ public class RealmComposite
             }
         }
     }
+    
+    protected List getList() {
+        return list;
+    }
 }
