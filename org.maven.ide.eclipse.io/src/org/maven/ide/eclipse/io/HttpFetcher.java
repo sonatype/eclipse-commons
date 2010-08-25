@@ -47,7 +47,7 @@ public class HttpFetcher
         GetExchange exchange = new GetExchange( url.toString(), httpClient, os, mis );
 
         IAuthData authData = authService.select( url );
-        if ( authData != null && authData.getUsername() != null && authData.getUsername().length() > 0 )
+        if ( authData != null )
         {
             String authenticationString =
                 "Basic "
