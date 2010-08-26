@@ -29,6 +29,7 @@
       <module>org.maven.ide.eclipse.authentication</module>
       <module>org.maven.ide.eclipse.authentication.test</module>
       <module>org.maven.ide.eclipse.io</module>
+      <module>org.maven.ide.eclipse.io.test</module>
       <module>org.maven.ide.eclipse.ui.common</module>
       <module>org.maven.ide.eclipse.ui.common.test</module>
       <module>org.maven.ide.eclipse.ui.tests.common</module>
