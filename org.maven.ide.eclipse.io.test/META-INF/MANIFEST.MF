@@ -11,8 +11,8 @@ Require-Bundle: org.junit,
  org.maven.ide.eclipse.tests.common,
  org.eclipse.core.runtime,
  org.eclipse.core.net,
- org.maven.ide.eclipse.authentication,
  org.maven.ide.eclipse.authentication.test,
  org.eclipse.jetty.http,
  org.eclipse.jetty.util,
- org.maven.ide.eclipse.ui.common
+ org.maven.ide.eclipse.ui.common,
+ org.maven.ide.eclipse.authentication
