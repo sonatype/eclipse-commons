@@ -3,6 +3,7 @@ package org.maven.ide.eclipse.io;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
 import org.eclipse.core.net.proxy.IProxyData;
@@ -17,6 +18,7 @@ import org.eclipse.jetty.client.security.Realm;
 import org.eclipse.jetty.client.security.RealmResolver;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpSchemes;
+import org.eclipse.jetty.http.security.B64Code;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.thread.Timeout.Task;
@@ -150,6 +152,19 @@ public class HttpBaseSupport
         else
         {
             return 80;
+        }
+    }
+
+    protected static void setAuthenticationHeader( IAuthData authData, HttpExchange exchange )
+        throws UnsupportedEncodingException
+    {
+        if ( authData != null
+            && ( ( authData.getUsername() != null && authData.getUsername().length() > 0 ) || ( authData.getPassword() != null && authData.getPassword().length() > 0 ) ) )
+        {
+            String authenticationString =
+                "Basic "
+                    + B64Code.encode( authData.getUsername() + ":" + authData.getPassword(), StringUtil.__ISO_8859_1 );
+            exchange.setRequestHeader( HttpHeaders.AUTHORIZATION, authenticationString );
         }
     }
 
