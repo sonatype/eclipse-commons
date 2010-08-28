@@ -1,32 +1,21 @@
 package org.maven.ide.eclipse.io;
 
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.security.B64Code;
 import org.eclipse.jetty.util.StringUtil;
-import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
-import org.maven.ide.eclipse.authentication.AuthenticationType;
-import org.maven.ide.eclipse.authentication.IAuthData;
-import org.maven.ide.eclipse.authentication.IAuthRealm;
-import org.maven.ide.eclipse.authentication.internal.AuthData;
 import org.maven.ide.eclipse.tests.common.HttpServer;
 
 public class HttpFetcherTest
-    extends TestCase
+    extends AbstractIOTest
 {
-    private static final String AUTH_TYPE = "Basic ";
 
     HttpServer server;
 
@@ -83,7 +72,7 @@ public class HttpFetcherTest
     public void testOpenstreamForbidden()
         throws Exception
     {
-        URI address = URI.create( server.getHttpUrl() + "/secured/secure.txt" );
+        URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         try
         {
             readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -104,7 +93,7 @@ public class HttpFetcherTest
     public void testOpenStream()
         throws Exception
     {
-        URI address = URI.create( server.getHttpUrl() + "/file.txt" );
+        URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         assertEquals( readstream( new FileInputStream( "resources/file.txt" ) ),
                      readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(),
                                                      null ) ) );
@@ -116,10 +105,10 @@ public class HttpFetcherTest
     public void testUsernameAndPasswordSent()
         throws Exception
     {
-        URI address = URI.create( server.getHttpUrl() + "/file.txt" );
-        setupAuth( address.toString(), "username", "password" );
+        URI address = URI.create( server.getHttpUrl() + FILE_PATH );
+        addRealmAndURL( "testUsernameAndPasswordSent", address.toString(), "username", "password" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
-        assertAuthentication( "username", "password", server.getRecordedHeaders( "/file.txt" ) );
+        assertAuthentication( "username", "password", server.getRecordedHeaders( FILE_PATH ) );
     }
 
     /*
@@ -128,10 +117,10 @@ public class HttpFetcherTest
     public void testUsernameOnly()
         throws Exception
     {
-        URI address = URI.create( server.getHttpUrl() + "/file.txt" );
-        setupAuth( address.toString(), "username", "" );
+        URI address = URI.create( server.getHttpUrl() + FILE_PATH );
+        addRealmAndURL( "testUsernameOnly", address.toString(), "username", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
-        assertAuthentication( "username", "", server.getRecordedHeaders( "/file.txt" ) );
+        assertAuthentication( "username", "", server.getRecordedHeaders( FILE_PATH ) );
     }
 
     /*
@@ -140,10 +129,10 @@ public class HttpFetcherTest
     public void testPasswordOnly()
         throws Exception
     {
-        URI address = URI.create( server.getHttpUrl() + "/file.txt" );
-        setupAuth( address.toString(), "", "password" );
+        URI address = URI.create( server.getHttpUrl() + FILE_PATH );
+        addRealmAndURL( "testPasswordOnly", address.toString(), "", "password" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
-        assertAuthentication( "", "password", server.getRecordedHeaders( "/file.txt" ) );
+        assertAuthentication( "", "password", server.getRecordedHeaders( FILE_PATH ) );
     }
 
     /*
@@ -152,11 +141,11 @@ public class HttpFetcherTest
     public void testAnonymous()
         throws Exception
     {
-        URI address = URI.create( server.getHttpUrl() + "/file.txt" );
-        setupAuth( address.toString(), "", "" );
+        URI address = URI.create( server.getHttpUrl() + FILE_PATH );
+        addRealmAndURL( "testAnonymous", address.toString(), "", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
         assertNull( "No Auth header should be set",
-                    server.getRecordedHeaders( "/file.txt" ).get( HttpHeaders.AUTHORIZATION ) );
+                    server.getRecordedHeaders( FILE_PATH ).get( HttpHeaders.AUTHORIZATION ) );
     }
 
     /*
@@ -172,59 +161,5 @@ public class HttpFetcherTest
         String decoded = B64Code.decode( authHeader.substring( AUTH_TYPE.length() ), StringUtil.__ISO_8859_1 );
         assertEquals( "Username does not match", username, decoded.substring( 0, decoded.indexOf( ':' ) ) );
         assertEquals( "Password does not match", password, decoded.substring( decoded.indexOf( ':' ) + 1 ) );
-    }
-
-    /*
-     * Read a stream
-     */
-    private static String readstream( InputStream stream )
-        throws IOException
-    {
-        StringBuilder builder = new StringBuilder();
-        byte[] buffer = new byte[128];
-        int size = -1;
-        while ( ( size = stream.read( buffer ) ) == 128 )
-        {
-            builder.append( new String( buffer, 0, size ) );
-        }
-        stream.close();
-        if ( size != -1 )
-            builder.append( new String( buffer, 0, size ) );
-        return builder.toString();
-    }
-
-    /*
-     * Set a username and password for a URL
-     */
-    private static void setupAuth( String url, String username, String password )
-        throws Exception
-    {
-        IProgressMonitor monitor = new NullProgressMonitor();
-
-        IAuthData authData = null;
-
-        String realmId = url;
-        IAuthRealm realm = AuthFacade.getAuthRegistry().getRealm( realmId );
-        if ( realm == null )
-        {
-            realm =
-                AuthFacade.getAuthRegistry().addRealm( realmId, realmId, realmId, AuthenticationType.USERNAME_PASSWORD,
-                                                       monitor );
-            AuthFacade.getAuthRegistry().addURLToRealmAssoc( url, realmId, AnonymousAccessType.NOT_ALLOWED, monitor );
-        }
-        else
-        {
-            authData = AuthFacade.getAuthService().select( url );
-        }
-
-        if ( authData == null )
-        {
-            authData = new AuthData( username, password, AnonymousAccessType.NOT_ALLOWED );
-        }
-        else
-        {
-            authData.setUsernameAndPassword( username, password );
-        }
-        AuthFacade.getAuthService().save( url, authData );
     }
 }
