@@ -1,7 +1,6 @@
 package org.maven.ide.eclipse.ui.common.composites;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -113,13 +112,13 @@ public class ValidatingComposite
         return label;
     }
 
-    protected Text createText( String controlName, String validationComponentName, ModifyListener modifyListener )
+    protected Text createText( String controlName, String validationComponentName )
     {
-        return createText( SWT.NONE, 1, 1, controlName, validationComponentName, modifyListener );
+        return createText( SWT.NONE, 1, 1, controlName, validationComponentName );
     }
 
     protected Text createText( int style, int horizontalSpan, int verticalSpan, String controlName,
-                               String validationComponentName, ModifyListener modifyListener )
+                               String validationComponentName )
     {
         Text text;
         if ( isFormMode() )
@@ -135,10 +134,6 @@ public class ValidatingComposite
         if ( controlName != null )
         {
             text.setData( "name", controlName ); //$NON-NLS-1$
-        }
-        if ( modifyListener != null )
-        {
-            text.addModifyListener( modifyListener );
         }
         if ( validationComponentName != null )
         {

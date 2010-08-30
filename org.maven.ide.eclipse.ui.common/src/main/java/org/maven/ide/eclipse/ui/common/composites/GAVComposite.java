@@ -51,15 +51,14 @@ public class GAVComposite
     {
         createLabel( Messages.gavComposite_groupId_label );
 
-        groupIdText = createText( "groupIdText", Messages.gavComposite_groupId_name, //$NON-NLS-1$ 
-                                  new ModifyListener()
-                                  {
-                                      public void modifyText( ModifyEvent e )
-                                      {
-                                          saveGroupId( getGroupId() );
-                                      }
-                                  } );
-
+        groupIdText = createText( "groupIdText", Messages.gavComposite_groupId_name ); //$NON-NLS-1$ 
+        groupIdText.addModifyListener( new ModifyListener()
+        {
+            public void modifyText( ModifyEvent e )
+            {
+                saveGroupId( getGroupId() );
+            }
+        } );
         addToValidationGroup( groupIdText, SonatypeValidators.createGroupIdValidators() );
     }
 
@@ -68,14 +67,14 @@ public class GAVComposite
     {
         createLabel( Messages.gavComposite_artifactId_label );
 
-        artifactIdText = createText( "artifactIdText", Messages.gavComposite_artifactId_name, //$NON-NLS-1$
-                                     new ModifyListener()
-                                     {
-                                         public void modifyText( ModifyEvent e )
-                                         {
-                                             saveArtifactId( getArtifactId() );
-                                         }
-                                     } );
+        artifactIdText = createText( "artifactIdText", Messages.gavComposite_artifactId_name ); //$NON-NLS-1$
+        artifactIdText.addModifyListener( new ModifyListener()
+        {
+            public void modifyText( ModifyEvent e )
+            {
+                saveArtifactId( getArtifactId() );
+            }
+        } );
 
         Validator<String> validator = SonatypeValidators.createArtifactIdValidators();
         addToValidationGroup( artifactIdText,
@@ -89,15 +88,14 @@ public class GAVComposite
     {
         createLabel( Messages.gavComposite_version_label );
 
-        versionText = createText( "versionText", Messages.gavComposite_version_name, //$NON-NLS-1$
-                                  new ModifyListener()
-                                  {
-                                      public void modifyText( ModifyEvent e )
-                                      {
-                                          saveVersion( getVersion() );
-                                      }
-                                  } );
-
+        versionText = createText( "versionText", Messages.gavComposite_version_name ); //$NON-NLS-1$
+        versionText.addModifyListener( new ModifyListener()
+        {
+            public void modifyText( ModifyEvent e )
+            {
+                saveVersion( getVersion() );
+            }
+        } );
         addToValidationGroup( versionText,
                               validateOsgiVersion ? //
                               ValidatorUtils.merge( StringValidators.REQUIRE_NON_EMPTY_STRING,
