@@ -199,7 +199,7 @@ public class RealmCompositeTest
             SwtValidationGroup.setComponentName( text, COMPONENT_NAME );
 
             realmComposite =
-                new DummyRealmComposite( c, text, SwtValidationGroup.create( SwtValidationUI.createUI( this ) ), false );
+                new DummyRealmComposite( c, text, SwtValidationGroup.create( SwtValidationUI.createUI( this ) ) );
 
             setControl( c );
         }
@@ -208,9 +208,9 @@ public class RealmCompositeTest
     private class DummyRealmComposite
         extends RealmComposite
     {
-        public DummyRealmComposite( Composite parent, Text urlText, SwtValidationGroup validationGroup, boolean formMode )
+        public DummyRealmComposite( Composite parent, Text urlText, SwtValidationGroup validationGroup )
         {
-            super( parent, urlText, validationGroup, formMode );
+            super( parent, urlText, validationGroup, null );
         }
 
         @Override
