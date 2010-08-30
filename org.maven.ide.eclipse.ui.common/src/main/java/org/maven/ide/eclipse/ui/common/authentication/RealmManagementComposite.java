@@ -106,7 +106,7 @@ public class RealmManagementComposite
 
     public RealmManagementComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup )
     {
-        super( parent, widthGroup, validationGroup, false );
+        super( parent, widthGroup, validationGroup );
         GridLayout gridLayout = new GridLayout( 3, false );
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = INPUT_INDENT;
@@ -121,10 +121,7 @@ public class RealmManagementComposite
 
     private void createIdControls()
     {
-        Label label = new Label( this, SWT.NONE );
-        label.setText( Messages.realmManagementComposite_realmId_label );
-        label.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
-        addToWidthGroup( label );
+        createLabel( Messages.realmManagementComposite_realmId_label );
 
         idText = new Text( this, SWT.BORDER );
         idText.setLayoutData( createInputData( 2, 1 ) );
@@ -355,7 +352,7 @@ public class RealmManagementComposite
             {
             }
 
-            @SuppressWarnings( "unchecked" )
+            @SuppressWarnings( "rawtypes" )
             public Object[] getElements( Object inputElement )
             {
                 if ( inputElement instanceof Collection )

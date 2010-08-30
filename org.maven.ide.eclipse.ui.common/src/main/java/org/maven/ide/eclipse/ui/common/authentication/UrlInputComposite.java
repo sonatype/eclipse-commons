@@ -128,7 +128,7 @@ public class UrlInputComposite
 
     public UrlInputComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, int style )
     {
-        super( parent, widthGroup, validationGroup, false );
+        super( parent, widthGroup, validationGroup );
         this.readonlyUrl = ( style & READ_ONLY_URL ) != 0;
         boolean allowAnonymous = ( style & ALLOW_ANONYMOUS ) != 0;
         this.urlLabelText = Messages.urlInput_url_label;

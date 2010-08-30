@@ -10,8 +10,8 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.layout.WidthGroup;
@@ -35,10 +35,10 @@ public class GAVComposite
 
     private Text versionText;
 
-    public GAVComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup, boolean formMode,
-                         int style )
+    public GAVComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup,
+                         FormToolkit toolkit, int style )
     {
-        super( parent, widthGroup, validationGroup, formMode );
+        super( parent, widthGroup, validationGroup, toolkit );
 
         setLayout( new GridLayout( 2, false ) );
 
@@ -49,44 +49,33 @@ public class GAVComposite
 
     private void createGroupIdControls()
     {
-        Label groupIdLabel = new Label( this, SWT.NONE );
-        groupIdLabel.setText( Messages.gavComposite_groupId_label );
-        groupIdLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
-        addToWidthGroup( groupIdLabel );
+        createLabel( Messages.gavComposite_groupId_label );
 
-        groupIdText = new Text( this, SWT.BORDER );
-        groupIdText.setLayoutData( createInputData() );
-        groupIdText.setData( "name", "groupIdText" ); //$NON-NLS-1$ //$NON-NLS-2$
-        groupIdText.addModifyListener( new ModifyListener()
-        {
-            public void modifyText( ModifyEvent e )
-            {
-                saveGroupId( getGroupId() );
-            }
-        } );
-        SwtValidationGroup.setComponentName( groupIdText, Messages.gavComposite_groupId_name );
+        groupIdText = createText( "groupIdText", Messages.gavComposite_groupId_name, //$NON-NLS-1$ 
+                                  new ModifyListener()
+                                  {
+                                      public void modifyText( ModifyEvent e )
+                                      {
+                                          saveGroupId( getGroupId() );
+                                      }
+                                  } );
+
         addToValidationGroup( groupIdText, SonatypeValidators.createGroupIdValidators() );
     }
 
     @SuppressWarnings( "unchecked" )
     private void createArtifactIdControls( boolean validateProjectName )
     {
-        Label artifactIdLabel = new Label( this, SWT.NONE );
-        artifactIdLabel.setText( Messages.gavComposite_artifactId_label );
-        artifactIdLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
-        addToWidthGroup( artifactIdLabel );
+        createLabel( Messages.gavComposite_artifactId_label );
 
-        artifactIdText = new Text( this, SWT.BORDER );
-        artifactIdText.setLayoutData( createInputData() );
-        artifactIdText.setData( "name", "artifactIdText" ); //$NON-NLS-1$ //$NON-NLS-2$
-        artifactIdText.addModifyListener( new ModifyListener()
-        {
-            public void modifyText( ModifyEvent e )
-            {
-                saveArtifactId( getArtifactId() );
-            }
-        } );
-        SwtValidationGroup.setComponentName( artifactIdText, Messages.gavComposite_artifactId_name );
+        artifactIdText = createText( "artifactIdText", Messages.gavComposite_artifactId_name, //$NON-NLS-1$
+                                     new ModifyListener()
+                                     {
+                                         public void modifyText( ModifyEvent e )
+                                         {
+                                             saveArtifactId( getArtifactId() );
+                                         }
+                                     } );
 
         Validator<String> validator = SonatypeValidators.createArtifactIdValidators();
         addToValidationGroup( artifactIdText,
@@ -98,45 +87,42 @@ public class GAVComposite
     @SuppressWarnings( "unchecked" )
     private void createVersionControls( boolean validateOsgiVersion )
     {
-        Label versionLabel = new Label( this, SWT.NONE );
-        versionLabel.setText( Messages.gavComposite_version_label );
-        versionLabel.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, false, false ) );
-        addToWidthGroup( versionLabel );
+        createLabel( Messages.gavComposite_version_label );
 
-        versionText = new Text( this, SWT.BORDER );
-        versionText.setLayoutData( createInputData() );
-        versionText.setData( "name", "versionText" ); //$NON-NLS-1$ //$NON-NLS-2$
-        versionText.addModifyListener( new ModifyListener()
-        {
-            public void modifyText( ModifyEvent e )
-            {
-                saveVersion( getVersion() );
-            }
-        } );
-        SwtValidationGroup.setComponentName( versionText, Messages.gavComposite_version_name );
-        addToValidationGroup( versionText, validateOsgiVersion ? //
-        ValidatorUtils.merge( StringValidators.REQUIRE_NON_EMPTY_STRING, StringValidators.NO_WHITESPACE,
-                              new Validator<String>()
-                              {
-                                  public void validate( Problems problems, String compName, String model )
+        versionText = createText( "versionText", Messages.gavComposite_version_name, //$NON-NLS-1$
+                                  new ModifyListener()
                                   {
-                                      try
+                                      public void modifyText( ModifyEvent e )
                                       {
-                                          new Version( model );
+                                          saveVersion( getVersion() );
                                       }
-                                      catch ( IllegalArgumentException e )
-                                      {
-                                          problems.add( NLS.bind( Messages.gavComposite_invalidOsgiVersion,
-                                                                  compName ) );
-                                      }
-                                  }
+                                  } );
 
-                                  public Class<String> modelType()
-                                  {
-                                      return String.class;
-                                  }
-                              } )
-                        : SonatypeValidators.createVersionValidators() );
+        addToValidationGroup( versionText,
+                              validateOsgiVersion ? //
+                              ValidatorUtils.merge( StringValidators.REQUIRE_NON_EMPTY_STRING,
+                                                    StringValidators.NO_WHITESPACE, new Validator<String>()
+                                                    {
+                                                        public void validate( Problems problems, String compName,
+                                                                              String model )
+                                                        {
+                                                            try
+                                                            {
+                                                                new Version( model );
+                                                            }
+                                                            catch ( IllegalArgumentException e )
+                                                            {
+                                                                problems.add( NLS.bind( Messages.gavComposite_invalidOsgiVersion,
+                                                                                        compName ) );
+                                                            }
+                                                        }
+
+                                                        public Class<String> modelType()
+                                                        {
+                                                            return String.class;
+                                                        }
+                                                    } )
+                                              : SonatypeValidators.createVersionValidators() );
     }
 
     @Override

@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthRegistryException;
@@ -77,9 +78,9 @@ public class RealmComposite
 
     private AnonymousAccessType anonymousAccessType = AnonymousAccessType.NOT_ALLOWED;
 
-    public RealmComposite( Composite parent, Text urlText, SwtValidationGroup validationGroup, boolean formMode )
+    public RealmComposite( Composite parent, Text urlText, SwtValidationGroup validationGroup, FormToolkit toolkit )
     {
-        super( parent, formMode ? SWT.FLAT : 0 );
+        super( parent, toolkit );
         setClient( urlText );
         setValidationGroup( validationGroup );
 
