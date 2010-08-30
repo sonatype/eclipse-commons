@@ -1,75 +1,225 @@
 package org.maven.ide.eclipse.io;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
 
+import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
-import org.maven.ide.eclipse.tests.common.HttpServer;
+import org.junit.Test;
 
 public class S2IOFacadeTest
     extends AbstractIOTest
 {
-    private static final String PASSWORD = "password";
-    private static final String VALID_USERNAME = "validuser";
-    private HttpServer server;
-
-    @Override
-    public void setUp()
-        throws Exception
-    {
-        super.setUp();
-        server = new HttpServer();
-        server.addUser( VALID_USERNAME, PASSWORD, VALID_USERNAME );
-        server.addSecuredRealm( "/secured/*", VALID_USERNAME );
-        server.addResources( "/", "resources" );
-        server.start();
-    }
-
-    @Override
-    public void tearDown()
-        throws Exception
-    {
-        if ( server != null )
-        {
-            server.stop();
-        }
-        super.tearDown();
-    }
-
     public void testHeadRequest_Anonymous()
         throws Exception
     {
+        startHttpServer();
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testHeadRequest_Anonymous", url, "", "" );
         ServerResponse resp = S2IOFacade.head( url, null, monitor );
         assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, url );
     }
 
+    public void testHeadRequest_Local()
+        throws Exception
+    {
+        URI address = new File( RESOURCES, FILE_LOCAL ).toURI();
+        ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
+    }
+
+    public void testDeleteRequest_Anonymous()
+        throws Exception
+    {
+        startHttpServer();
+        String url = server.getHttpUrl() + FILE_PATH;
+        addRealmAndURL( "testDeleteRequest_Anonymous", url, "", "" );
+        ServerResponse resp = S2IOFacade.delete( url, null, monitor, "Monitor name" );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.DELETE, url );
+    }
+
+    public void testPostRequest_Anonymous()
+        throws Exception
+    {
+        startHttpServer();
+        String url = server.getHttpUrl() + NEW_FILE;
+        addRealmAndURL( "testPostRequest_Anonymous", url, "", "" );
+        ServerResponse resp =
+            S2IOFacade.post( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, null, monitor,
+                             "Monitor name" );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.POST, url );
+    }
+
+    public void testPutRequest_Anonymous()
+        throws Exception
+    {
+        startHttpServer();
+        String url = server.getHttpUrl() + NEW_FILE;
+        addRealmAndURL( "testPutRequest_Anonymous", url, "", "" );
+        ServerResponse resp =
+            S2IOFacade.put( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, null, monitor,
+                            "Monitor name" );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.PUT, url );
+    }
+
+    @Test
     public void testHeadRequest_Anonymous_NotFound()
         throws Exception
     {
-        String url = server.getHttpUrl() + "/missingFile.txt";
+        startHttpServer();
+        String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testHeadRequest_Anonymous_NotFound", url, "", "" );
         ServerResponse resp = S2IOFacade.head( url, null, monitor );
         assertEquals( "Unexpected HTTP status code", HttpStatus.NOT_FOUND_404, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, url );
+    }
+
+    public void testHeadRequest_Local_NotFound()
+        throws Exception
+    {
+        URI address = new File( RESOURCES, "missingfile.txt" ).toURI();
+        ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.NOT_FOUND_404, resp.getStatusCode() );
+    }
+
+    public void testDeleteRequest_Anonymous_NotFound()
+        throws Exception
+    {
+        startHttpServer();
+        String url = server.getHttpUrl() + NEW_FILE;
+        addRealmAndURL( "testDeleteRequest_Anonymous_NotFound", url, "", "" );
+        try
+        {
+            S2IOFacade.delete( url, null, monitor, "Monitor name" );
+        }
+        catch ( NotFoundException e )
+        {
+            assertRequest( "Unexpected recorded request", HttpMethods.DELETE, url );
+            return;
+        }
+        fail( "NotFoundException should have been thrown" );
     }
 
     public void testHeadRequest_ValidUser()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         addRealmAndURL( "testHeadRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
         assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, address.toString() );
+    }
+
+    public void testDeleteRequest_ValidUser()
+        throws Exception
+    {
+        startHttpServer();
+        URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
+        addRealmAndURL( "testDeleteRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
+        ServerResponse resp = S2IOFacade.delete( address.toString(), null, monitor, "Monitor name" );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.DELETE, address.toString() );
+    }
+
+    public void testPostRequest_ValidUser()
+        throws Exception
+    {
+        startHttpServer();
+        URI address = URI.create( server.getHttpUrl() + SECURED_NEW_FILE );
+        addRealmAndURL( "testPostRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
+        ServerResponse resp =
+            S2IOFacade.post( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), address.toString(), null,
+                             monitor, "Monitor name" );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.POST, address.toString() );
+    }
+
+    public void testPutRequest_ValidUser()
+        throws Exception
+    {
+        startHttpServer();
+        URI address = URI.create( server.getHttpUrl() + SECURED_NEW_FILE );
+        addRealmAndURL( "testPutRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
+        ServerResponse resp =
+            S2IOFacade.put( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), address.toString(), null,
+                             monitor, "Monitor name" );
+        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.PUT, address.toString() );
     }
 
     public void testHeadRequest_ValidUser_NotFound()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + "/secured/missingFile.txt" );
         addRealmAndURL( "testHeadRequest_ValidUser_NotFound", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
         assertEquals( "Unexpected HTTP status code", HttpStatus.NOT_FOUND_404, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, address.toString() );
+    }
+
+    public void testDeleteRequest_ValidUser_NotFound()
+        throws Exception
+    {
+        startHttpServer();
+        URI address = URI.create( server.getHttpUrl() + "/secured/missingFile.txt" );
+        addRealmAndURL( "testDeleteRequest_ValidUser_NotFound", address.toString(), VALID_USERNAME, PASSWORD );
+        try
+        {
+            S2IOFacade.delete( address.toString(), null, monitor, "Monitor name" );
+        }
+        catch ( NotFoundException e )
+        {
+            assertRequest( "Unexpected recorded request", HttpMethods.DELETE, address.toString() );
+            return;
+        }
+        fail( "NotFoundException should have been thrown" );
+    }
+
+    public void testExists()
+        throws Exception
+    {
+        startHttpServer();
+        assertTrue( S2IOFacade.exists( URI.create( server.getHttpUrl() + FILE_PATH ).toString(), monitor ) );
+    }
+
+    public void testExists_ValidUser()
+        throws Exception
+    {
+        startHttpServer();
+        assertTrue( S2IOFacade.exists( URI.create( server.getHttpUrl() + FILE_PATH ).toString(), monitor ) );
+    }
+
+    public void testExists_Local()
+        throws Exception
+    {
+        assertTrue( S2IOFacade.exists( new File( RESOURCES, FILE_LOCAL ).toURI().toString(), monitor ) );
+    }
+
+    public void testExists_NotFound()
+        throws Exception
+    {
+        startHttpServer();
+        assertFalse( S2IOFacade.exists( URI.create( server.getHttpUrl() + NEW_FILE ).toString(), monitor ) );
+    }
+
+    public void testExists_ValidUser_NotFound()
+        throws Exception
+    {
+        startHttpServer();
+        assertFalse( S2IOFacade.exists( URI.create( server.getHttpUrl() + NEW_FILE ).toString(), monitor ) );
+    }
+
+    public void testExists_Local_NotFound()
+        throws Exception
+    {
+        assertFalse( S2IOFacade.exists( new File( RESOURCES, NEW_FILE ).toURI().toString(), monitor ) );
     }
 
     /*
@@ -88,16 +238,19 @@ public class S2IOFacadeTest
     public void testOpenStream_Anonymous()
         throws Exception
     {
+        startHttpServer();
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testOpenStream_Anonymous", url, "", "" );
         assertEquals( "Content of stream differs from file", readstream( new FileInputStream( "resources/file.txt" ) ),
                       readstream( S2IOFacade.openStream( url, monitor ) ) );
+        assertRequest( "Unexpected recorded request", HttpMethods.GET, url );
     }
 
     public void testOpenStream_Anonymous_NotFound()
         throws Exception
     {
-        String url = server.getHttpUrl() + "/missingFile.txt";
+        startHttpServer();
+        String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testOpenStream_Anonymous_NotFound", url, "", "" );
         try
         {
@@ -113,6 +266,7 @@ public class S2IOFacadeTest
     public void testOpenStream_ValidUser()
         throws Exception
     {
+        startHttpServer();
         String url = server.getHttpUrl() + SECURE_FILE;
         addRealmAndURL( "testOpenStream_ValidUser", url, VALID_USERNAME, PASSWORD );
         assertEquals( "Content of stream differs from file",
@@ -123,7 +277,8 @@ public class S2IOFacadeTest
     public void testOpenStream_ValidUser_NotFound()
         throws Exception
     {
-        String url = server.getHttpUrl() + "/missingFile.txt";
+        startHttpServer();
+        String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testOpenStream_ValidUser_NotFound", url, VALID_USERNAME, PASSWORD );
         try
         {
@@ -140,6 +295,7 @@ public class S2IOFacadeTest
     public void testOpenStream_InvalidUser()
         throws Exception
     {
+        startHttpServer();
         String url = server.getHttpUrl() + SECURE_FILE;
         addRealmAndURL( "testOpenStream_InvalidUser", url, "invalidusername", "invalidpassword" );
         try

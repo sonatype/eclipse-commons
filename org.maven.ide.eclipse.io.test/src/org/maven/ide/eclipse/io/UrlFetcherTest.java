@@ -1,57 +1,26 @@
 package org.maven.ide.eclipse.io;
 
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.util.Map;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.http.security.B64Code;
-import org.eclipse.jetty.util.StringUtil;
 import org.maven.ide.eclipse.authentication.AuthFacade;
-import org.maven.ide.eclipse.tests.common.HttpServer;
 
-public class HttpFetcherTest
+public class UrlFetcherTest
     extends AbstractIOTest
 {
-
-    HttpServer server;
-
-    HttpFetcher fetcher;
-
-    @Override
-    public void setUp()
-        throws Exception
-    {
-        super.setUp();
-        fetcher = new HttpFetcher();
-        server = new HttpServer();
-        server.enableRecording( new String[] { ".*" } );
-        server.addUser( "validuser", "password", "validuser" );
-        server.addSecuredRealm( "/secured/*", "validuser" );
-        server.addResources( "/", "resources" );
-        server.start();
-    }
-
-    @Override
-    public void tearDown()
-        throws Exception
-    {
-        if ( server != null )
-        {
-            server.stop();
-        }
-        super.tearDown();
-    }
+    private UrlFetcher fetcher;
 
     /*
      * Tests the error thrown when a file is not found.
      */
-    public void testOpenstreamFileNotFound()
+    public void testHttpOpenstreamFileNotFound()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + "/nonExistentFile" );
         try
         {
@@ -69,9 +38,10 @@ public class HttpFetcherTest
     /*
      * Tests the error thrown when a user does not have perission to access a file.
      */
-    public void testOpenstreamForbidden()
+    public void testHttpOpenstreamForbidden()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         try
         {
@@ -90,9 +60,10 @@ public class HttpFetcherTest
     /*
      * Tests the contents of a file remote file
      */
-    public void testOpenStream()
+    public void testHttpOpenStream()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         assertEquals( readstream( new FileInputStream( "resources/file.txt" ) ),
                      readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(),
@@ -102,9 +73,10 @@ public class HttpFetcherTest
     /*
      * Tests that the authentication header contains both a username and password.
      */
-    public void testUsernameAndPasswordSent()
+    public void testHttpUsernameAndPasswordSent()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testUsernameAndPasswordSent", address.toString(), "username", "password" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -114,9 +86,10 @@ public class HttpFetcherTest
     /*
      * Tests that the authentication header only contains a username.
      */
-    public void testUsernameOnly()
+    public void testHttpUsernameOnly()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testUsernameOnly", address.toString(), "username", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -126,9 +99,10 @@ public class HttpFetcherTest
     /*
      * Tests that the authentication header only contains a password.
      */
-    public void testPasswordOnly()
+    public void testHttpPasswordOnly()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testPasswordOnly", address.toString(), "", "password" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -138,9 +112,10 @@ public class HttpFetcherTest
     /*
      * Tests that no header is set for anonymous authentication.
      */
-    public void testAnonymous()
+    public void testHttpAnonymous()
         throws Exception
     {
+        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testAnonymous", address.toString(), "", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -149,17 +124,13 @@ public class HttpFetcherTest
     }
 
     /*
-     * Assert that the authentication header is as expected
+     * Tests reading a stream from a local file.
      */
-    private static void assertAuthentication( String username, String password, Map<String, String> headers )
-        throws UnsupportedEncodingException
+    public void testFileOpenStream()
+        throws Exception
     {
-        String authHeader = headers.get( HttpHeaders.AUTHORIZATION );
-        assertNotNull( "Authentication header was null", authHeader );
-        assertTrue( "Authentication should be type: " + AUTH_TYPE, authHeader.startsWith( AUTH_TYPE ) );
-
-        String decoded = B64Code.decode( authHeader.substring( AUTH_TYPE.length() ), StringUtil.__ISO_8859_1 );
-        assertEquals( "Username does not match", username, decoded.substring( 0, decoded.indexOf( ':' ) ) );
-        assertEquals( "Password does not match", password, decoded.substring( decoded.indexOf( ':' ) + 1 ) );
+        assertEquals( readstream( new FileInputStream( "resources/file.txt" ) ),
+                      fetcher.openStream( new File( RESOURCES, "file.txt" ).toURI(), monitor,
+                                          AuthFacade.getAuthService(), null ) );
     }
 }
