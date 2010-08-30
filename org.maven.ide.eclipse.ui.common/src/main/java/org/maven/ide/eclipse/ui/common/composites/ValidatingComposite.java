@@ -1,7 +1,6 @@
 package org.maven.ide.eclipse.ui.common.composites;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -143,7 +142,7 @@ public class ValidatingComposite
         return text;
     }
 
-    protected Button createButton( String text, SelectionListener selectionListener )
+    protected Button createButton( String text )
     {
         Button button;
         if ( isFormMode() )
@@ -157,16 +156,10 @@ public class ValidatingComposite
         }
         button.setLayoutData( new GridData( SWT.FILL, SWT.CENTER, false, false ) );
 
-        if ( selectionListener != null )
-        {
-            button.addSelectionListener( selectionListener );
-        }
-
         return button;
     }
 
-    protected Button createCheckbox( String text, int horizontalSpan, int verticalSpan, String controlName,
-                                     SelectionListener selectionListener )
+    protected Button createCheckbox( String text, int horizontalSpan, int verticalSpan, String controlName )
     {
         Button checkbox;
         if ( isFormMode() )
@@ -185,10 +178,6 @@ public class ValidatingComposite
         if ( controlName != null )
         {
             checkbox.setData( "name", controlName ); //$NON-NLS-1$
-        }
-        if ( selectionListener != null )
-        {
-            checkbox.addSelectionListener( selectionListener );
         }
 
         return checkbox;
