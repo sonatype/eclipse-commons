@@ -6,7 +6,6 @@ import java.net.URI;
 
 import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.Test;
 
 public class S2IOFacadeTest
     extends AbstractIOTest
@@ -67,7 +66,6 @@ public class S2IOFacadeTest
         assertRequest( "Unexpected recorded request", HttpMethods.PUT, url );
     }
 
-    @Test
     public void testHeadRequest_Anonymous_NotFound()
         throws Exception
     {
