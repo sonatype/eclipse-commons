@@ -17,11 +17,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.http.security.B64Code;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.BufferUtil;
-import org.eclipse.jetty.util.StringUtil;
-import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +43,7 @@ public class HttpFetcher
 
         GetExchange exchange = new GetExchange( url.toString(), httpClient, os, mis );
 
-        IAuthData authData = authService.select( url );
-        if ( authData != null )
-        {
-            String authenticationString =
-                "Basic "
-                    + B64Code.encode( authData.getUsername() + ":" + authData.getPassword(), StringUtil.__ISO_8859_1 );
-            exchange.setRequestHeader( HttpHeaders.AUTHORIZATION, authenticationString );
-        }
+        setAuthenticationHeader( authService.select( url ), exchange );
 
         httpClient.send( exchange );
 

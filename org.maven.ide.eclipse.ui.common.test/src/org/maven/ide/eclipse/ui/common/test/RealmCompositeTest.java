@@ -75,7 +75,7 @@ public class RealmCompositeTest
             Composite c = (Composite) super.createDialogArea( parent );
             realmComposite =
                 new RealmComposite( parent, new Text( parent, SWT.NONE ),
-                                    SwtValidationGroup.create( SwtValidationUI.createUI( this ) ), false );
+                                    SwtValidationGroup.create( SwtValidationUI.createUI( this ) ), null );
             return c;
         }
     }

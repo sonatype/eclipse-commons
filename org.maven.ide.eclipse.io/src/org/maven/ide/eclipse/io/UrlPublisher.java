@@ -6,6 +6,7 @@ import java.net.URI;
 
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jetty.http.HttpStatus;
 import org.maven.ide.eclipse.authentication.IAuthService;
 
 
@@ -92,6 +93,39 @@ public class UrlPublisher
         throws IOException
     {
         return putFile( file, url, monitor, authService, proxyService, null /* timeout */);
+    }
+
+    /**
+     * Performs a head request on the specified URL.
+     * 
+     * @param url The URL to perform the head request on {@code null}.
+     * @param monitor The monitor to notify of transfer progress, may be {@code null}.
+     * @param authService The authenticator service used to query credentials to access protected resources, may be
+     *            {@code null}.
+     * @param proxyService The proxy service used to select a proxy that is applicable for the resource, may be
+     *            {@code null}.
+     * @param timeoutInMilliseconds Timeout in milliseconds. If null, it will use the default timeout.
+     * @return The server response, can be empty but never {@code null}.
+     * @throws IOException If the head request cannot be completed
+     */
+    public ServerResponse headFile( final URI url, final IProgressMonitor monitor,
+                                    final IAuthService authService, final IProxyService proxyService,
+                                    final Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        if ( isFile( url.getScheme() ) )
+        {
+            return new ServerResponse( new File( url ).exists() ? HttpStatus.OK_200 : HttpStatus.NOT_FOUND_404, null,
+                                       "UTF-8" );
+        }
+        else if ( isHttp( url.getScheme() ) )
+        {
+            return httpPublisher.headFile( url, monitor, name, authService, proxyService, timeoutInMilliseconds );
+        }
+        else
+        {
+            throw new IOException( "Unsupported protocol " + url.getScheme() );
+        }
     }
 
     private static boolean isFile( String protocol )

@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 
 public abstract class DropDownComposite
     extends Composite
@@ -31,7 +32,7 @@ public abstract class DropDownComposite
 
     private Composite popupComposite;
 
-    public DropDownComposite( Composite parent, int style )
+    public DropDownComposite( Composite parent, FormToolkit toolkit )
     {
         super( parent, SWT.BORDER );
 
@@ -42,7 +43,13 @@ public abstract class DropDownComposite
         gridLayout.verticalSpacing = 0;
         setLayout( gridLayout );
 
-        int flatStyle = style & SWT.FLAT;
+        int flatStyle = SWT.NONE;
+        if ( toolkit != null )
+        {
+            flatStyle |= SWT.FLAT;
+            toolkit.adapt( this );
+            toolkit.paintBordersFor( this );
+        }
 
         text = new Text( this, SWT.READ_ONLY | flatStyle );
         text.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
@@ -107,13 +114,13 @@ public abstract class DropDownComposite
                             showPopup( false );
                             break;
                         case SWT.Deactivate:
-            				Point point = button.toControl(getDisplay().getCursorLocation());
-            				Point size = button.getSize();
-            				Rectangle rect = new Rectangle(0, 0, size.x, size.y);
-            				if ( !rect.contains(point) ) 
-            			    {
-            					showPopup(false);
-            				}
+                            Point point = button.toControl( getDisplay().getCursorLocation() );
+                            Point size = button.getSize();
+                            Rectangle rect = new Rectangle( 0, 0, size.x, size.y );
+                            if ( !rect.contains( point ) )
+                            {
+                                showPopup( false );
+                            }
                             break;
                     }
                 }

@@ -13,20 +13,13 @@ import org.eclipse.jetty.client.HttpExchange;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.http.security.B64Code;
 import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.util.StringUtil;
-import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class HttpPublisher
     extends HttpBaseSupport
 {
-    private final Logger log = LoggerFactory.getLogger( HttpPublisher.class );
-
     /**
      * Uploads a file to the specified URL.
      * 
@@ -50,7 +43,7 @@ public class HttpPublisher
     {
         PutExchange exchange = new PutExchange( url.toString() );
         return doDataExchange( exchange, file, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds );
+                               timeoutInMilliseconds, true );
     }
 
     public ServerResponse delete( final URI url, final IProgressMonitor monitor, String monitorSubtaskName,
@@ -60,13 +53,13 @@ public class HttpPublisher
     {
         DeleteExchange exchange = new DeleteExchange( url.toString() );
         return doDataExchange( exchange, null /* file */, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds );
+                               timeoutInMilliseconds, true );
     }
 
     private ServerResponse doDataExchange( final _DataExchange exchange, final RequestEntity file, final URI url,
                                            final IProgressMonitor monitor,
                                    String monitorSubtaskName, final IAuthService authService,
-                                   final IProxyService proxyService, Integer timeoutInMilliseconds )
+                                   final IProxyService proxyService, Integer timeoutInMilliseconds, boolean statusException )
         throws IOException
     {
         if ( file != null )
@@ -93,15 +86,7 @@ public class HttpPublisher
         HttpClient httpClient = startClient( url, authService, proxyService, timeoutInMilliseconds );
         if ( authService != null )
         {
-            IAuthData authData = authService.select( url );
-            if ( authData != null )
-            {
-                String authenticationString =
-                    "Basic "
-                        + B64Code.encode( authData.getUsername() + ":" + authData.getPassword(),
-                                          StringUtil.__ISO_8859_1 );
-                exchange.setRequestHeader( HttpHeaders.AUTHORIZATION, authenticationString );
-            }
+            setAuthenticationHeader( authService.select( url ), exchange );
         }
         httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
         httpClient.send( exchange );
@@ -132,28 +117,32 @@ public class HttpPublisher
         }
         
         ServerResponse response =
-            new ServerResponse( exchange.getStatus(), exchange.getResponseContentBytes(), exchange.getEncoding() );
+            new ServerResponse( exchange.getResponseStatus(), exchange.getResponseContentBytes(),
+                                exchange.getEncoding() );
 
-        int status = exchange.getResponseStatus();
-        switch ( status )
+        if ( statusException )
         {
-            case HttpStatus.OK_200:
-            case HttpStatus.CREATED_201:
-            case HttpStatus.ACCEPTED_202:
-            case HttpStatus.NO_CONTENT_204:
-                break;
-            case HttpStatus.UNAUTHORIZED_401:
-                throw new UnauthorizedException( "HTTP status code " + status + ": "
-                    + HttpStatus.getMessage( status ) + ": " + url );
-            case HttpStatus.FORBIDDEN_403:
-                throw new ForbiddenException( "HTTP status code " + status + ": "
-                    + HttpStatus.getMessage( status ) + ": " + url );
-            case HttpStatus.NOT_FOUND_404:
-                throw new NotFoundException( "HTTP status code " + status + ": "
-                    + HttpStatus.getMessage( status ) + ": " + url );
-            default:
-                throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status ) + ": "
-                    + url, response, null );
+            int status = exchange.getResponseStatus();
+            switch ( status )
+            {
+                case HttpStatus.OK_200:
+                case HttpStatus.CREATED_201:
+                case HttpStatus.ACCEPTED_202:
+                case HttpStatus.NO_CONTENT_204:
+                    break;
+                case HttpStatus.UNAUTHORIZED_401:
+                    throw new UnauthorizedException( "HTTP status code " + status + ": "
+                        + HttpStatus.getMessage( status ) + ": " + url );
+                case HttpStatus.FORBIDDEN_403:
+                    throw new ForbiddenException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
+                        + ": " + url );
+                case HttpStatus.NOT_FOUND_404:
+                    throw new NotFoundException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
+                        + ": " + url );
+                default:
+                    throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
+                        + ": " + url, response, null );
+            }
         }
 
         return response;
@@ -182,6 +171,15 @@ public class HttpPublisher
     {
         public DeleteExchange( String url ) {
             super( url, HttpMethods.DELETE );
+        }
+    }
+
+    private static class HeadExchange
+        extends _DataExchange
+    {
+        public HeadExchange( String url )
+        {
+            super( url, HttpMethods.HEAD );
         }
     }
 
@@ -293,6 +291,16 @@ public class HttpPublisher
     {
         PostExchange exchange = new PostExchange( url.toString() );
         return doDataExchange( exchange, file, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds );
+                               timeoutInMilliseconds, true );
+    }
+
+    public ServerResponse headFile( final URI url, final IProgressMonitor monitor,
+                                    String monitorSubtaskName, final IAuthService authService,
+                                    final IProxyService proxyService, Integer timeoutInMilliseconds )
+        throws IOException
+    {
+        HeadExchange exchange = new HeadExchange( url.toString() );
+        return doDataExchange( exchange, null, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds, false );
     }
 }
