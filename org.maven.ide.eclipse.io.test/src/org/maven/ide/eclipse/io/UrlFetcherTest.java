@@ -7,7 +7,6 @@ import java.net.URI;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.Test;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 
 public class UrlFetcherTest
@@ -25,7 +24,6 @@ public class UrlFetcherTest
     /*
      * Tests the error thrown when a file is not found.
      */
-    @Test
     public void testHttpOpenstreamFileNotFound()
         throws Exception
     {
