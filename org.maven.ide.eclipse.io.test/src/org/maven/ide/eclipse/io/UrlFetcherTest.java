@@ -7,6 +7,7 @@ import java.net.URI;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
+import org.junit.Test;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 
 public class UrlFetcherTest
@@ -14,9 +15,17 @@ public class UrlFetcherTest
 {
     private UrlFetcher fetcher;
 
+    public void setUp()
+        throws Exception
+    {
+        super.setUp();
+        fetcher = new UrlFetcher();
+    }
+
     /*
      * Tests the error thrown when a file is not found.
      */
+    @Test
     public void testHttpOpenstreamFileNotFound()
         throws Exception
     {
@@ -130,7 +139,7 @@ public class UrlFetcherTest
         throws Exception
     {
         assertEquals( readstream( new FileInputStream( "resources/file.txt" ) ),
-                      fetcher.openStream( new File( RESOURCES, "file.txt" ).toURI(), monitor,
-                                          AuthFacade.getAuthService(), null ) );
+                      readstream( fetcher.openStream( new File( RESOURCES, "file.txt" ).toURI(), monitor,
+                                                      AuthFacade.getAuthService(), null ) ) );
     }
 }
