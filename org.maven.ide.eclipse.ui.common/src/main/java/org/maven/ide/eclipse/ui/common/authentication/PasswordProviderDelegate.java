@@ -19,7 +19,7 @@ public class PasswordProviderDelegate
 
         final PBEKeySpec[] password = new PBEKeySpec[1];
 
-        final Display display = Display.getCurrent() != null ? Display.getCurrent() : new Display();
+        final Display display = getDisplay();
         display.syncExec( new Runnable()
         {
             public void run()
@@ -35,5 +35,44 @@ public class PasswordProviderDelegate
         } );
 
         return password[0];
+    }
+
+    protected Display getDisplay()
+    {
+        Display display = Display.getCurrent();
+
+        // if ( display == null )
+        // {
+        // Thread currentThread = Thread.currentThread();
+        // Class<? extends Thread> mctClass = currentThread.getClass();
+        // if ( "org.eclipse.jface.operation.ModalContext$ModalContextThread".equals( mctClass.getName() ) )
+        // {
+        // try
+        // {
+        // Field displayField = mctClass.getDeclaredField( "display" );
+        // boolean origAccessible = displayField.isAccessible();
+        // displayField.setAccessible( true );
+        // try
+        // {
+        // display = (Display) displayField.get( currentThread );
+        // }
+        // finally
+        // {
+        // displayField.setAccessible( origAccessible );
+        // }
+        // }
+        // catch ( Exception e )
+        // {
+        // // sigh.
+        // }
+        // }
+        // }
+
+        if ( display == null )
+        {
+            display = Display.getDefault();
+        }
+
+        return display;
     }
 }
