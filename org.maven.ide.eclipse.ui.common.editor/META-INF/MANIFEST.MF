@@ -15,6 +15,7 @@ Require-Bundle: org.eclipse.osgi,
  org.eclipse.ui.editors,
  org.eclipse.ui.forms,
  org.eclipse.ui.ide,
+ org.eclipse.ui.workbench,
  org.maven.ide.eclipse.swtvalidation
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.maven.ide.eclipse.ui.common.editor.internal.Activator

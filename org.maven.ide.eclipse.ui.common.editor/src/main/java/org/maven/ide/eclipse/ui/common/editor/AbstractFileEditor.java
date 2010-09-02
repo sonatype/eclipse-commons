@@ -3,6 +3,7 @@ package org.maven.ide.eclipse.ui.common.editor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -10,7 +11,18 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -28,6 +40,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.IFormPage;
+import org.eclipse.ui.internal.EditorPluginAction;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.ui.texteditor.DocumentProviderRegistry;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -36,14 +50,25 @@ import org.maven.ide.eclipse.ui.common.editor.internal.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings( "restriction" )
 public abstract class AbstractFileEditor
     extends FormEditor
 {
+    private static final String ELEMENT_ACTION = "actionContribution"; //$NON-NLS-1$
+
+    private static final String ELEMENT_ICON = "icon"; //$NON-NLS-1$
+
+    private static final String ELEMENT_LABEL = "label"; //$NON-NLS-1$
+
+    private static final String ELEMENT_TOOLTIP = "tooltip"; //$NON-NLS-1$
+
     private Logger log = LoggerFactory.getLogger( AbstractFileEditor.class );
 
     private List<IFormPage> pages;
 
     private ActivationListener activationListener;
+
+    private List<IAction> actions;
 
     public AbstractFileEditor()
     {
@@ -420,6 +445,66 @@ public abstract class AbstractFileEditor
             if ( !b )
             {
                 activationListener.updateLastModified();
+            }
+        }
+    }
+
+    public void contributeActions( IToolBarManager toolbarManager )
+    {
+        if ( actions != null )
+        {
+            for ( IAction action : actions )
+            {
+                ActionContributionItem item = new ActionContributionItem( action );
+                if ( action.getText() != null && action.getText().length() > 0 && action.getImageDescriptor() != null )
+                {
+                    item.setMode( ActionContributionItem.MODE_FORCE_TEXT );
+                }
+                toolbarManager.add( item );
+            }
+        }
+    }
+
+    protected void loadActionExtensions( String extensionId, String pluginId )
+    {
+        actions = new ArrayList<IAction>();
+
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint configuratorsExtensionPoint = registry.getExtensionPoint( extensionId );
+        if ( configuratorsExtensionPoint != null )
+        {
+            IExtension[] configuratorExtensions = configuratorsExtensionPoint.getExtensions();
+            for ( IExtension extension : configuratorExtensions )
+            {
+                IConfigurationElement[] elements = extension.getConfigurationElements();
+                for ( IConfigurationElement element : elements )
+                {
+                    if ( element.getName().equals( ELEMENT_ACTION ) )
+                    {
+                        EditorPluginAction action =
+                            new EditorPluginAction( element, this, null, IAction.AS_PUSH_BUTTON );
+                        action.setText( element.getAttribute( ELEMENT_LABEL ) );
+                        action.setToolTipText( element.getAttribute( ELEMENT_TOOLTIP ) );
+
+                        String iconPath = element.getAttribute( ELEMENT_ICON );
+                        ImageRegistry imageRegistry = Activator.getDefault().getImageRegistry();
+                        ImageDescriptor imageDescriptor = imageRegistry.getDescriptor( iconPath );
+                        if ( imageDescriptor == null )
+                        {
+                            imageDescriptor =
+                                AbstractUIPlugin.imageDescriptorFromPlugin( pluginId, Activator.IMAGE_PATH + iconPath );
+                            imageRegistry.put( iconPath, imageDescriptor );
+                        }
+                        action.setImageDescriptor( imageDescriptor );
+                        actions.add( action );
+
+                        if ( getEditorInput() instanceof IFileEditorInput )
+                        {
+                            IFile file = ( (IFileEditorInput) getEditorInput() ).getFile();
+                            action.selectionChanged( new StructuredSelection( file ) );
+                        }
+                    }
+                }
             }
         }
     }
