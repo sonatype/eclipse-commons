@@ -32,6 +32,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.ui.texteditor.DocumentProviderRegistry;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.maven.ide.eclipse.ui.common.editor.internal.Activator;
+import org.maven.ide.eclipse.ui.common.editor.internal.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,7 +166,7 @@ public abstract class AbstractFileEditor
         }
         activationListener = new ActivationListener( site.getWorkbenchWindow().getPartService() );
     }
-    
+
     @Override
     public void dispose()
     {
@@ -207,7 +208,7 @@ public abstract class AbstractFileEditor
                 documentProvider = DocumentProviderRegistry.getDefault().getDocumentProvider( input );
                 if ( documentProvider == null )
                 {
-                    log.error( "No document provider found for editor input", input );
+                    log.error( Messages.abstractFileEditor_noDocumentProvider, input );
                 }
                 else
                 {
@@ -224,7 +225,9 @@ public abstract class AbstractFileEditor
             }
             catch ( CoreException e )
             {
-                throw new PartInitException( NLS.bind( "Error opening editor: {0}", e.getMessage() ), e );
+                throw new PartInitException(
+                                             NLS.bind( Messages.abstractFileEditor_errorOpeningEditor, e.getMessage() ),
+                                             e );
             }
         }
 
@@ -273,8 +276,8 @@ public abstract class AbstractFileEditor
                             // if the file is changed, reload automatically; if dirty, then ask first
                             if ( !isDirty()
                                 || MessageDialog.openQuestion( getSite().getShell(),
-                                                               "File Changed",
-                                                               NLS.bind( "The file \"{0}\" has been changed on the file system. Do you want to replace the editor contents with these changes?",
+                                                               Messages.abstractFileEditor_fileChanged_title,
+                                                               NLS.bind( Messages.abstractFileEditor_fileChanged_message,
                                                                          input.getToolTipText() ) ) )
                             {
                                 init( getEditorSite(), input );
@@ -295,8 +298,8 @@ public abstract class AbstractFileEditor
         private void askAndClose()
         {
             if ( !( isDirty() && MessageDialog.openQuestion( getSite().getShell(),
-                                                             "File Deleted",
-                                                             NLS.bind( "The file \"{0}\" has been deleted on the file system. Do you want to keep the editor open (answering \"No\" will discard your changes)?",
+                                                             Messages.abstractFileEditor_fileDeleted_title,
+                                                             NLS.bind( Messages.abstractFileEditor_fileDeleted_message,
                                                                        input.getToolTipText() ) ) ) )
             {
                 close( false );
