@@ -32,14 +32,13 @@ public class UrlFetcherTest
         try
         {
             readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
+            fail( "NotFoundException should be thrown." );
         }
         catch ( NotFoundException e )
         {
-            assertTrue( e.getMessage().contains( String.valueOf( HttpStatus.NOT_FOUND_404 ) ) );
-            assertTrue( e.getMessage().contains( HttpStatus.getMessage( HttpStatus.NOT_FOUND_404 ) ) );
-            return;
+            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpStatus.NOT_FOUND_404 ) ) );
+            assertTrue( e.getMessage(), e.getMessage().contains( HttpStatus.getMessage( HttpStatus.NOT_FOUND_404 ) ) );
         }
-        fail( "NotFoundException should be thrown." );
     }
 
     /*
@@ -53,15 +52,13 @@ public class UrlFetcherTest
         try
         {
             readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
+            fail( "UnauthorizedException should be thrown." );
         }
         catch ( UnauthorizedException e )
         {
-            assertTrue( e.getMessage().contains( String.valueOf( HttpStatus.UNAUTHORIZED_401 ) ) );
-            assertTrue( e.getMessage().contains( HttpStatus.getMessage( HttpStatus.UNAUTHORIZED_401 ) ) );
-            return;
+            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpStatus.UNAUTHORIZED_401 ) ) );
+            assertTrue( e.getMessage(), e.getMessage().contains( HttpStatus.getMessage( HttpStatus.UNAUTHORIZED_401 ) ) );
         }
-        fail( "UnauthorizedException should be thrown." );
-
     }
 
     /*

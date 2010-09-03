@@ -94,13 +94,12 @@ public class S2IOFacadeTest
         try
         {
             S2IOFacade.delete( url, null, monitor, "Monitor name" );
+            fail( "NotFoundException should have been thrown" );
         }
         catch ( NotFoundException e )
         {
             assertRequest( "Unexpected recorded request", HttpMethods.DELETE, url );
-            return;
         }
-        fail( "NotFoundException should have been thrown" );
     }
 
     public void testHeadRequest_ValidUser()
@@ -171,13 +170,12 @@ public class S2IOFacadeTest
         try
         {
             S2IOFacade.delete( address.toString(), null, monitor, "Monitor name" );
+            fail( "NotFoundException should have been thrown" );
         }
         catch ( NotFoundException e )
         {
             assertRequest( "Unexpected recorded request", HttpMethods.DELETE, address.toString() );
-            return;
         }
-        fail( "NotFoundException should have been thrown" );
     }
 
     public void testExists()
@@ -253,12 +251,11 @@ public class S2IOFacadeTest
         try
         {
             readstream( S2IOFacade.openStream( url, monitor ) );
+            fail( "A NotFoundException should have been thrown" );
         }
-        catch ( NotFoundException e )
+        catch ( NotFoundException expected )
         {
-            return;
         }
-        fail( "A NotFoundException should have been thrown" );
     }
 
     public void testOpenStream_ValidUser()
@@ -281,13 +278,11 @@ public class S2IOFacadeTest
         try
         {
             readstream( S2IOFacade.openStream( url, monitor ) );
+            fail( "A NotFoundException should have been thrown" );
         }
-        catch ( NotFoundException e )
+        catch ( NotFoundException expected )
         {
-            return;
         }
-        fail( "A NotFoundException should have been thrown" );
-
     }
 
     public void testOpenStream_InvalidUser()
@@ -299,13 +294,12 @@ public class S2IOFacadeTest
         try
         {
             readstream( S2IOFacade.openStream( url, monitor ) );
+            fail( "An UnauthorizedException should have been thrown" );
         }
         catch ( UnauthorizedException e )
         {
             assertTrue( "Missing http status code",
                         e.getMessage().contains( String.valueOf( HttpStatus.UNAUTHORIZED_401 ) ) );
-            return;
         }
-        fail( "An UnauthorizedException should have been thrown" );
     }
 }
