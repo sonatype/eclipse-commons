@@ -271,7 +271,7 @@ public abstract class RemoteResourceLookupDialog
     {
         if ( loadJob != null )
         {
-            return;
+            loadJob.cancel();
         }
 
         input = null;
@@ -279,9 +279,12 @@ public abstract class RemoteResourceLookupDialog
         updateLoadControls( false, Messages.remoteResourceLookupDialog_loading, IMessageProvider.INFORMATION );
         loadJob = new Job( Messages.remoteResourceLookupDialog_loading )
         {
+            private volatile boolean cancel = false;
+
             @Override
             protected IStatus run( IProgressMonitor monitor )
             {
+                if (cancel) return Status.OK_STATUS;
                 try
                 {
                     input = loadResources( url, monitor );
@@ -296,16 +299,20 @@ public abstract class RemoteResourceLookupDialog
                     }
                     log.error( message, e );
 
+                    if (cancel) return Status.OK_STATUS;
                     updateLoadControls( true, message, IMessageProvider.ERROR );
                     return Status.OK_STATUS;
                 }
-                finally
-                {
-                    loadJob = null;
-                }
+                if (cancel) return Status.OK_STATUS;
 
                 updateLoadControls( true, selectMessage, IMessageProvider.NONE );
                 return Status.OK_STATUS;
+            }
+
+            @Override
+            protected void canceling()
+            {
+                cancel  = true;
             }
         };
         loadJob.schedule();

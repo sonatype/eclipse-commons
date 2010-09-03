@@ -67,7 +67,18 @@ public class PasswordProvider
 
         if ( extensions.length != 1 )
         {
-            throw new IllegalStateException( "There should be one and only one password provider delegate" );
+            StringBuilder error = new StringBuilder( "There should be one and only one password provider delegate." );
+            error.append( " Found delegates [" );
+            for ( int i = 0; i < extensions.length; i++ )
+            {
+                if ( i > 0 )
+                {
+                    error.append( ", " );
+                }
+                error.append( extensions[i].getUniqueIdentifier() );
+            }
+            error.append( "]" );
+            throw new IllegalStateException( error.toString() );
         }
 
         try
