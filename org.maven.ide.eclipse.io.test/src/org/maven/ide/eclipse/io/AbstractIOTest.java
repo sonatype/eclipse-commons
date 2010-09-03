@@ -113,23 +113,26 @@ public abstract class AbstractIOTest
         assertEquals( message, httpMethod + ' ' + URI.create( url ).getPath(), requests.get( 0 ) );
     }
 
-    /*
-     * Read a stream
-     */
     protected static String readstream( InputStream stream )
         throws IOException
     {
-        StringBuilder builder = new StringBuilder();
-        byte[] buffer = new byte[128];
-        int size = -1;
-        while ( ( size = stream.read( buffer ) ) == 128 )
+        try
         {
-            builder.append( new String( buffer, 0, size ) );
+            StringBuilder builder = new StringBuilder();
+            byte[] buffer = new byte[128];
+            int size = -1;
+            while ( ( size = stream.read( buffer ) ) == 128 )
+            {
+                builder.append( new String( buffer, 0, size ) );
+            }
+            if ( size != -1 )
+                builder.append( new String( buffer, 0, size ) );
+            return builder.toString();
         }
-        stream.close();
-        if ( size != -1 )
-            builder.append( new String( buffer, 0, size ) );
-        return builder.toString();
+        finally
+        {
+            stream.close();
+        }
     }
 
     /*
