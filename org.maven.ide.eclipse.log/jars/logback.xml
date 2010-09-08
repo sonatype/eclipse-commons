@@ -8,9 +8,9 @@
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <File>${org.maven.ide.eclipse.log.dir}/0.log</File>
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <FileNamePattern>%i.log</FileNamePattern>
+      <FileNamePattern>${org.maven.ide.eclipse.log.dir}/%i.log</FileNamePattern>
       <MinIndex>1</MinIndex>
-      <MaxIndex>5</MaxIndex>
+      <MaxIndex>10</MaxIndex>
     </rollingPolicy>
     <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
       <MaxFileSize>100MB</MaxFileSize>
