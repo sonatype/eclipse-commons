@@ -72,7 +72,7 @@
                 <configuration>
                   <file>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</file>
 
-                  <serverId>forge-releases</serverId>
+                  <serverId>sonatype-commercial</serverId>
                   <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
                   <repositoryPath>eclipse-commons/${unqualifiedVersion}/N/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
                 </configuration>
