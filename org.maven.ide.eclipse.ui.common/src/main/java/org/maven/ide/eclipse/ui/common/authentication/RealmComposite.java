@@ -29,9 +29,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
-import org.maven.ide.eclipse.authentication.AuthRegistryException;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.ISecurityRealmURLAssoc;
+import org.maven.ide.eclipse.authentication.InvalidURIException;
 import org.maven.ide.eclipse.authentication.SecurityRealmURLAssoc;
 import org.maven.ide.eclipse.authentication.internal.AuthRealm;
 import org.maven.ide.eclipse.authentication.internal.URIHelper;
@@ -107,7 +107,7 @@ public class RealmComposite
                     {
                         URIHelper.normalize( url );
                     }
-                    catch ( AuthRegistryException authRegistryException )
+                    catch ( InvalidURIException invalidURIException )
                     {
                         // filter out normalizing errors from realm lookup
                         url = null;

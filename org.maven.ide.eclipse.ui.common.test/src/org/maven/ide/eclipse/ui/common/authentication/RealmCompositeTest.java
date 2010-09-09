@@ -15,15 +15,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
-import org.maven.ide.eclipse.authentication.AuthRegistryException;
 import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.IAuthRegistry;
+import org.maven.ide.eclipse.authentication.InvalidURIException;
 import org.maven.ide.eclipse.authentication.internal.URIHelper;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.Messages;
-import org.maven.ide.eclipse.ui.common.authentication.RealmComposite;
 import org.maven.ide.eclipse.ui.tests.common.AbstractWizardPageTest;
 
 public class RealmCompositeTest
@@ -100,9 +99,9 @@ public class RealmCompositeTest
         try
         {
             URIHelper.normalize( INVALID );
-            fail( "Expected an invalid URL" );
+            fail( "Expected InvalidURIException" );
         }
-        catch ( AuthRegistryException e )
+        catch ( InvalidURIException expected )
         {
             // this is in fact an invalid URL
 
@@ -113,6 +112,10 @@ public class RealmCompositeTest
             assertEquals( "Realm composite should be empty if the URL is invalid", "",
                           realmComposite.getTextControl().getText() );
             assertNull( "No warning message should be displayed if the URL is invalid", page.getMessage() );
+            if ( !"Expected scheme-specific part at index 5: http:".equals( expected.getMessage() ) )
+            {
+                throw expected;
+            }
         }
     }
 

@@ -23,11 +23,11 @@ public class URIHelperTest
         try
         {
             assertEquals( sUri, URIHelper.normalize( URIHelper.SCM_PREFIX + sUri ).toString() );
-            fail( "Expected AuthRegistryException" );
+            fail( "Expected InvalidURIException" );
         }
-        catch ( AuthRegistryException expected )
+        catch ( InvalidURIException expected )
         {
-            if ( !"SCM URI 'scm:http://foo'does not specify SCM type".equals( expected.getMessage() ) )
+            if ( !"SCM URI 'scm:http://foo' does not specify SCM type".equals( expected.getMessage() ) )
             {
                 throw expected;
             }

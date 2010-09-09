@@ -10,6 +10,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.osgi.util.NLS;
+import org.maven.ide.eclipse.authentication.InvalidURIException;
+import org.maven.ide.eclipse.authentication.internal.URIHelper;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Validator;
@@ -103,44 +105,64 @@ public final class SonatypeValidators
             URL_MUST_BE_VALID.validate( problems, compName, model );
         }
     };
-    
-    public static Validator<String> URL_MUST_BE_VALID = new  StringVal() 
+
+    public static Validator<String> URL_MUST_BE_VALID = new StringVal()
     {
-            public void validate(Problems problems, String compName, String model) {
-                StringValidators.REQUIRE_NON_EMPTY_STRING.validate( problems, compName, model );
-                try {
-                    URL url = new URL (model);
-                    String host = url.getHost();
-                    if (host.indexOf(" ") > 0 || host.indexOf ("\t") > 0) {
-                        problems.add (NLS.bind( Messages.errors_host_may_not_contain_space, host )); //NOI18N
-                        return;
-                    }
-                    //#MECLIPSE-1317
-                    try
-                    {
-                        new URI( model ).normalize();
-                    }
-                    catch ( URISyntaxException e )
-                    {
-                        String problem = NLS.bind( Messages.errors_not_valid_url, model); 
-                        problems.add(problem);
-                        return;
-                    }
-                    
-                    String protocol = url.getProtocol();
-                    if ("mailto".equals(protocol)) { //NOI18N
-                        String emailAddress = url.toString().substring("mailto:".length()); //NOI18N
-                        emailAddress = emailAddress == null ? "" : emailAddress;
-                        StringValidators.EMAIL_ADDRESS.validate(problems, compName,
-                                emailAddress);
-                        return;
-                    }
-                } catch (MalformedURLException e) {
-                    String problem = NLS.bind( Messages.errors_not_valid_url, model); 
-                    problems.add(problem);
+        public void validate( Problems problems, String compName, String model )
+        {
+            StringValidators.REQUIRE_NON_EMPTY_STRING.validate( problems, compName, model );
+            try
+            {
+                try
+                {
+                    URIHelper.normalize( model );
+                }
+                catch ( InvalidURIException e )
+                {
+                    String problem = NLS.bind( Messages.errors_not_valid_url, model, e.getMessage() );
+                    problems.add( problem );
+                }
+                if ( model.startsWith( URIHelper.SCM_PREFIX ) )
+                {
+                    // The SCM specific URI normalizer validated the URL already
+                    // (the URL may not be a valid url as validated by java.net.URL)
+                    return;
+                }
+
+                URL url = new URL( model );
+                String host = url.getHost();
+                if ( host.indexOf( " " ) > 0 || host.indexOf( "\t" ) > 0 )
+                {
+                    problems.add( NLS.bind( Messages.errors_host_may_not_contain_space, host ) ); // NOI18N
+                    return;
+                }
+                // #MECLIPSE-1317
+                try
+                {
+                    new URI( model ).normalize();
+                }
+                catch ( URISyntaxException e )
+                {
+                    String problem = NLS.bind( Messages.errors_not_valid_url, model, e.getMessage() );
+                    problems.add( problem );
+                    return;
+                }
+
+                String protocol = url.getProtocol();
+                if ( "mailto".equals( protocol ) ) // NOI18N
+                {
+                    String emailAddress = url.toString().substring( "mailto:".length() ); // NOI18N
+                    emailAddress = emailAddress == null ? "" : emailAddress;
+                    StringValidators.EMAIL_ADDRESS.validate( problems, compName, emailAddress );
+                    return;
                 }
             }
-
+            catch ( MalformedURLException e )
+            {
+                String problem = NLS.bind( Messages.errors_not_valid_url, model, e.getMessage() );
+                problems.add( problem );
+            }
+        }
     };
     
     private static abstract class StringVal implements Validator<String> {

@@ -137,7 +137,15 @@ public class UrlInputCompositeTest
         int style = UrlInputComposite.ALLOW_ANONYMOUS;
         DummyPage page = createTestPage( url, style );
         assertIt( page, url, new AuthData( "", "", AnonymousAccessType.ALLOWED ), style, "'" + url
-            + "' is not a valid URL" );
+                      + "' is not a valid URL: Illegal character in path at index 43: http://UrlInputCompositeTest/testInvalidUrl\\" );
+    }
+
+    public void testGitSshUrl()
+    {
+        String url = "scm:git:ssh://testGitSshUrl/foo";
+        int style = UrlInputComposite.ALLOW_ANONYMOUS;
+        DummyPage page = createTestPage( url, style );
+        assertIt( page, url, new AuthData( "", "", AnonymousAccessType.ALLOWED ), style );
     }
     
     private void assertIt( DummyPage page, String expectedUrl, IAuthData authData, int style )

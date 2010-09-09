@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.maven.ide.eclipse.authentication.AuthRegistryException;
 import org.maven.ide.eclipse.authentication.IURINormalizer;
+import org.maven.ide.eclipse.authentication.InvalidURIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class URIHelper
         }
         catch ( URISyntaxException e )
         {
-            throw new AuthRegistryException( e );
+            throw new InvalidURIException( e );
         }
     }
 
@@ -60,7 +61,7 @@ public class URIHelper
         }
         catch ( URISyntaxException e )
         {
-            throw new AuthRegistryException( e );
+            throw new InvalidURIException( e );
         }
     }
 
@@ -80,7 +81,7 @@ public class URIHelper
         int at1 = result.indexOf( "://" );
         if ( at <= 0 || at == at1 )
         {
-            throw new AuthRegistryException( "SCM URI '" + sUri + "'does not specify SCM type" );
+            throw new InvalidURIException( "SCM URI '" + sUri + "' does not specify SCM type" );
         }
         result = result.substring( at + 1 );
         return result;

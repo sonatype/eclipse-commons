@@ -438,11 +438,11 @@ public class AuthRegistryTest
         try
         {
             registry.addURLToRealmAssoc( url, realmId, AnonymousAccessType.ALLOWED, monitor );
-            fail( "Expected AuthRegistryException" );
+            fail( "Expected InvalidURIException" );
         }
-        catch ( AuthRegistryException expected )
+        catch ( InvalidURIException expected )
         {
-            if ( !"SCM URI 'scm:ssh://localhost:4807/foo'does not specify SCM type".equals( expected.getMessage() ) )
+            if ( !"SCM URI 'scm:ssh://localhost:4807/foo' does not specify SCM type".equals( expected.getMessage() ) )
             {
                 throw expected;
             }
@@ -450,11 +450,11 @@ public class AuthRegistryTest
         try
         {
             registry.save( url, "username", "password" );
-            fail( "Expected AuthRegistryException" );
+            fail( "Expected InvalidURIException" );
         }
-        catch ( AuthRegistryException expected )
+        catch ( InvalidURIException expected )
         {
-            if ( !"SCM URI 'scm:ssh://localhost:4807/foo'does not specify SCM type".equals( expected.getMessage() ) )
+            if ( !"SCM URI 'scm:ssh://localhost:4807/foo' does not specify SCM type".equals( expected.getMessage() ) )
             {
                 throw expected;
             }

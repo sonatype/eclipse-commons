@@ -180,14 +180,6 @@ public class UrlInputComposite
 
             public void validate( Problems problems, String compName, String model )
             {
-                if ( model.startsWith( "scm:" ) )
-                {
-                    int n = model.indexOf( ':', 5 );
-                    if ( n > 0 )
-                    {
-                        model = model.substring( n + 1 );
-                    }
-                }
                 SonatypeValidators.URL_MUST_BE_VALID.validate( problems, compName, model );
             }
         } );
