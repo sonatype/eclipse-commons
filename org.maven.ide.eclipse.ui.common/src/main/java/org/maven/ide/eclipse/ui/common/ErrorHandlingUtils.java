@@ -33,7 +33,18 @@ public class ErrorHandlingUtils
         {
             return null;
         }
-        assert auth != null && forbidden != null && notFound != null;
+        if ( auth == null )
+        {
+            auth = Messages.errors_authFailed;
+        }
+        if ( forbidden == null )
+        {
+            forbidden = Messages.errors_forbidden;
+        }
+        if ( notFound == null )
+        {
+            notFound = Messages.errors_resourceNotFound;
+        }
         
         log.debug( exc.getMessage(), exc );
         
