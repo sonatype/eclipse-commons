@@ -7,30 +7,36 @@ import org.maven.ide.eclipse.io.ForbiddenException;
 import org.maven.ide.eclipse.io.NotFoundException;
 import org.maven.ide.eclipse.io.TransferException;
 import org.maven.ide.eclipse.io.UnauthorizedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ErrorHandlingUtils
 {
+    private static Logger log = LoggerFactory.getLogger( ErrorHandlingUtils.class );
+
     private ErrorHandlingUtils()
     {
     }
 
     /**
-     * handle the different types of exceptions we have for various error responses in io plugin. If we introduce new
+     * Handle the different types of exceptions we have for various error responses in io plugin. If we introduce new
      * exception type, we shall add a new parameter to this method and "It's a good thing". if you intentionally choose
      * not to be interested in one or more exceptions just pass null in it's parameter Currently supported exception
      * types: ForbiddenException, NotFoundException, UnauthorizedException and TransferException
      * 
      * @param exc exception passed in, null allowed
-     * @param auth
-     * @param forbidden
-     * @param notFound
      * @return an error string or null if no matching error found
      */
     public static String convertNexusIOExceptionToUIText( Throwable exc, String auth, String forbidden, String notFound )
     {
         if ( exc == null )
+        {
             return null;
+        }
         assert auth != null && forbidden != null && notFound != null;
+        
+        log.debug( exc.getMessage(), exc );
+        
         if ( exc instanceof ForbiddenException )
         {
             return forbidden;
@@ -56,7 +62,9 @@ public class ErrorHandlingUtils
             return Messages.errors_unresolvedAddress;
         }
         if ( exc != null && exc.getCause() != null && exc != exc.getCause() )
+        {
             return convertNexusIOExceptionToUIText( exc.getCause(), auth, forbidden, notFound );
+        }
         return null;
     }
 
