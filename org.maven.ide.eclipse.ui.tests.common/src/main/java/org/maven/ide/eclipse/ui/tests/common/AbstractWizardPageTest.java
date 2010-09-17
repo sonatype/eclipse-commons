@@ -24,8 +24,19 @@ public abstract class AbstractWizardPageTest
     protected void setText( DialogPage page, String name, String content )
     {
         Control control = getControlByName( page, name );
-        Text text = (Text) control;
-        text.setText( content );
+        if ( control instanceof Text )
+        {
+            Text text = (Text) control;
+            text.setText( content );
+            return;
+        }
+        if ( control instanceof Combo )
+        {
+            Combo text = (Combo) control;
+            text.setText( content );
+            return;
+        }
+        throw new RuntimeException( "Unknown control type:" + control.getClass().getCanonicalName() );
     }
 
     protected void assertText( DialogPage page, String name, String content, boolean isEnabled, boolean isVisible )
