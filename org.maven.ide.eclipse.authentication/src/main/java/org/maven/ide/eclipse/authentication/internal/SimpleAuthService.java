@@ -47,6 +47,7 @@ public class SimpleAuthService
     {
         ISecurePreferences authNode = secureStorage.node( SECURE_NODE_PATH );
         String relativeUrl = "./";
+        boolean firstTime = true;
         while ( true )
         {
             String sURI = uri.toString();
@@ -58,14 +59,19 @@ public class SimpleAuthService
             {
                 sURI = sURI.substring( 0, sURI.length() - 1 );
             }
-            log.debug( "Looking up URL: '{}'", sURI );
-            sURI = encode( sURI );
-            if ( authNode.nodeExists( sURI ) )
+            if ( firstTime )
             {
-                return authNode.node( sURI );
+                firstTime = false;
+                log.debug( "Looking up URL: '{}'", sURI );
+            }
+            String sURIEncoded = encode( sURI );
+            if ( authNode.nodeExists( sURIEncoded ) )
+            {
+                return authNode.node( sURIEncoded );
             }
             if ( uri.getPath() == null || uri.getPath().length() <= 1 )
             {
+                log.debug( "Looked up URL: '{}'", sURI );
                 return null;
             }
             uri = uri.resolve( relativeUrl );
