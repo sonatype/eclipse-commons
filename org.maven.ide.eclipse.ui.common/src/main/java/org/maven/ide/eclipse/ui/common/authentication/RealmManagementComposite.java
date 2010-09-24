@@ -89,20 +89,22 @@ public class RealmManagementComposite
 
     private boolean newRealm;
 
+    private IAuthRealm realm;
+
     private List<ISecurityRealmURLAssoc> urlAssocs;
 
     private Set<ISecurityRealmURLAssoc> toDelete;
 
     private Set<ISecurityRealmURLAssoc> toUpdate;
 
-    private AuthenticationType[] authenticationOptions =
-        new AuthenticationType[] { AuthenticationType.USERNAME_PASSWORD, AuthenticationType.CERTIFICATE,
-            AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD };
+    private AuthenticationType[] authenticationOptions = new AuthenticationType[] {
+        AuthenticationType.USERNAME_PASSWORD, AuthenticationType.CERTIFICATE,
+        AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD };
 
-    private String[] authenticationLabels =
-        new String[] { Messages.realmManagementComposite_authenticationType_password,
-            Messages.realmManagementComposite_authenticationType_ssl,
-            Messages.realmManagementComposite_authenticationType_passwordAndSsl };
+    private String[] authenticationLabels = new String[] {
+        Messages.realmManagementComposite_authenticationType_password,
+        Messages.realmManagementComposite_authenticationType_ssl,
+        Messages.realmManagementComposite_authenticationType_passwordAndSsl };
 
     public RealmManagementComposite( Composite parent, WidthGroup widthGroup, SwtValidationGroup validationGroup )
     {
@@ -117,6 +119,7 @@ public class RealmManagementComposite
         createDescriptionControls();
         createAuthenticationControls();
         createUrlViewer();
+        setRealm( null );
     }
 
     private void createIdControls()
@@ -433,17 +436,23 @@ public class RealmManagementComposite
 
     public void setRealm( IAuthRealm realm )
     {
-        dirty = false;
+        setRealm( realm, false );
+    }
+
+    public void setRealm( IAuthRealm realm, boolean newRealm )
+    {
+        this.realm = realm;
+        this.newRealm = newRealm;
+        dirty = newRealm;
         updating = true;
 
-        setControlsEnabled( true );
         urlAssocs = new ArrayList<ISecurityRealmURLAssoc>();
         toDelete = new HashSet<ISecurityRealmURLAssoc>();
         toUpdate = new HashSet<ISecurityRealmURLAssoc>();
 
         if ( realm == null )
         {
-            newRealm = true;
+            setControlsEnabled( false );
             id = ""; //$NON-NLS-1$
             name = ""; //$NON-NLS-1$
             description = ""; //$NON-NLS-1$
@@ -456,8 +465,9 @@ public class RealmManagementComposite
         }
         else
         {
-            newRealm = false;
-            idText.setEnabled( false );
+            setControlsEnabled( true );
+
+            idText.setEnabled( newRealm );
 
             idText.setText( nvl( realm.getId() ) );
             nameText.setText( nvl( realm.getName() ) );
@@ -483,6 +493,12 @@ public class RealmManagementComposite
                     urlAssocs.add( assoc );
                 }
             }
+
+            if ( newRealm )
+            {
+                idText.selectAll();
+                idText.setFocus();
+            }
         }
         urlViewer.setInput( urlAssocs );
 
@@ -500,6 +516,11 @@ public class RealmManagementComposite
     public boolean isDirty()
     {
         return dirty || !toDelete.isEmpty() || !toUpdate.isEmpty();
+    }
+
+    public IAuthRealm getRealm()
+    {
+        return realm;
     }
 
     public String save( IProgressMonitor monitor )

@@ -40,8 +40,10 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.maven.ide.eclipse.authentication.AuthFacade;
+import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.authentication.IAuthRegistry;
+import org.maven.ide.eclipse.authentication.internal.AuthRealm;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.Activator;
@@ -113,14 +115,34 @@ public class RealmManagementPage
             @Override
             public void run()
             {
-                realmViewer.setSelection( StructuredSelection.EMPTY );
-                realmManagementComposite.setControlsEnabled( true );
-                realmManagementComposite.setRealm( null );
+                for ( int i = 1; i > 0; i++ )
+                {
+                    String realmId = "realm" + i; //$NON-NLS-1$
+                    boolean found = false;
+                    for ( IAuthRealm realm : realms )
+                    {
+                        if ( realmId.equals( realm.getId() ) )
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if ( !found )
+                    {
+                        String name = NLS.bind( Messages.realmManagementPage_newRealmNameTemplate, i );
+                        IAuthRealm newRealm = new NewAuthRealm( realmId, NLS.bind( "<{0}>", name ) ); //$NON-NLS-1$
+                        realms.add( newRealm );
+                        realmViewer.refresh();
+                        realmViewer.setSelection( new StructuredSelection( newRealm ) );
+                        newRealm.setName( name );
+                        realmManagementComposite.setRealm( newRealm, true );
+                        return;
+                    }
+                }
             }
         };
         addRealmAction.setToolTipText( Messages.realmManagementPage_add_tooltip );
-        addRealmAction.setImageDescriptor( PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
-                                                                                                           ISharedImages.IMG_OBJ_ADD ) );
+        addRealmAction.setImageDescriptor( PlatformUI.getWorkbench().getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJ_ADD ) );
         addToolbarAction( toolBarManager, addRealmAction );
 
         removeRealmAction = new Action( Messages.realmManagementPage_remove_action )
@@ -132,13 +154,20 @@ public class RealmManagementPage
                 if ( !selection.isEmpty() )
                 {
                     final IAuthRealm authRealm = (IAuthRealm) selection.getFirstElement();
-                    if ( MessageDialog.openConfirm( getShell(), Messages.realmManagementPage_remove_title,
-                                                    NLS.bind( Messages.realmManagementPage_remove_message,
-                                                              authRealm.getName() ) ) )
+                    boolean newUnsaved = authRealm instanceof NewAuthRealm;
+                    if ( newUnsaved
+                        || MessageDialog.openConfirm( getShell(),
+                                                      Messages.realmManagementPage_remove_title,
+                                                      NLS.bind( Messages.realmManagementPage_remove_message,
+                                                                authRealm.getName() ) ) )
                     {
-                        toRemove.add( authRealm );
+                        if ( !newUnsaved )
+                        {
+                            toRemove.add( authRealm );
+                        }
                         realms.remove( authRealm );
 
+                        realmViewer.setSelection( StructuredSelection.EMPTY );
                         realmViewer.refresh();
                         updateSelection( null );
                     }
@@ -146,8 +175,7 @@ public class RealmManagementPage
             }
         };
         removeRealmAction.setToolTipText( Messages.realmManagementPage_remove_tooltip );
-        removeRealmAction.setImageDescriptor( PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
-                                                                                                              ISharedImages.IMG_ELCL_REMOVE ) );
+        removeRealmAction.setImageDescriptor( PlatformUI.getWorkbench().getSharedImages().getImageDescriptor( ISharedImages.IMG_ELCL_REMOVE ) );
         addToolbarAction( toolBarManager, removeRealmAction );
 
         toolBarManager.add( new Separator() );
@@ -186,12 +214,8 @@ public class RealmManagementPage
                 }
                 else
                 {
-                    StatusManager.getManager().handle(
-                                                       new Status(
-                                                                   IStatus.ERROR,
-                                                                   Activator.PLUGIN_ID,
-                                                                   NLS.bind(
-                                                                             Messages.realmManagementPage_reload_error,
+                    StatusManager.getManager().handle( new Status( IStatus.ERROR, Activator.PLUGIN_ID,
+                                                                   NLS.bind( Messages.realmManagementPage_reload_error,
                                                                              t.getMessage() ), t ) );
                 }
             }
@@ -228,7 +252,7 @@ public class RealmManagementPage
             {
             }
 
-            @SuppressWarnings( "unchecked" )
+            @SuppressWarnings( "rawtypes" )
             public Object[] getElements( Object inputElement )
             {
                 if ( inputElement instanceof Collection )
@@ -264,14 +288,31 @@ public class RealmManagementPage
                 IStructuredSelection selection = (IStructuredSelection) realmViewer.getSelection();
                 if ( selection.isEmpty() )
                 {
-                    realmManagementComposite.setControlsEnabled( false );
                     realmManagementComposite.setRealm( null );
                     removeRealmAction.setEnabled( false );
                 }
                 else
                 {
-                    realmManagementComposite.setRealm( (IAuthRealm) selection.getFirstElement() );
-                    removeRealmAction.setEnabled( true );
+                    IAuthRealm realm = (IAuthRealm) selection.getFirstElement();
+                    IAuthRealm previousRealm = realmManagementComposite.getRealm();
+                    if ( realm != previousRealm )
+                    {
+                        if ( realmManagementComposite.isDirty()
+                            && !MessageDialog.openConfirm( getShell(), Messages.realmManagementPage_realmChanged_title,
+                                                           NLS.bind( Messages.realmManagementPage_realmChanged_message,
+                                                                     previousRealm.getName() ) ) )
+                        {
+                            realmViewer.setSelection( new StructuredSelection( previousRealm ) );
+                            return;
+                        }
+                        if ( previousRealm instanceof NewAuthRealm )
+                        {
+                            realms.remove( previousRealm );
+                            realmViewer.refresh();
+                        }
+                        realmManagementComposite.setRealm( realm );
+                        removeRealmAction.setEnabled( true );
+                    }
                 }
             }
         } );
@@ -313,7 +354,8 @@ public class RealmManagementPage
             {
                 selectedRealm = realmViewer.getTable().getItem( 0 ).getData();
             }
-            realmViewer.setSelection( new StructuredSelection( selectedRealm ), true );
+            realmViewer.setSelection( selectedRealm == null ? StructuredSelection.EMPTY
+                            : new StructuredSelection( selectedRealm ), true );
         }
     }
 
@@ -341,4 +383,13 @@ public class RealmManagementPage
             } );
         }
     }
+
+    protected class NewAuthRealm
+        extends AuthRealm
+    {
+        public NewAuthRealm( String id, String name )
+        {
+            super( id, name, "", AuthenticationType.USERNAME_PASSWORD ); //$NON-NLS-1$
+        }
+    };
 }

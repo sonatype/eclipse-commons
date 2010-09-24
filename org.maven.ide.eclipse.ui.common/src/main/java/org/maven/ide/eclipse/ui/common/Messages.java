@@ -102,6 +102,12 @@ public class Messages
 
     public static String realmManagementPage_description;
 
+    public static String realmManagementPage_newRealmNameTemplate;
+
+    public static String realmManagementPage_realmChanged_message;
+
+    public static String realmManagementPage_realmChanged_title;
+
     public static String realmManagementPage_reload_error;
 
     public static String realmManagementPage_reload_tooltip;
