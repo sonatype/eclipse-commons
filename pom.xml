@@ -17,11 +17,11 @@
     <relativePath>parent</relativePath>
   </parent>
 
-  <artifactId>aggregator</artifactId>
+  <artifactId>eclipse-commons</artifactId>
   <packaging>pom</packaging>
 
   <modules>
-      <module>parent</module>
+      <module>eclipse-commons-parent</module>
       <module>org.maven.ide.eclipse.swtvalidation</module>
       <module>org.maven.ide.eclipse.grouplayout</module>
       <module>org.maven.ide.eclipse.log</module>
