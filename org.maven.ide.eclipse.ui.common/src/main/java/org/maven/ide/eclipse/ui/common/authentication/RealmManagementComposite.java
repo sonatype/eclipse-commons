@@ -388,6 +388,7 @@ public class RealmManagementComposite
                 urlAssocs.add( 0, assoc );
                 urlViewer.refresh();
                 urlViewer.setSelection( new StructuredSelection( assoc ), true );
+                urlViewer.editElement( assoc, URL_COLUMN );
             }
         } );
 

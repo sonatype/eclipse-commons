@@ -3,8 +3,6 @@ package org.maven.ide.eclipse.ui.common.authentication;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -14,6 +12,7 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -42,7 +41,6 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
-import org.maven.ide.eclipse.authentication.IAuthRegistry;
 import org.maven.ide.eclipse.authentication.internal.AuthRealm;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationGroup;
 import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
@@ -67,7 +65,7 @@ public class RealmManagementPage
 
     private Collection<IAuthRealm> realms;
 
-    private Set<IAuthRealm> toRemove;
+    // private Set<IAuthRealm> toRemove;
 
     public RealmManagementPage()
     {
@@ -75,7 +73,7 @@ public class RealmManagementPage
         setTitle( Messages.realmManagementPage_title );
         setDescription( Messages.realmManagementPage_description );
 
-        toRemove = new HashSet<IAuthRealm>();
+        // toRemove = new HashSet<IAuthRealm>();
         validationGroup = SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
     }
 
@@ -115,6 +113,12 @@ public class RealmManagementPage
             @Override
             public void run()
             {
+                if ( checkUnsavedChanges() )
+                {
+                    return;
+                }
+
+                realmManagementComposite.setRealm( null );
                 for ( int i = 1; i > 0; i++ )
                 {
                     String realmId = "realm" + i; //$NON-NLS-1$
@@ -161,11 +165,46 @@ public class RealmManagementPage
                                                       NLS.bind( Messages.realmManagementPage_remove_message,
                                                                 authRealm.getName() ) ) )
                     {
-                        if ( !newUnsaved )
+                        if ( newUnsaved )
                         {
-                            toRemove.add( authRealm );
+                            realms.remove( authRealm );
                         }
-                        realms.remove( authRealm );
+                        else
+                        {
+                            Throwable t = null;
+                            try
+                            {
+                                getContainer().run( true, true, new IRunnableWithProgress()
+                                {
+                                    public void run( IProgressMonitor monitor )
+                                        throws InvocationTargetException, InterruptedException
+                                    {
+                                        AuthFacade.getAuthRegistry().removeRealm( authRealm.getId(), monitor );
+                                    }
+                                } );
+                            }
+                            catch ( InvocationTargetException e )
+                            {
+                                t = e.getTargetException();
+                            }
+                            catch ( InterruptedException e )
+                            {
+                                t = e;
+                            }
+
+                            if ( t == null )
+                            {
+                                loadRealms();
+                            }
+                            else
+                            {
+                                String message = NLS.bind( Messages.realmManagementPage_remove_error, t.getMessage() );
+                                setMessage( message, IMessageProvider.ERROR );
+                                StatusManager.getManager().handle( new Status( IStatus.ERROR, Activator.PLUGIN_ID,
+                                                                               message, t ) );
+                            }
+                            // toRemove.add( authRealm );
+                        }
 
                         realmViewer.setSelection( StructuredSelection.EMPTY );
                         realmViewer.refresh();
@@ -185,6 +224,11 @@ public class RealmManagementPage
             @Override
             public void run()
             {
+                if ( checkUnsavedChanges() )
+                {
+                    return;
+                }
+
                 Throwable t = null;
                 try
                 {
@@ -297,10 +341,7 @@ public class RealmManagementPage
                     IAuthRealm previousRealm = realmManagementComposite.getRealm();
                     if ( realm != previousRealm )
                     {
-                        if ( realmManagementComposite.isDirty()
-                            && !MessageDialog.openConfirm( getShell(), Messages.realmManagementPage_realmChanged_title,
-                                                           NLS.bind( Messages.realmManagementPage_realmChanged_message,
-                                                                     previousRealm.getName() ) ) )
+                        if ( checkUnsavedChanges() )
                         {
                             realmViewer.setSelection( new StructuredSelection( previousRealm ) );
                             return;
@@ -312,6 +353,7 @@ public class RealmManagementPage
                         }
                         realmManagementComposite.setRealm( realm );
                         removeRealmAction.setEnabled( true );
+                        addRealmAction.setEnabled( !( realm instanceof NewAuthRealm ) );
                     }
                 }
             }
@@ -361,15 +403,15 @@ public class RealmManagementPage
 
     public void save( IProgressMonitor monitor )
     {
-        if ( !toRemove.isEmpty() )
-        {
-            IAuthRegistry authRegistry = AuthFacade.getAuthRegistry();
-            for ( IAuthRealm realm : toRemove )
-            {
-                authRegistry.removeRealm( realm.getId(), monitor );
-            }
-            toRemove.clear();
-        }
+        // if ( !toRemove.isEmpty() )
+        // {
+        // IAuthRegistry authRegistry = AuthFacade.getAuthRegistry();
+        // for ( IAuthRealm realm : toRemove )
+        // {
+        // authRegistry.removeRealm( realm.getId(), monitor );
+        // }
+        // toRemove.clear();
+        // }
         if ( realmManagementComposite.isDirty() )
         {
             final String realmId = realmManagementComposite.save( monitor );
@@ -382,6 +424,14 @@ public class RealmManagementPage
                 }
             } );
         }
+    }
+
+    private boolean checkUnsavedChanges()
+    {
+        return realmManagementComposite.isDirty()
+            && !MessageDialog.openQuestion( getShell(), Messages.realmManagementPage_realmChanged_title,
+                                            NLS.bind( Messages.realmManagementPage_realmChanged_message,
+                                                      realmManagementComposite.getRealm().getName() ) );
     }
 
     protected class NewAuthRealm
