@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: org.maven.ide.eclipse.auth
 Bundle-SymbolicName: org.maven.ide.eclipse.authentication;singleton:=true
-Bundle-Version: 1.1.4.qualifier
+Bundle-Version: 1.1.4.20101001
 Bundle-Vendor: Sonatype, Inc.
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
