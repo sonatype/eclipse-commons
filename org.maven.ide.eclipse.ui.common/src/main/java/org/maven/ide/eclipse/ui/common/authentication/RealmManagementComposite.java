@@ -149,6 +149,7 @@ public class RealmManagementComposite
                 else
                 {
                     StringValidators.REQUIRE_NON_EMPTY_STRING.validate( problems, componentName, model );
+                    StringValidators.NO_WHITESPACE.validate( problems, componentName, model );
                 }
             }
 
