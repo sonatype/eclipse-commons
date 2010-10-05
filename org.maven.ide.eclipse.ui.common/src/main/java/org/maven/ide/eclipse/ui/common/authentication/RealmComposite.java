@@ -58,13 +58,11 @@ public class RealmComposite
 
     private Combo combo;
 
-    public static final AnonymousAccessType[] ANONYMOUS_OPTIONS =
-        new AnonymousAccessType[] { AnonymousAccessType.NOT_ALLOWED, AnonymousAccessType.ALLOWED,
-            AnonymousAccessType.REQUIRED };
+    public static final AnonymousAccessType[] ANONYMOUS_OPTIONS = new AnonymousAccessType[] {
+        AnonymousAccessType.NOT_ALLOWED, AnonymousAccessType.ALLOWED, AnonymousAccessType.REQUIRED };
 
-    public static final String[] ANONYMOUS_LABELS =
-        new String[] { Messages.realmComposite_passwordRequired, Messages.realmComposite_anonymousAllowed,
-            Messages.realmComposite_anonymousOnly };
+    public static final String[] ANONYMOUS_LABELS = new String[] { Messages.realmComposite_passwordRequired,
+        Messages.realmComposite_anonymousAllowed, Messages.realmComposite_anonymousOnly };
 
     private boolean dirty;
 
@@ -164,18 +162,14 @@ public class RealmComposite
             {
                 if ( url != null && url.length() > 0 && model.length() == 0 )
                 {
-                    problems.add(
-                                  NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$ //$NON-NLS-1$ //$NON-NLS-1$
+                    problems.add( NLS.bind( Messages.realmComposite_selectRealmFor, urlText.getData( "_name" ) ), Severity.INFO ); //$NON-NLS-2$ //$NON-NLS-1$ //$NON-NLS-1$ //$NON-NLS-1$
                 }
             }
         };
 
-        validationGroup.addItem(
-                                 ValidationListenerFactory.createValidationListener(
-                                                                                     getTextControl(),
+        validationGroup.addItem( ValidationListenerFactory.createValidationListener( getTextControl(),
                                                                                      ValidationStrategy.DEFAULT,
-                                                                                     SwtComponentDecorationFactory.getDefault().decorationFor(
-                                                                                                                                               this ),
+                                                                                     SwtComponentDecorationFactory.getDefault().decorationFor( this ),
                                                                                      validator ), false );
     }
 
@@ -303,6 +297,11 @@ public class RealmComposite
 
     private void updateText()
     {
+        if ( lastSelectedRealm != null && lastSelectedRealm != UNSELECT )
+        {
+            // check if the realm is still valid
+            lastSelectedRealm = AuthFacade.getAuthRegistry().getRealm( lastSelectedRealm.getId() );
+        }
         setText( lastSelectedRealm == null || lastSelectedRealm == UNSELECT ? "" : lastSelectedRealm.getName() ); //$NON-NLS-1$
     }
 
@@ -371,8 +370,9 @@ public class RealmComposite
             }
         }
     }
-    
-    protected List getList() {
+
+    protected List getList()
+    {
         return list;
     }
 }
