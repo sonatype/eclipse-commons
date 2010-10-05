@@ -104,7 +104,11 @@ public class Messages
 
     public static String realmManagementPage_newRealmNameTemplate;
 
-    public static String realmManagementPage_realmChanged_message;
+    public static String realmManagementPage_realmChanged_cancel;
+
+	public static String realmManagementPage_realmChanged_discard;
+
+	public static String realmManagementPage_realmChanged_message;
 
     public static String realmManagementPage_realmChanged_title;
 
