@@ -99,7 +99,7 @@ public class S2IOFacade
         else
         {
             int status = resp.getStatusCode();
-            throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status ) + ": "
+            throw new TransferException( "HTTP status code " + status + /* ": " + HttpStatus.getMessage( status ) + */ ": "
                 + uri, resp, null );
         }
     }

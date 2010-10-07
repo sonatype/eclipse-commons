@@ -2,10 +2,8 @@ package org.maven.ide.eclipse.io;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
-
-import org.eclipse.jetty.http.HttpMethods;
-import org.eclipse.jetty.http.HttpStatus;
 
 public class S2IOFacadeTest
     extends AbstractIOTest
@@ -17,8 +15,8 @@ public class S2IOFacadeTest
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testHeadRequest_Anonymous", url, "", "" );
         ServerResponse resp = S2IOFacade.head( url, null, monitor );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, url );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_OK, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "HEAD", url );
     }
 
     public void testHeadRequest_Local()
@@ -26,7 +24,7 @@ public class S2IOFacadeTest
     {
         URI address = new File( RESOURCES, FILE_LOCAL ).toURI();
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_OK, resp.getStatusCode() );
     }
 
     public void testDeleteRequest_Anonymous()
@@ -36,8 +34,8 @@ public class S2IOFacadeTest
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testDeleteRequest_Anonymous", url, "", "" );
         ServerResponse resp = S2IOFacade.delete( url, null, monitor, "Monitor name" );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.DELETE, url );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_OK, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "DELETE", url );
     }
 
     public void testPostRequest_Anonymous()
@@ -49,8 +47,8 @@ public class S2IOFacadeTest
         ServerResponse resp =
             S2IOFacade.post( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, null, monitor,
                              "Monitor name" );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.POST, url );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_CREATED, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "POST", url );
     }
 
     public void testPutRequest_Anonymous()
@@ -62,8 +60,8 @@ public class S2IOFacadeTest
         ServerResponse resp =
             S2IOFacade.put( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, null, monitor,
                             "Monitor name" );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.PUT, url );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_CREATED, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "PUT", url );
     }
 
     public void testHeadRequest_Anonymous_NotFound()
@@ -73,8 +71,8 @@ public class S2IOFacadeTest
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testHeadRequest_Anonymous_NotFound", url, "", "" );
         ServerResponse resp = S2IOFacade.head( url, null, monitor );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.NOT_FOUND_404, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, url );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_NOT_FOUND, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "HEAD", url );
     }
 
     public void testHeadRequest_Local_NotFound()
@@ -82,7 +80,7 @@ public class S2IOFacadeTest
     {
         URI address = new File( RESOURCES, "missingfile.txt" ).toURI();
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.NOT_FOUND_404, resp.getStatusCode() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_NOT_FOUND, resp.getStatusCode() );
     }
 
     public void testDeleteRequest_Anonymous_NotFound()
@@ -98,7 +96,7 @@ public class S2IOFacadeTest
         }
         catch ( NotFoundException e )
         {
-            assertRequest( "Unexpected recorded request", HttpMethods.DELETE, url );
+            assertRequest( "Unexpected recorded request", "DELETE", url );
         }
     }
 
@@ -109,8 +107,8 @@ public class S2IOFacadeTest
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         addRealmAndURL( "testHeadRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, address.toString() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_OK, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "HEAD", address.toString() );
     }
 
     public void testDeleteRequest_ValidUser()
@@ -120,8 +118,8 @@ public class S2IOFacadeTest
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         addRealmAndURL( "testDeleteRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.delete( address.toString(), null, monitor, "Monitor name" );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.OK_200, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.DELETE, address.toString() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_OK, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "DELETE", address.toString() );
     }
 
     public void testPostRequest_ValidUser()
@@ -133,8 +131,8 @@ public class S2IOFacadeTest
         ServerResponse resp =
             S2IOFacade.post( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), address.toString(), null,
                              monitor, "Monitor name" );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.POST, address.toString() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_CREATED, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "POST", address.toString() );
     }
 
     public void testPutRequest_ValidUser()
@@ -146,8 +144,8 @@ public class S2IOFacadeTest
         ServerResponse resp =
             S2IOFacade.put( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), address.toString(), null,
                              monitor, "Monitor name" );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.CREATED_201, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.PUT, address.toString() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_CREATED, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "PUT", address.toString() );
     }
 
     public void testHeadRequest_ValidUser_NotFound()
@@ -157,8 +155,8 @@ public class S2IOFacadeTest
         URI address = URI.create( server.getHttpUrl() + "/secured/missingFile.txt" );
         addRealmAndURL( "testHeadRequest_ValidUser_NotFound", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
-        assertEquals( "Unexpected HTTP status code", HttpStatus.NOT_FOUND_404, resp.getStatusCode() );
-        assertRequest( "Unexpected recorded request", HttpMethods.HEAD, address.toString() );
+        assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_NOT_FOUND, resp.getStatusCode() );
+        assertRequest( "Unexpected recorded request", "HEAD", address.toString() );
     }
 
     public void testDeleteRequest_ValidUser_NotFound()
@@ -174,7 +172,7 @@ public class S2IOFacadeTest
         }
         catch ( NotFoundException e )
         {
-            assertRequest( "Unexpected recorded request", HttpMethods.DELETE, address.toString() );
+            assertRequest( "Unexpected recorded request", "DELETE", address.toString() );
         }
     }
 
@@ -239,7 +237,7 @@ public class S2IOFacadeTest
         addRealmAndURL( "testOpenStream_Anonymous", url, "", "" );
         assertEquals( "Content of stream differs from file", readstream( new FileInputStream( "resources/file.txt" ) ),
                       readstream( S2IOFacade.openStream( url, monitor ) ) );
-        assertRequest( "Unexpected recorded request", HttpMethods.GET, url );
+        assertRequest( "Unexpected recorded request", "GET", url );
     }
 
     public void testOpenStream_Anonymous_NotFound()
@@ -299,7 +297,7 @@ public class S2IOFacadeTest
         catch ( UnauthorizedException e )
         {
             assertTrue( "Missing http status code",
-                        e.getMessage().contains( String.valueOf( HttpStatus.UNAUTHORIZED_401 ) ) );
+                        e.getMessage().contains( String.valueOf( HttpURLConnection.HTTP_UNAUTHORIZED ) ) );
         }
     }
 }
