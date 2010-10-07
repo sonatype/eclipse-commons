@@ -4,6 +4,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Composite;
 
+//mkleint: this class is a case of premature abstraction.
+//it doesn't appear to be used anywhere and there is actually no way to use this class without getting a NPE.
+//candidate for deletion I suppose.
 abstract public class RemoteResourceLookupWizard
     extends Wizard
 {
