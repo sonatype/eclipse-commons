@@ -29,6 +29,7 @@ import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.ErrorHandlingUtils;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.authentication.UrlInputComposite;
+import org.netbeans.validation.api.Problem;
 import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.Validator;
@@ -71,7 +72,9 @@ public abstract class RemoteResourceLookupDialog
 
     private Button loadButton;
 
-    private SwtValidationGroup validationGroup;
+    private SwtValidationGroup loadButtonGroup;
+    
+    private SwtValidationGroup rootGroup;
 
     public RemoteResourceLookupDialog( Shell parentShell, String serverUrl )
     {
@@ -79,7 +82,10 @@ public abstract class RemoteResourceLookupDialog
         this.serverUrl = serverUrl;
         setShellStyle( SWT.CLOSE | SWT.RESIZE | SWT.TITLE | SWT.APPLICATION_MODAL );
 
-        validationGroup = SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
+        loadButtonGroup = SwtValidationGroup.create( new LoadButtonValidationUI() );
+        
+        rootGroup = SwtValidationGroup.create(SwtValidationUI.createUI(this, SwtValidationUI.MESSAGE));
+        rootGroup.addItem(loadButtonGroup, false);
     }
 
     @Override
@@ -148,7 +154,7 @@ public abstract class RemoteResourceLookupDialog
         resourceComposite = createResourcePanel( panel );
 
         applyDialogFont( dialogArea );
-        validationGroup.performValidation();
+        rootGroup.performValidation();
         if ( serverUrl != null )
         {
             reload();
@@ -164,7 +170,7 @@ public abstract class RemoteResourceLookupDialog
         expandableComposite.setLayoutData( new GridData( SWT.FILL, SWT.TOP, true, false ) );
 
         urlInputComposite =
-            new UrlInputComposite( expandableComposite, null, validationGroup, UrlInputComposite.ALLOW_ANONYMOUS );
+            new UrlInputComposite( expandableComposite, null, loadButtonGroup, UrlInputComposite.ALLOW_ANONYMOUS );
         urlInputComposite.setUrlLabelText( NLS.bind( Messages.remoteResourceLookupDialog_server_label, serverName ) );
         urlInputComposite.setUrl( serverUrl );
 
@@ -190,7 +196,7 @@ public abstract class RemoteResourceLookupDialog
             }
         } );
 
-        validationGroup.addItem( new UrlValidationListener( urlInputComposite ), false );
+        rootGroup.addItem( new UrlValidationListener( urlInputComposite ), false );
 
         String url = urlInputComposite.getUrlText();
         if ( url.length() > 0 )
@@ -224,11 +230,7 @@ public abstract class RemoteResourceLookupDialog
         protected void performValidation( Problems problems )
         {
             String url = urlInputComposite.getUrlText();
-            if ( url.length() == 0 )
-            {
-                loadButton.setEnabled( false );
-            }
-            else
+            if ( url.length() != 0 ) 
             {
                 if ( !url.equals( serverUrl ) )
                 {
@@ -236,7 +238,6 @@ public abstract class RemoteResourceLookupDialog
                     serverUrl = url;
                     problems.add( readyToLoadMessage, Severity.INFO );
                 }
-                loadButton.setEnabled( true );
             }
         }
 
@@ -343,12 +344,11 @@ public abstract class RemoteResourceLookupDialog
                     updateExpandableState();
                     urlInputComposite.setFocus();
                     setMessage( message, messageType );
-                    updateOkState( false );
                 }
                 else
                 {
                     resourceComposite.setFocus();
-                    if ( validationGroup.performValidation() == null )
+                    if ( rootGroup.performValidation() == null )
                     {
                         //clear any previous error messages or the error icon keeps sticked in..
                         setMessage( null, IMessageProvider.ERROR );
@@ -376,13 +376,38 @@ public abstract class RemoteResourceLookupDialog
     @SuppressWarnings( "unchecked" )
     protected void addToValidationGroup( Control control, Validator<String> validator )
     {
-        validationGroup.add( control, validator );
+        loadButtonGroup.add( control, validator );
     }
 
+    /**
+     * this is the validation group root validation group, contains the load label group as well..
+     * and handles error messages 
+     * @return
+     */
+    protected SwtValidationGroup getRootValidationGroup()
+    {
+        return rootGroup;
+    }
+    
+    /**
+     * this is the validation group associated with the url input composite and handles load button enablement
+     * @return
+     */
+    protected SwtValidationGroup getLoadButtonValidationGroup()
+    {
+        return loadButtonGroup;
+    }
+    
+    /**
+     * this is the validation group associated with the url input composite.
+     * @return
+     * @deprecated
+     */
     protected SwtValidationGroup getValidationGroup()
     {
-        return validationGroup;
+        return getLoadButtonValidationGroup();
     }
+    
 
     abstract protected Composite createResourcePanel( Composite parent );
 
@@ -390,4 +415,18 @@ public abstract class RemoteResourceLookupDialog
 
     abstract protected Object loadResources( String url, IProgressMonitor monitor )
         throws Exception;
+    
+    
+    private class LoadButtonValidationUI implements ValidationUI {
+
+        public void showProblem(Problem problem) {
+        	if (loadButton == null) return;
+            loadButton.setEnabled( !problem.isFatal() );
+        }
+
+        public void clearProblem() {
+        	if (loadButton == null) return;
+            loadButton.setEnabled( true );
+        }
+    };
 }
