@@ -26,6 +26,7 @@ import org.maven.ide.eclipse.swtvalidation.SwtValidationUI;
 import org.maven.ide.eclipse.ui.common.ErrorHandlingUtils;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.maven.ide.eclipse.ui.common.authentication.UrlInputComposite;
+import org.netbeans.validation.api.Problem;
 import org.netbeans.validation.api.Problems;
 import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.Validator;
@@ -61,7 +62,11 @@ abstract public class RemoteResourceLookupPage
 
     private Button loadButton;
 
-    private SwtValidationGroup validationGroup;
+    private SwtValidationGroup loadButtonGroup;
+    
+    private SwtValidationGroup okButtonGroup;
+    
+    private SwtValidationGroup rootGroup;
 
     public RemoteResourceLookupPage( String serverUrl )
     {
@@ -69,7 +74,12 @@ abstract public class RemoteResourceLookupPage
         this.serverUrl = serverUrl;
         setPageComplete( false );
 
-        validationGroup = SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
+        loadButtonGroup = SwtValidationGroup.create( new LoadButtonValidationUI() );
+        
+        rootGroup = SwtValidationGroup.create(SwtValidationUI.createUI(this, SwtValidationUI.MESSAGE));
+        rootGroup.addItem(loadButtonGroup, false);
+        okButtonGroup = SwtValidationGroup.create(SwtValidationUI.createUI(this, SwtValidationUI.BUTTON));
+        rootGroup.addItem(okButtonGroup, false);
     }
 
     public void setServerName( String name )
@@ -114,7 +124,7 @@ abstract public class RemoteResourceLookupPage
 
         setControl( panel );
 
-        validationGroup.performValidation();
+        rootGroup.performValidation();
         if ( serverUrl != null )
         {
             reload();
@@ -123,7 +133,7 @@ abstract public class RemoteResourceLookupPage
 
     protected UrlInputComposite createUrlInputComposite( Composite parent )
     {
-        return new UrlInputComposite( parent, null, getValidationGroup(), UrlInputComposite.ALLOW_ANONYMOUS );
+        return new UrlInputComposite( parent, null, getLoadButtonValidationGroup(), UrlInputComposite.ALLOW_ANONYMOUS );
     }
 
     private void createExpandableComposite( final Composite parent )
@@ -158,7 +168,7 @@ abstract public class RemoteResourceLookupPage
             }
         } );
 
-        validationGroup.addItem( new UrlValidationListener( urlInputComposite ), false );
+        rootGroup.addItem( new UrlValidationListener( urlInputComposite ), false );
 
         String url = urlInputComposite.getUrlText();
         if ( url.length() > 0 )
@@ -192,19 +202,14 @@ abstract public class RemoteResourceLookupPage
         protected void performValidation( Problems problems )
         {
             String url = urlInputComposite.getUrlText();
-            if ( url.length() == 0 )
-            {
-                loadButton.setEnabled( false );
-            }
-            else
+            if ( url.length() != 0 )
             {
                 if ( !url.equals( serverUrl ) )
                 {
                     setInput( input = null );
                     serverUrl = url;
-                    problems.add( readyToLoadMessage, Severity.FATAL );
+                    problems.add( readyToLoadMessage, Severity.INFO );
                 }
-                loadButton.setEnabled( true );
             }
         }
 
@@ -323,7 +328,7 @@ abstract public class RemoteResourceLookupPage
                 else
                 {
                     resourceComposite.setFocus();
-                    if ( validationGroup.performValidation() == null )
+                    if ( rootGroup.performValidation() == null )
                     {
                         setMessage( message, messageType );
                     }
@@ -340,18 +345,54 @@ abstract public class RemoteResourceLookupPage
     @SuppressWarnings( "unchecked" )
     protected void addToValidationGroup( Control control, Validator<String> validator )
     {
-        validationGroup.add( control, validator );
+        loadButtonGroup.add( control, validator );
     }
 
-    protected SwtValidationGroup getValidationGroup()
+    /**
+     * this is the validation group root validation group, contains the load label group as well..
+     * and handles error messages 
+     * @return
+     */
+    protected SwtValidationGroup getRootValidationGroup()
     {
-        return validationGroup;
+        return rootGroup;
     }
-
+    
+    /**
+     * this is the validation group associated with the url input composite and handles load button enablement
+     * @return
+     */
+    protected SwtValidationGroup getLoadButtonValidationGroup()
+    {
+        return loadButtonGroup;
+    }
+    
+    /**
+     * this is the validation group for handling the ok/finish button
+     * @return
+     */
+    protected SwtValidationGroup getFinishButtonValidationGroup()
+    {
+        return okButtonGroup;
+    }    
+    
     abstract protected Composite createResourcePanel( Composite parent );
 
     abstract protected void setInput( Object input );
 
     abstract protected Object loadResources( String url, IProgressMonitor monitor )
         throws Exception;
+    
+    private class LoadButtonValidationUI implements ValidationUI {
+
+        public void showProblem(Problem problem) {
+        	if (loadButton == null) return;
+            loadButton.setEnabled( !problem.isFatal() );
+        }
+
+        public void clearProblem() {
+        	if (loadButton == null) return;
+            loadButton.setEnabled( true );
+        }
+    };    
 }

@@ -398,17 +398,7 @@ public abstract class RemoteResourceLookupDialog
         return loadButtonGroup;
     }
     
-    /**
-     * this is the validation group associated with the url input composite.
-     * @return
-     * @deprecated
-     */
-    protected SwtValidationGroup getValidationGroup()
-    {
-        return getLoadButtonValidationGroup();
-    }
-    
-
+ 
     abstract protected Composite createResourcePanel( Composite parent );
 
     abstract protected void setInput( Object input );

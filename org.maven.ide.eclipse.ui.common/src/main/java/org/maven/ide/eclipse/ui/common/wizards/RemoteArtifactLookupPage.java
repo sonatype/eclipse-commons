@@ -53,6 +53,15 @@ abstract public class RemoteArtifactLookupPage<T>
         {
             public void inputChanged( Viewer viewer, Object oldInput, Object newInput )
             {
+            	if (newInput == null) {
+                	//just disable finish when no tree content, no error message
+            		getRootValidationGroup().remove(getFinishButtonValidationGroup());
+            		setPageComplete(false);
+            	} else {
+            		getRootValidationGroup().addItem(getFinishButtonValidationGroup(), false);
+            		setPageComplete(true);
+            		getFinishButtonValidationGroup().performValidation();
+            	}
             }
 
             public void dispose()
@@ -157,7 +166,7 @@ abstract public class RemoteArtifactLookupPage<T>
             }
         } );
 
-        getValidationGroup().add( treeViewer, new Validator<ISelection>()
+        getFinishButtonValidationGroup().add( treeViewer, new Validator<ISelection>()
         {
             public Class<ISelection> modelType()
             {
