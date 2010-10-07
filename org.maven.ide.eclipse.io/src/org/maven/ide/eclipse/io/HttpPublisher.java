@@ -8,13 +8,15 @@ import java.net.URI;
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.HttpExchange;
-import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.http.HttpMethods;
-import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.io.Buffer;
 import org.maven.ide.eclipse.authentication.IAuthService;
+
+import com.ning.http.client.AsyncHandler.STATE;
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.FluentCaseInsensitiveStringsMap;
+import com.ning.http.client.HttpResponseBodyPart;
+import com.ning.http.client.HttpResponseHeaders;
+import com.ning.http.client.HttpResponseStatus;
 
 
 public class HttpPublisher
@@ -62,6 +64,12 @@ public class HttpPublisher
                                    final IProxyService proxyService, Integer timeoutInMilliseconds, boolean statusException )
         throws IOException
     {
+    	AsyncHttpClientConfig.Builder confBuilder = init(url, authService, proxyService, timeoutInMilliseconds);
+    	AsyncHttpClientConfig conf = confBuilder.build();
+    	
+    	AsyncHttpClient httpClient = new AsyncHttpClient(conf);
+    	FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
+    	
         if ( file != null )
         {
             InputStream is = file.getContent();
@@ -74,21 +82,18 @@ public class HttpPublisher
             mis.setName( monitorSubtaskName );
             mis.setLength( (int) file.getContentLength() );
 
-            exchange.setRequestHeader( HttpHeaders.CONTENT_LENGTH, Long.toString( file.getContentLength() ) );
+            headers.add("Content-Length", Long.toString( file.getContentLength() ) );
             if ( file.getContentType() != null )
             {
-                exchange.setRequestContentType( file.getContentType() );
+            	headers.add("Content-Type", file.getContentType() );
             }
 
             exchange.setRequestContentSource( mis );
         }
 
-        HttpClient httpClient = startClient( url, authService, proxyService, timeoutInMilliseconds );
-        if ( authService != null )
-        {
-            setAuthenticationHeader( authService.select( url ), exchange );
-        }
-        httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
+        //What's this for?
+        //httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
+        
         httpClient.send( exchange );
         try
         {
@@ -146,6 +151,49 @@ public class HttpPublisher
         }
 
         return response;
+    }
+    
+    private final class PushAsyncHandler extends BaseAsyncHandler {
+    	private final MonitoredInputStream mis;
+    	
+    	private PushAsyncHandler(URL url, String httpMethod, MonitoredInputStream mis) {
+    		this.mis = mis;
+    		this.url = url;
+    		this.httpMethod = httpMethod;
+    	}
+
+		@Override
+		public void onThrowable(Throwable t) {
+			// TODO Auto-generated method stub
+			super.onThrowable(t);
+		}
+
+		@Override
+		public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart)
+				throws Exception {
+			// TODO Auto-generated method stub
+			return super.onBodyPartReceived(bodyPart);
+		}
+
+		@Override
+		public STATE onStatusReceived(HttpResponseStatus responseStatus)
+				throws Exception {
+			// TODO Auto-generated method stub
+			return super.onStatusReceived(responseStatus);
+		}
+
+		@Override
+		public STATE onHeadersReceived(HttpResponseHeaders headers)
+				throws Exception {
+			// TODO Auto-generated method stub
+			return super.onHeadersReceived(headers);
+		}
+
+		@Override
+		public HttpInputStream onCompleted() throws Exception {
+			// TODO Auto-generated method stub
+			return super.onCompleted();
+		}
     }
 
     private static class PutExchange

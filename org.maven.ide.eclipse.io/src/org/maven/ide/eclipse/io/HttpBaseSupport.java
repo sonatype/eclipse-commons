@@ -3,29 +3,24 @@ package org.maven.ide.eclipse.io;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
-import org.eclipse.jetty.client.Address;
-import org.eclipse.jetty.client.ContentExchange;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.HttpDestination;
-import org.eclipse.jetty.client.HttpExchange;
-import org.eclipse.jetty.client.security.ProxyAuthorization;
-import org.eclipse.jetty.client.security.Realm;
-import org.eclipse.jetty.client.security.RealmResolver;
-import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.http.HttpSchemes;
-import org.eclipse.jetty.http.security.B64Code;
-import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.util.StringUtil;
-import org.eclipse.jetty.util.thread.Timeout.Task;
 import org.maven.ide.eclipse.authentication.IAuthData;
 import org.maven.ide.eclipse.authentication.IAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ning.http.client.AsyncHandler;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.FluentCaseInsensitiveStringsMap;
+import com.ning.http.client.HttpResponseBodyPart;
+import com.ning.http.client.HttpResponseHeaders;
+import com.ning.http.client.HttpResponseStatus;
+import com.ning.http.client.ProxyServer;
+import com.ning.http.client.ProxyServer.Protocol;
+import com.ning.http.client.Realm;
 
 
 public class HttpBaseSupport
@@ -35,7 +30,10 @@ public class HttpBaseSupport
 
     protected int timeout = 10 * 1000;
 
-    protected HttpClient startClient( final URI url, final IAuthService authService, final IProxyService proxyService,
+	protected Realm realm = null;
+	protected ProxyServer proxyServer = null;
+
+    protected AsyncHttpClientConfig.Builder init( final URI url, final IAuthService authService, final IProxyService proxyService,
                                       Integer timeoutInMilliseconds )
         throws IOException
     {
@@ -44,69 +42,64 @@ public class HttpBaseSupport
         {
             authData = authService.select( url );
         }
-        return startClient( url, authData, proxyService, timeoutInMilliseconds );
+        return init( url, authData, proxyService, timeoutInMilliseconds );
     }
 
-    protected HttpClient startClient( final URI url, final IAuthData authData, final IProxyService proxyService,
+    protected AsyncHttpClientConfig.Builder init( final URI url, final IAuthData authData, final IProxyService proxyService,
                                       Integer timeoutInMilliseconds )
         throws IOException
     {
-        HttpClient httpClient = new FixedHttpClient();
-        httpClient.setConnectorType( HttpClient.CONNECTOR_SELECT_CHANNEL );
-        //httpClient.setConnectorType( HttpClient.CONNECTOR_SOCKET );
-        if ( timeoutInMilliseconds == null )
+    	if ( timeoutInMilliseconds == null )
         {
             timeoutInMilliseconds = timeout;
         }
-        httpClient.setTimeout( timeoutInMilliseconds );
-        // httpClient.setConnectTimeout( timeout );
-        httpClient.setMaxRetries( 1 );
+
+		AsyncHttpClientConfig.Builder confBuilder = new AsyncHttpClientConfig.Builder()
+				.setIdleConnectionTimeoutInMs(timeoutInMilliseconds)
+				.setCompressionEnabled(true);
 
         IProxyData proxy = selectProxy( url, proxyService );
         if ( proxy != null && proxy.getHost() != null )
         {
-            httpClient.setProxy( new Address( proxy.getHost(), resolvePort( proxy.getPort(), proxy.getType() ) ) );
+        	int port = resolvePort( proxy.getPort(), proxy.getType() );
+        	Protocol protocol;
+        	if (proxy.getType().equals(IProxyData.HTTP_PROXY_TYPE)) {
+        		protocol = Protocol.HTTP;
+        	} else if (proxy.getType().equals(IProxyData.HTTPS_PROXY_TYPE)) {
+        		protocol = Protocol.HTTPS;
+        	} else if (proxy.getType().equals(IProxyData.SOCKS_PROXY_TYPE)) {
+        		// Not supported yet
+        		throw new RuntimeException("SOCKS proxy not supported yet.");
+        	} else {
+        		throw new RuntimeException("Unknown Proxy type: " + proxy.getType());
+        	}
 
             if ( proxy.isRequiresAuthentication() )
             {
-                httpClient.setProxyAuthentication( new ProxyAuthorization( proxy.getUserId(), proxy.getPassword() ) );
-
-                log.debug( "Connecting to {} via proxy {} and authentication", url, httpClient.getProxy() );
+            	proxyServer = new ProxyServer(protocol, proxy.getHost(), port, proxy.getUserId(), proxy.getPassword());
+                log.debug( "Connecting to {} via proxy {} and authentication", url, proxyServer.toString() );
             }
             else
             {
-                log.debug( "Connecting to {} via proxy {} and no authentication", url, httpClient.getProxy() );
+            	proxyServer = new ProxyServer(protocol, proxy.getHost(), port);
+                log.debug( "Connecting to {} via proxy {} and no authentication", url, proxyServer.toString() );
             }
         }
         else
         {
             log.debug( "Connecting to {} without proxy", url );
         }
-
-        httpClient.setRealmResolver( new RealmResolver()
-        {
-            public Realm getRealm( final String realmName, final HttpDestination destination, final String path )
-                throws IOException
-            {
-                if ( authData != null )
-                {
-                    return new SimpleRealm( realmName, authData );
-                }
-
-                return null;
-            }
-        } );
-
-        try
-        {
-            httpClient.start();
-        }
-        catch ( Exception e )
-        {
-            throw (IOException) new IOException( "Failed to initialize HTTP client: " + e.getMessage() ).initCause( e );
+        
+        if (authData != null) {
+        	if ((authData.getUsername() != null && authData.getUsername().length() > 0) 
+        			|| (authData.getPassword() != null && authData.getPassword().length() >0)) {
+        		this.realm = new Realm.RealmBuilder().setPassword(authData.getPassword()).setUsePreemptiveAuth(true).setPrincipal(authData.getUsername()).build();
+        	}
         }
 
-        return httpClient;
+        //TODO Bridge Asynch logger?
+        
+        return confBuilder;
     }
 
     private IProxyData selectProxy( URI url, IProxyService proxyService )
@@ -145,7 +138,7 @@ public class HttpBaseSupport
         {
             return port;
         }
-        else if ( HttpSchemes.HTTPS.equalsIgnoreCase( protocol ) )
+        else if ( IProxyData.HTTPS_PROXY_TYPE.equalsIgnoreCase( protocol ) )
         {
             return 443;
         }
@@ -155,159 +148,15 @@ public class HttpBaseSupport
         }
     }
 
-    protected static void setAuthenticationHeader( IAuthData authData, HttpExchange exchange )
-        throws UnsupportedEncodingException
-    {
-        if ( authData != null
-            && ( ( authData.getUsername() != null && authData.getUsername().length() > 0 ) || ( authData.getPassword() != null && authData.getPassword().length() > 0 ) ) )
-        {
-            String authenticationString =
-                "Basic "
-                    + B64Code.encode( authData.getUsername() + ":" + authData.getPassword(), StringUtil.__ISO_8859_1 );
-            exchange.setRequestHeader( HttpHeaders.AUTHORIZATION, authenticationString );
-        }
-    }
-
-    static class SimpleRealm
-        implements Realm
-    {
-
-        private final String realmName;
-
-        private final IAuthData auth;
-
-        public SimpleRealm( final String realmName, final IAuthData auth )
-        {
-            this.realmName = realmName;
-            this.auth = auth;
-        }
-
-        public String getPrincipal()
-        {
-            return auth.getUsername();
-        }
-
-        public String getCredentials()
-        {
-            return auth.getPassword();
-        }
-
-        public String getId()
-        {
-            return realmName;
-        }
-
-    }
-
-    static class FixedHttpClient
-        extends HttpClient
-    {
-
-        DataExchange httpExchange;
-
-        @Override
-        public void send( HttpExchange exchange )
-            throws IOException
-        {
-            if ( exchange instanceof DataExchange )
-            {
-                httpExchange = (DataExchange) exchange;
-            }
-
-            super.send( exchange );
-        }
-
-        @Override
-        public void schedule( Task task )
-        {
-            super.schedule( task );
-
-            // hack/workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=296650
-            if ( httpExchange != null )
-            {
-                httpExchange.setTimeoutTask( task );
-            }
-        }
-
-    }
-
-    static class DataExchange
-        extends ContentExchange
-    {
-
-        private Task timeoutTask;
-
-        private String encoding;
-
-        public void setTimeoutTask( Task timeoutTask )
-        {
-            this.timeoutTask = timeoutTask;
-        }
-
-        @Override
-        protected void onResponseContent( Buffer content )
-            throws IOException
-        {
-            // hack/workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=296650
-            if ( timeoutTask != null )
-            {
-                timeoutTask.reschedule();
-            }
-        }
-
-        @Override
-        public Buffer getRequestContentChunk()
-            throws IOException
-        {
-            // hack/workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=296650
-            if ( timeoutTask != null )
-            {
-                timeoutTask.reschedule();
-            }
-
-            return super.getRequestContentChunk();
-        }
-
-        @Override
-        protected void onResponseHeader( Buffer name, Buffer value )
-            throws IOException
-        {
-            super.onResponseHeader( name, value );
-
-            int header = HttpHeaders.CACHE.getOrdinal( name );
-            switch ( header )
-            {
-                case HttpHeaders.CONTENT_TYPE_ORDINAL:
-                    String mime = StringUtil.asciiToLowerCase( value.toString() );
-                    int i = mime.indexOf( "charset=" );
-                    if ( i > 0 )
-                    {
-                        encoding = mime.substring( i + 8 ).trim();
-                    }
-                    break;
-            }
-        }
-
-        public String getEncoding()
-        {
-            return encoding;
-        }
-    }
-
     public static class HttpInputStream
         extends FilterInputStream
     {
+        private String encoding;
 
-        private final HttpClient httpClient;
-
-        private final DataExchange exchange;
-
-        public HttpInputStream( InputStream is, HttpClient httpClient, DataExchange exchange )
+		public HttpInputStream( InputStream is, String encoding )
         {
             super( is );
-
-            this.httpClient = httpClient;
-            this.exchange = exchange;
+            this.encoding = encoding;
         }
 
         @Override
@@ -316,21 +165,55 @@ public class HttpBaseSupport
         {
             super.close();
 
-            try
-            {
-                httpClient.stop();
-            }
-            catch ( Exception e )
-            {
-                throw (IOException) new IOException().initCause( e );
-            }
+            //TODO Async Client need closing?
         }
 
         public String getEncoding()
         {
-            return exchange.getEncoding();
+            return encoding;
         }
         
     }
+    
+    protected class BaseAsyncHandler implements AsyncHandler<HttpInputStream> {
 
+		protected String encoding = null;
+
+		public String getEncoding() {
+			return encoding;
+		}
+
+		public void onThrowable(Throwable t) {
+			
+		}
+
+		public STATE onBodyPartReceived(
+				HttpResponseBodyPart bodyPart) throws Exception {
+			return STATE.CONTINUE;
+		}
+
+		public STATE onStatusReceived(
+				HttpResponseStatus responseStatus) throws Exception {
+			return STATE.CONTINUE;
+		}
+
+		public STATE onHeadersReceived(
+				HttpResponseHeaders headers) throws Exception {
+			FluentCaseInsensitiveStringsMap h = headers.getHeaders();
+			if (h.containsKey("Content-Type")) {
+				String mime = h.getFirstValue("Content-Type").toLowerCase();
+                int i = mime.indexOf( "charset=" );
+                if ( i > 0 )
+                {
+                    encoding = mime.substring( i + 8 ).trim();
+                }
+			}
+			return STATE.CONTINUE;
+		}
+
+		public HttpInputStream onCompleted() throws Exception {
+			return null;
+		}
+    	
+    }
 }

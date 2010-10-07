@@ -12,14 +12,13 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.http.security.B64Code;
-import org.eclipse.jetty.util.StringUtil;
 import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.tests.common.HttpServer;
+
+import com.ning.http.util.Base64;
 
 public abstract class AbstractIOTest
     extends TestCase
@@ -157,11 +156,11 @@ public abstract class AbstractIOTest
     protected static void assertAuthentication( String username, String password, Map<String, String> headers )
         throws UnsupportedEncodingException
     {
-        String authHeader = headers.get( HttpHeaders.AUTHORIZATION );
+        String authHeader = headers.get( "Authorization" );
         assertNotNull( "Authentication header was null", authHeader );
         assertTrue( "Authentication should be type: " + AUTH_TYPE, authHeader.startsWith( AUTH_TYPE ) );
 
-        String decoded = B64Code.decode( authHeader.substring( AUTH_TYPE.length() ), StringUtil.__ISO_8859_1 );
+        String decoded = new String(Base64.decode( authHeader.substring( AUTH_TYPE.length() )));
         assertEquals( "Username does not match", username, decoded.substring( 0, decoded.indexOf( ':' ) ) );
         assertEquals( "Password does not match", password, decoded.substring( decoded.indexOf( ':' ) + 1 ) );
     }
