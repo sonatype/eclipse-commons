@@ -3,6 +3,7 @@ package org.maven.ide.eclipse.io;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 
 import org.eclipse.core.net.proxy.IProxyData;
@@ -111,6 +112,36 @@ public class HttpBaseSupport
         return confBuilder;
     }
 
+    public static com.ning.http.client.AsyncHandler.STATE handleStatus( String url, HttpResponseStatus responseStatus, MonitoredInputStream mis )
+    {
+        int status = responseStatus.getStatusCode();
+        if ( status != HttpURLConnection.HTTP_OK && mis != null )
+        {
+            if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
+            {
+                mis.setException( new UnauthorizedException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url ) );
+            }
+            else if ( HttpURLConnection.HTTP_FORBIDDEN == status )
+            {
+                mis.setException( new ForbiddenException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url ) );
+            }
+            else if ( HttpURLConnection.HTTP_NOT_FOUND == status )
+            {
+                mis.setException( new NotFoundException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url ) );
+            }
+            else
+            {
+                mis.setException( new IOException( "HTTP status code " + status + ": " + responseStatus.getStatusText()
+                    + ": " + url ) );
+            }
+            return com.ning.http.client.AsyncHandler.STATE.ABORT;
+        }
+        return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
+    }
+    
     private IProxyData selectProxy( URI url, IProxyService proxyService )
     {
         if ( proxyService != null && proxyService.isProxiesEnabled() )

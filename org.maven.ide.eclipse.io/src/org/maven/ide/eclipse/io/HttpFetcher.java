@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -65,34 +64,6 @@ public class HttpFetcher
         }
     }
 
-    private void handleStatus( String url, HttpResponseStatus responseStatus, MonitoredInputStream mis )
-    {
-        int status = responseStatus.getStatusCode();
-        if ( status != HttpURLConnection.HTTP_OK && mis != null )
-        {
-            if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
-            {
-                mis.setException( new UnauthorizedException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
-            }
-            else if ( HttpURLConnection.HTTP_FORBIDDEN == status )
-            {
-                mis.setException( new ForbiddenException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
-            }
-            else if ( HttpURLConnection.HTTP_NOT_FOUND == status )
-            {
-                mis.setException( new NotFoundException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
-            }
-            else
-            {
-                mis.setException( new IOException( "HTTP status code " + status + ": " + responseStatus.getStatusText()
-                    + ": " + url ) );
-            }
-        }
-    }
-
     private final class GetAsyncHandler
         extends BaseAsyncHandler
     {
@@ -139,9 +110,7 @@ public class HttpFetcher
         public STATE onStatusReceived( HttpResponseStatus responseStatus )
             throws Exception
         {
-            STATE retval = super.onStatusReceived( responseStatus );
-            handleStatus( url.toString(), responseStatus, mis );
-            return retval;
+            return handleStatus( url.toString(), responseStatus, mis );
         }
 
         public STATE onHeadersReceived( HttpResponseHeaders headers )

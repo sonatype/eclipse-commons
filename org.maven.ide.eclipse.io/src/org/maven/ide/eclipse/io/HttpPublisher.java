@@ -232,7 +232,7 @@ public class HttpPublisher
             throws Exception
         {
             this.responseStatus = responseStatus.getStatusCode();
-            return super.onStatusReceived( responseStatus );
+            return handleStatus( uri.toString(), responseStatus, mis );
         }
 
         @Override
