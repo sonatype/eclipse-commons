@@ -117,20 +117,20 @@ public class HttpPublisher
             }
 
             requestBuilder.setBody( mis );
-            handler = new PushAsyncHandler( uri, httpMethod, mis );
+            handler = new PushAsyncHandler( uri, mis );
         }
         else
         {
-            handler = new PushAsyncHandler( uri, httpMethod, null );
+            handler = new PushAsyncHandler( uri, null );
         }
 
         // What's this for? (from previous Jetty code)
         // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
 
-        Future<HttpInputStream> future = requestBuilder.execute( handler );
+        Future<String> future = requestBuilder.execute( handler );
         try
         {
-            HttpInputStream his = future.get();
+            future.get();
         }
         catch ( InterruptedException e )
         {
@@ -181,19 +181,16 @@ public class HttpPublisher
 
         private URI uri;
 
-        private String httpMethod;
-
         private Throwable exception;
 
         private ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
 
         private int responseStatus;
 
-        private PushAsyncHandler( URI uri, String httpMethod, MonitoredInputStream mis )
+        private PushAsyncHandler( URI uri, MonitoredInputStream mis )
         {
             this.mis = mis;
             this.uri = uri;
-            this.httpMethod = httpMethod;
         }
 
         public byte[] getResponseContentBytes()
@@ -243,10 +240,10 @@ public class HttpPublisher
         }
 
         @Override
-        public HttpInputStream onCompleted()
+        public String onCompleted()
             throws Exception
         {
-            return super.onCompleted();
+            return "";
         }
 
         private void error( Throwable e )

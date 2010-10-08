@@ -1,6 +1,7 @@
 package org.maven.ide.eclipse.io;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -24,7 +25,9 @@ public class HttpFetcher
     extends HttpBaseSupport
 {
 
-    public HttpInputStream openStream( final URI url, final IProgressMonitor monitor, final IAuthService authService,
+    private HttpInputStream his = null;
+
+	public HttpInputStream openStream( final URI url, final IProgressMonitor monitor, final IAuthService authService,
                                        final IProxyService proxyService )
         throws IOException
     {
@@ -39,8 +42,9 @@ public class HttpFetcher
 
         AsyncHttpClient httpClient = new AsyncHttpClient( conf );
 
-        PipedOutputStream os = new PipedOutputStream();
-        final MonitoredInputStream mis = new MonitoredInputStream( new PipedInputStream( os ), monitor );
+        PipedInputStream pis = new PipedInputStream();
+        PipedOutputStream pos = new PipedOutputStream(pis);
+        final MonitoredInputStream mis = new MonitoredInputStream( pis, monitor );
 
         FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
         headers.add( "Pragma", "no-cache" );
@@ -49,19 +53,19 @@ public class HttpFetcher
         BoundRequestBuilder requestBuilder =
             httpClient.prepareGet( url.toString() ).setRealm( realm ).setHeaders( headers ).setProxyServer( proxyServer );
 
-        Future<HttpInputStream> future = requestBuilder.execute( new GetAsyncHandler( os, mis, url ) );
-        try
-        {
-            return future.get();
-        }
-        catch ( ExecutionException e )
-        {
-            throw new IOException( e );
-        }
-        catch ( InterruptedException e )
-        {
-            throw new IOException( e );
-        }
+//        Future<String> future = requestBuilder.execute( new GetAsyncHandler( os, mis, url ) );
+//        try {
+//			future.get();
+//		} catch (InterruptedException e) {
+//			throw new IOException(e);
+//		} catch (ExecutionException e) {
+//			throw new RuntimeException(e);
+//		}
+        his = new HttpInputStream(mis, "UTF-8");
+        
+        requestBuilder.execute(new GetAsyncHandler(pos, mis, url));
+        
+        return his;
     }
 
     private final class GetAsyncHandler
@@ -126,6 +130,10 @@ public class HttpFetcher
                     mis.setLength( Integer.parseInt( h.getFirstValue( "Content-Length" ) ) );
                 }
             }
+            
+            if (this.encoding != null) {
+            	his.encoding = encoding;
+            }
 
             return retval;
         }
@@ -141,11 +149,11 @@ public class HttpFetcher
             return retval;
         }
 
-        public HttpInputStream onCompleted()
+        public String onCompleted()
             throws Exception
         {
             close();
-            return new HttpInputStream( mis, encoding );
+            return "";
         }
     }
 }

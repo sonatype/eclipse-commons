@@ -191,7 +191,7 @@ public class HttpBaseSupport
     public static class HttpInputStream
         extends FilterInputStream
     {
-        private String encoding;
+        String encoding;
 
         public HttpInputStream( InputStream is, String encoding )
         {
@@ -216,7 +216,7 @@ public class HttpBaseSupport
     }
 
     protected abstract class BaseAsyncHandler
-        implements AsyncHandler<HttpInputStream>
+        implements AsyncHandler<String>
     {
 
         protected String encoding = null;
@@ -259,10 +259,10 @@ public class HttpBaseSupport
             return STATE.CONTINUE;
         }
 
-        public HttpInputStream onCompleted()
+        public String onCompleted()
             throws Exception
         {
-            return null;
+            return "";
         }
     }
 }
