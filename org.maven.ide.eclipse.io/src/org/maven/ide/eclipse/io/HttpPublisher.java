@@ -21,7 +21,6 @@ import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
 
-
 public class HttpPublisher
     extends HttpBaseSupport
 {
@@ -34,8 +33,8 @@ public class HttpPublisher
      * @param monitorSubtaskName The text to be displayed by the monitor.
      * @param authService The authenticator service used to query credentials to access protected resources, may be
      *            {@code null}.
-     * @param proxyService The proxy service used to select a proxy that is applicable for the resource, may be {@code
-     *            null}.
+     * @param proxyService The proxy service used to select a proxy that is applicable for the resource, may be
+     *            {@code null}.
      * @param timeoutInMilliseconds Timeout in milliseconds. If null, it will use the default timeout.
      * @return The server response, can be empty but never {@code null}.
      * @throws IOException If the resource could not be uploaded.
@@ -59,37 +58,46 @@ public class HttpPublisher
                                timeoutInMilliseconds, true, "DELETE" );
     }
 
-    private ServerResponse doDataExchange( final RequestEntity file, final URI uri,
-                                           final IProgressMonitor monitor,
-                                   String monitorSubtaskName, final IAuthService authService,
-                                   final IProxyService proxyService, Integer timeoutInMilliseconds, boolean statusException, String httpMethod )
+    private ServerResponse doDataExchange( final RequestEntity file, final URI uri, final IProgressMonitor monitor,
+                                           String monitorSubtaskName, final IAuthService authService,
+                                           final IProxyService proxyService, Integer timeoutInMilliseconds,
+                                           boolean statusException, String httpMethod )
         throws IOException
     {
-    	AsyncHttpClientConfig.Builder confBuilder = init(uri, authService, proxyService, timeoutInMilliseconds);
-    	AsyncHttpClientConfig conf = confBuilder.build();
-    	
-    	AsyncHttpClient httpClient = new AsyncHttpClient(conf);
-    	FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
+        AsyncHttpClientConfig.Builder confBuilder = init( uri, authService, proxyService, timeoutInMilliseconds );
+        AsyncHttpClientConfig conf = confBuilder.build();
 
-		BoundRequestBuilder requestBuilder = null;
-		
-		String url = uri.toString();
-		if ("PUT".equals(httpMethod)) {
-			requestBuilder = httpClient.preparePut(url);
-		} else if ("POST".equals(httpMethod)) {
-			requestBuilder = httpClient.preparePost(url);
-		} else if ("DELETE".equals(httpMethod)) {
-			requestBuilder = httpClient.prepareDelete(url);
-		} else if ("HEAD".equals(httpMethod)) {
-			requestBuilder = httpClient.prepareHead(url);
-		} else {
-			throw new RuntimeException("Support for http method '" + httpMethod + "' not implemented.");
-		}
-				
-		requestBuilder.setRealm(realm).setProxyServer(proxyServer);
+        AsyncHttpClient httpClient = new AsyncHttpClient( conf );
+        FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
 
-		PushAsyncHandler handler = null;
-		
+        BoundRequestBuilder requestBuilder = null;
+
+        String url = uri.toString();
+        if ( "PUT".equals( httpMethod ) )
+        {
+            requestBuilder = httpClient.preparePut( url );
+        }
+        else if ( "POST".equals( httpMethod ) )
+        {
+            requestBuilder = httpClient.preparePost( url );
+        }
+        else if ( "DELETE".equals( httpMethod ) )
+        {
+            requestBuilder = httpClient.prepareDelete( url );
+        }
+        else if ( "HEAD".equals( httpMethod ) )
+        {
+            requestBuilder = httpClient.prepareHead( url );
+        }
+        else
+        {
+            throw new RuntimeException( "Support for http method '" + httpMethod + "' not implemented." );
+        }
+
+        requestBuilder.setRealm( realm ).setProxyServer( proxyServer );
+
+        PushAsyncHandler handler = null;
+
         if ( file != null )
         {
             InputStream is = file.getContent();
@@ -102,41 +110,46 @@ public class HttpPublisher
             mis.setName( monitorSubtaskName );
             mis.setLength( (int) file.getContentLength() );
 
-            headers.add("Content-Length", Long.toString( file.getContentLength() ) );
+            headers.add( "Content-Length", Long.toString( file.getContentLength() ) );
             if ( file.getContentType() != null )
             {
-            	headers.add("Content-Type", file.getContentType() );
+                headers.add( "Content-Type", file.getContentType() );
             }
 
-            requestBuilder.setBody(mis);
-            handler = new PushAsyncHandler(uri, httpMethod, mis);
-        } else {
-        	handler = new PushAsyncHandler(uri, httpMethod, null);
+            requestBuilder.setBody( mis );
+            handler = new PushAsyncHandler( uri, httpMethod, mis );
+        }
+        else
+        {
+            handler = new PushAsyncHandler( uri, httpMethod, null );
         }
 
-        //What's this for? (from previous Jetty code)
-        //httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
-		
-		
-		Future<HttpInputStream> future = requestBuilder.execute(handler);
-		try {
-			HttpInputStream his = future.get();
-		} catch (InterruptedException e) {
+        // What's this for? (from previous Jetty code)
+        // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
+
+        Future<HttpInputStream> future = requestBuilder.execute( handler );
+        try
+        {
+            HttpInputStream his = future.get();
+        }
+        catch ( InterruptedException e )
+        {
             throw new IOException( "Transfer was interrupted" );
-		} catch (ExecutionException e) {
-			throw new RuntimeException(e);
-		}
-		
-		Throwable exception = handler.getException();
-		if ( exception != null )
-		{
-			throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
-		}
-		
-		ServerResponse response =
-			new ServerResponse( handler.getResponseStatus(), handler.getResponseContentBytes(),
-					handler.getEncoding() );
-		
+        }
+        catch ( ExecutionException e )
+        {
+            throw new RuntimeException( e );
+        }
+
+        Throwable exception = handler.getException();
+        if ( exception != null )
+        {
+            throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
+        }
+
+        ServerResponse response =
+            new ServerResponse( handler.getResponseStatus(), handler.getResponseContentBytes(), handler.getEncoding() );
+
         if ( statusException )
         {
             int status = handler.getResponseStatus();
@@ -160,65 +173,81 @@ public class HttpPublisher
 
         return response;
     }
-    
-    private final class PushAsyncHandler extends BaseAsyncHandler {
-    	private final MonitoredInputStream mis;
-		private URI uri;
-		private String httpMethod;
 
-		private Throwable exception; 
+    private final class PushAsyncHandler
+        extends BaseAsyncHandler
+    {
+        private final MonitoredInputStream mis;
+
+        private URI uri;
+
+        private String httpMethod;
+
+        private Throwable exception;
+
         private ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
-		private int responseStatus;
-    	
-    	private PushAsyncHandler(URI uri, String httpMethod, MonitoredInputStream mis) {
-    		this.mis = mis;
-    		this.uri = uri;
-    		this.httpMethod = httpMethod;
-    	}
 
-		public byte[] getResponseContentBytes() {
-			return baos.toByteArray();
-		}
+        private int responseStatus;
 
-		public int getResponseStatus() {
-			return responseStatus;
-		}
+        private PushAsyncHandler( URI uri, String httpMethod, MonitoredInputStream mis )
+        {
+            this.mis = mis;
+            this.uri = uri;
+            this.httpMethod = httpMethod;
+        }
 
-		public Throwable getException() {
-			return exception;
-		}
+        public byte[] getResponseContentBytes()
+        {
+            return baos.toByteArray();
+        }
 
-		@Override
-		public void onThrowable(Throwable t) {
-			super.onThrowable(t);
-			error(t);
-		}
+        public int getResponseStatus()
+        {
+            return responseStatus;
+        }
 
-		@Override
-		public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart)
-				throws Exception {
-			STATE retval = super.onBodyPartReceived(bodyPart);
-			bodyPart.writeTo(baos);
-			return retval;
-		}
+        public Throwable getException()
+        {
+            return exception;
+        }
 
-		@Override
-		public STATE onStatusReceived(HttpResponseStatus responseStatus)
-				throws Exception {
-			this.responseStatus = responseStatus.getStatusCode();
-			return super.onStatusReceived(responseStatus);
-		}
+        @Override
+        public void onThrowable( Throwable t )
+        {
+            super.onThrowable( t );
+            error( t );
+        }
 
-		@Override
-		public STATE onHeadersReceived(HttpResponseHeaders headers)
-				throws Exception {
-			return super.onHeadersReceived(headers);
-		}
+        @Override
+        public STATE onBodyPartReceived( HttpResponseBodyPart bodyPart )
+            throws Exception
+        {
+            STATE retval = super.onBodyPartReceived( bodyPart );
+            bodyPart.writeTo( baos );
+            return retval;
+        }
 
-		@Override
-		public HttpInputStream onCompleted() throws Exception {
-			return super.onCompleted();
-		}
+        @Override
+        public STATE onStatusReceived( HttpResponseStatus responseStatus )
+            throws Exception
+        {
+            this.responseStatus = responseStatus.getStatusCode();
+            return super.onStatusReceived( responseStatus );
+        }
+
+        @Override
+        public STATE onHeadersReceived( HttpResponseHeaders headers )
+            throws Exception
+        {
+            return super.onHeadersReceived( headers );
+        }
+
+        @Override
+        public HttpInputStream onCompleted()
+            throws Exception
+        {
+            return super.onCompleted();
+        }
 
         private void error( Throwable e )
         {
@@ -226,43 +255,15 @@ public class HttpPublisher
         }
     }
 
-
-        /*public int waitForDone( IProgressMonitor monitor, String monitorTaskName )
-            throws InterruptedException
-        {
-            if ( monitor == null )
-            {
-                return waitForDone();
-            }
-            synchronized ( this )
-            {
-                boolean monitorStarted = false;
-                int totalWork = 100;
-                int worked = 0;
-                IProgressMonitor subMonitor = null;
-                while ( !isDone( getStatus() ) )
-                {
-                    this.wait( 100 );
-                    if ( getStatus() == HttpExchange.STATUS_WAITING_FOR_RESPONSE )
-                    {
-                        if ( !monitorStarted )
-                        {
-                            worked = 0;
-                            monitorStarted = true;
-                            subMonitor = SubMonitor.convert( monitor, monitorTaskName, totalWork );
-                        }
-                        worked++;
-                        subMonitor.worked( 1 );
-                        if ( worked == totalWork )
-                        {
-                            // Force the monitor progress to restart
-                            monitorStarted = false;
-                        }
-                    }
-                }
-            }
-            return getStatus();
-        }*/
+    /*
+     * public int waitForDone( IProgressMonitor monitor, String monitorTaskName ) throws InterruptedException { if (
+     * monitor == null ) { return waitForDone(); } synchronized ( this ) { boolean monitorStarted = false; int totalWork
+     * = 100; int worked = 0; IProgressMonitor subMonitor = null; while ( !isDone( getStatus() ) ) { this.wait( 100 );
+     * if ( getStatus() == HttpExchange.STATUS_WAITING_FOR_RESPONSE ) { if ( !monitorStarted ) { worked = 0;
+     * monitorStarted = true; subMonitor = SubMonitor.convert( monitor, monitorTaskName, totalWork ); } worked++;
+     * subMonitor.worked( 1 ); if ( worked == totalWork ) { // Force the monitor progress to restart monitorStarted =
+     * false; } } } } return getStatus(); }
+     */
 
     public ServerResponse postFile( final RequestEntity file, final URI url, final IProgressMonitor monitor,
                                     String monitorSubtaskName, final IAuthService authService,
@@ -273,9 +274,9 @@ public class HttpPublisher
                                timeoutInMilliseconds, true, "POST" );
     }
 
-    public ServerResponse headFile( final URI url, final IProgressMonitor monitor,
-                                    String monitorSubtaskName, final IAuthService authService,
-                                    final IProxyService proxyService, Integer timeoutInMilliseconds )
+    public ServerResponse headFile( final URI url, final IProgressMonitor monitor, String monitorSubtaskName,
+                                    final IAuthService authService, final IProxyService proxyService,
+                                    Integer timeoutInMilliseconds )
         throws IOException
     {
         return doDataExchange( null, url, monitor, monitorSubtaskName, authService, proxyService,

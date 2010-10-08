@@ -22,7 +22,6 @@ import com.ning.http.client.ProxyServer;
 import com.ning.http.client.ProxyServer.Protocol;
 import com.ning.http.client.Realm;
 
-
 public class HttpBaseSupport
 {
 
@@ -30,11 +29,12 @@ public class HttpBaseSupport
 
     protected int timeout = 10 * 1000;
 
-	protected Realm realm = null;
-	protected ProxyServer proxyServer = null;
+    protected Realm realm = null;
 
-    protected AsyncHttpClientConfig.Builder init( final URI url, final IAuthService authService, final IProxyService proxyService,
-                                      Integer timeoutInMilliseconds )
+    protected ProxyServer proxyServer = null;
+
+    protected AsyncHttpClientConfig.Builder init( final URI url, final IAuthService authService,
+                                                  final IProxyService proxyService, Integer timeoutInMilliseconds )
         throws IOException
     {
         IAuthData authData = null;
@@ -45,43 +45,49 @@ public class HttpBaseSupport
         return init( url, authData, proxyService, timeoutInMilliseconds );
     }
 
-    protected AsyncHttpClientConfig.Builder init( final URI url, final IAuthData authData, final IProxyService proxyService,
-                                      Integer timeoutInMilliseconds )
+    protected AsyncHttpClientConfig.Builder init( final URI url, final IAuthData authData,
+                                                  final IProxyService proxyService, Integer timeoutInMilliseconds )
         throws IOException
     {
-    	if ( timeoutInMilliseconds == null )
+        if ( timeoutInMilliseconds == null )
         {
             timeoutInMilliseconds = timeout;
         }
 
-		AsyncHttpClientConfig.Builder confBuilder = new AsyncHttpClientConfig.Builder()
-				.setIdleConnectionTimeoutInMs(timeoutInMilliseconds)
-				.setCompressionEnabled(true);
+        AsyncHttpClientConfig.Builder confBuilder =
+            new AsyncHttpClientConfig.Builder().setIdleConnectionTimeoutInMs( timeoutInMilliseconds ).setCompressionEnabled( true );
 
         IProxyData proxy = selectProxy( url, proxyService );
         if ( proxy != null && proxy.getHost() != null )
         {
-        	int port = resolvePort( proxy.getPort(), proxy.getType() );
-        	Protocol protocol;
-        	if (proxy.getType().equals(IProxyData.HTTP_PROXY_TYPE)) {
-        		protocol = Protocol.HTTP;
-        	} else if (proxy.getType().equals(IProxyData.HTTPS_PROXY_TYPE)) {
-        		protocol = Protocol.HTTPS;
-        	} else if (proxy.getType().equals(IProxyData.SOCKS_PROXY_TYPE)) {
-        		// Not supported yet
-        		throw new RuntimeException("SOCKS proxy not supported yet.");
-        	} else {
-        		throw new RuntimeException("Unknown Proxy type: " + proxy.getType());
-        	}
+            int port = resolvePort( proxy.getPort(), proxy.getType() );
+            Protocol protocol;
+            if ( proxy.getType().equals( IProxyData.HTTP_PROXY_TYPE ) )
+            {
+                protocol = Protocol.HTTP;
+            }
+            else if ( proxy.getType().equals( IProxyData.HTTPS_PROXY_TYPE ) )
+            {
+                protocol = Protocol.HTTPS;
+            }
+            else if ( proxy.getType().equals( IProxyData.SOCKS_PROXY_TYPE ) )
+            {
+                // Not supported yet
+                throw new RuntimeException( "SOCKS proxy not supported yet." );
+            }
+            else
+            {
+                throw new RuntimeException( "Unknown Proxy type: " + proxy.getType() );
+            }
 
             if ( proxy.isRequiresAuthentication() )
             {
-            	proxyServer = new ProxyServer(protocol, proxy.getHost(), port, proxy.getUserId(), proxy.getPassword());
+                proxyServer = new ProxyServer( protocol, proxy.getHost(), port, proxy.getUserId(), proxy.getPassword() );
                 log.debug( "Connecting to {} via proxy {} and authentication", url, proxyServer.toString() );
             }
             else
             {
-            	proxyServer = new ProxyServer(protocol, proxy.getHost(), port);
+                proxyServer = new ProxyServer( protocol, proxy.getHost(), port );
                 log.debug( "Connecting to {} via proxy {} and no authentication", url, proxyServer.toString() );
             }
         }
@@ -89,16 +95,19 @@ public class HttpBaseSupport
         {
             log.debug( "Connecting to {} without proxy", url );
         }
-        
-        if (authData != null) {
-        	if ((authData.getUsername() != null && authData.getUsername().length() > 0) 
-        			|| (authData.getPassword() != null && authData.getPassword().length() >0)) {
-        		this.realm = new Realm.RealmBuilder().setPassword(authData.getPassword()).setUsePreemptiveAuth(true).setPrincipal(authData.getUsername()).build();
-        	}
+
+        if ( authData != null )
+        {
+            if ( ( authData.getUsername() != null && authData.getUsername().length() > 0 )
+                || ( authData.getPassword() != null && authData.getPassword().length() > 0 ) )
+            {
+                this.realm =
+                    new Realm.RealmBuilder().setPassword( authData.getPassword() ).setUsePreemptiveAuth( true ).setPrincipal( authData.getUsername() ).build();
+            }
         }
 
-        //TODO Bridge Asynch logger?
-        
+        // TODO Bridge Asynch logger?
+
         return confBuilder;
     }
 
@@ -153,7 +162,7 @@ public class HttpBaseSupport
     {
         private String encoding;
 
-		public HttpInputStream( InputStream is, String encoding )
+        public HttpInputStream( InputStream is, String encoding )
         {
             super( is );
             this.encoding = encoding;
@@ -165,55 +174,65 @@ public class HttpBaseSupport
         {
             super.close();
 
-            //TODO Async Client need closing?
+            // TODO Async Client need closing?
         }
 
         public String getEncoding()
         {
             return encoding;
         }
-        
+
     }
-    
-    protected class BaseAsyncHandler implements AsyncHandler<HttpInputStream> {
 
-		protected String encoding = null;
+    protected class BaseAsyncHandler
+        implements AsyncHandler<HttpInputStream>
+    {
 
-		public String getEncoding() {
-			return encoding;
-		}
+        protected String encoding = null;
 
-		public void onThrowable(Throwable t) {
-			
-		}
+        public String getEncoding()
+        {
+            return encoding;
+        }
 
-		public STATE onBodyPartReceived(
-				HttpResponseBodyPart bodyPart) throws Exception {
-			return STATE.CONTINUE;
-		}
+        public void onThrowable( Throwable t )
+        {
 
-		public STATE onStatusReceived(
-				HttpResponseStatus responseStatus) throws Exception {
-			return STATE.CONTINUE;
-		}
+        }
 
-		public STATE onHeadersReceived(
-				HttpResponseHeaders headers) throws Exception {
-			FluentCaseInsensitiveStringsMap h = headers.getHeaders();
-			if (h.containsKey("Content-Type")) {
-				String mime = h.getFirstValue("Content-Type").toLowerCase();
+        public STATE onBodyPartReceived( HttpResponseBodyPart bodyPart )
+            throws Exception
+        {
+            return STATE.CONTINUE;
+        }
+
+        public STATE onStatusReceived( HttpResponseStatus responseStatus )
+            throws Exception
+        {
+            return STATE.CONTINUE;
+        }
+
+        public STATE onHeadersReceived( HttpResponseHeaders headers )
+            throws Exception
+        {
+            FluentCaseInsensitiveStringsMap h = headers.getHeaders();
+            if ( h.containsKey( "Content-Type" ) )
+            {
+                String mime = h.getFirstValue( "Content-Type" ).toLowerCase();
                 int i = mime.indexOf( "charset=" );
                 if ( i > 0 )
                 {
                     encoding = mime.substring( i + 8 ).trim();
                 }
-			}
-			return STATE.CONTINUE;
-		}
+            }
+            return STATE.CONTINUE;
+        }
 
-		public HttpInputStream onCompleted() throws Exception {
-			return null;
-		}
-    	
+        public HttpInputStream onCompleted()
+            throws Exception
+        {
+            return null;
+        }
+
     }
 }

@@ -21,7 +21,6 @@ import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.HttpResponseStatus;
 
-
 public class HttpFetcher
     extends HttpBaseSupport
 {
@@ -30,18 +29,16 @@ public class HttpFetcher
                                        final IProxyService proxyService )
         throws IOException
     {
-    	
-        
+
         boolean followRedirects = true;
         int redirects = 3;
 
-		AsyncHttpClientConfig.Builder confBuilder = init(url, authService, proxyService, null);
+        AsyncHttpClientConfig.Builder confBuilder = init( url, authService, proxyService, null );
 
-		AsyncHttpClientConfig conf = confBuilder
-				.setFollowRedirects(followRedirects)
-				.setMaximumNumberOfRedirects(redirects).build();
+        AsyncHttpClientConfig conf =
+            confBuilder.setFollowRedirects( followRedirects ).setMaximumNumberOfRedirects( redirects ).build();
 
-		AsyncHttpClient httpClient = new AsyncHttpClient(conf);
+        AsyncHttpClient httpClient = new AsyncHttpClient( conf );
 
         PipedOutputStream os = new PipedOutputStream();
         final MonitoredInputStream mis = new MonitoredInputStream( new PipedInputStream( os ), monitor );
@@ -50,25 +47,27 @@ public class HttpFetcher
         headers.add( "Pragma", "no-cache" );
         headers.add( "Cache-Control", "no-cache, no-store" );
 
-		BoundRequestBuilder requestBuilder = httpClient
-				.prepareGet(url.toString())
-				.setRealm(realm)
-				.setHeaders(headers)
-				.setProxyServer(proxyServer);
-        
-        Future<HttpInputStream> future = requestBuilder.execute(new GetAsyncHandler(os, mis, url));
-        try {
-			return future.get();
-		} catch (ExecutionException e) {
-			throw new IOException(e);
-		} catch (InterruptedException e) {
-			throw new IOException(e);
-		}
+        BoundRequestBuilder requestBuilder =
+            httpClient.prepareGet( url.toString() ).setRealm( realm ).setHeaders( headers ).setProxyServer( proxyServer );
+
+        Future<HttpInputStream> future = requestBuilder.execute( new GetAsyncHandler( os, mis, url ) );
+        try
+        {
+            return future.get();
+        }
+        catch ( ExecutionException e )
+        {
+            throw new IOException( e );
+        }
+        catch ( InterruptedException e )
+        {
+            throw new IOException( e );
+        }
     }
 
     private void handleStatus( String url, HttpResponseStatus responseStatus, MonitoredInputStream mis )
     {
-    	int status = responseStatus.getStatusCode();
+        int status = responseStatus.getStatusCode();
         if ( status != HttpURLConnection.HTTP_OK && mis != null )
         {
             if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
@@ -94,30 +93,37 @@ public class HttpFetcher
         }
     }
 
-    private final class GetAsyncHandler extends BaseAsyncHandler {
-		private final MonitoredInputStream mis;
-		private final OutputStream os;
-		private final URI url;
+    private final class GetAsyncHandler
+        extends BaseAsyncHandler
+    {
+        private final MonitoredInputStream mis;
 
-		private GetAsyncHandler(OutputStream os, MonitoredInputStream mis, URI url) {
-			this.os = os;
-			this.mis = mis;
-			this.url = url;
-		}
+        private final OutputStream os;
 
-		public void onThrowable(Throwable t) {
-			super.onThrowable(t);
-			
+        private final URI url;
+
+        private GetAsyncHandler( OutputStream os, MonitoredInputStream mis, URI url )
+        {
+            this.os = os;
+            this.mis = mis;
+            this.url = url;
+        }
+
+        public void onThrowable( Throwable t )
+        {
+            super.onThrowable( t );
+
             if ( mis != null )
             {
                 mis.setException( t );
             }
-			
-            close();
-		}
 
-		private void close() {
-			if ( os != null )
+            close();
+        }
+
+        private void close()
+        {
+            if ( os != null )
             {
                 try
                 {
@@ -128,43 +134,49 @@ public class HttpFetcher
                     // tried our best
                 }
             }
-		}
+        }
 
-		public STATE onStatusReceived(HttpResponseStatus responseStatus)
-				throws Exception {
-			STATE retval = super.onStatusReceived(responseStatus);
-			handleStatus(url.toString(), responseStatus, mis);
-			return retval;
-		}
+        public STATE onStatusReceived( HttpResponseStatus responseStatus )
+            throws Exception
+        {
+            STATE retval = super.onStatusReceived( responseStatus );
+            handleStatus( url.toString(), responseStatus, mis );
+            return retval;
+        }
 
-		public STATE onHeadersReceived(HttpResponseHeaders headers)
-				throws Exception {
-			STATE retval = super.onHeadersReceived(headers);
-			FluentCaseInsensitiveStringsMap h = headers.getHeaders();
-			
-			if (h.containsKey("Content-Length")) {
-		        if ( mis != null )
-		        {
-		            mis.setLength( Integer.parseInt(h.getFirstValue("Content-Length")) );
-		        }
-			}
-			
-			return retval;
-		}
+        public STATE onHeadersReceived( HttpResponseHeaders headers )
+            throws Exception
+        {
+            STATE retval = super.onHeadersReceived( headers );
+            FluentCaseInsensitiveStringsMap h = headers.getHeaders();
 
-		public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart)
-		throws Exception {
-			STATE retval = super.onBodyPartReceived(bodyPart);
-			if ( os != null )
+            if ( h.containsKey( "Content-Length" ) )
             {
-            	bodyPart.writeTo( os );
+                if ( mis != null )
+                {
+                    mis.setLength( Integer.parseInt( h.getFirstValue( "Content-Length" ) ) );
+                }
             }
-			return retval;
-		}
 
-		public HttpInputStream onCompleted() throws Exception {
-			close();
-			return new HttpInputStream( mis, encoding);
-		}
-	}
+            return retval;
+        }
+
+        public STATE onBodyPartReceived( HttpResponseBodyPart bodyPart )
+            throws Exception
+        {
+            STATE retval = super.onBodyPartReceived( bodyPart );
+            if ( os != null )
+            {
+                bodyPart.writeTo( os );
+            }
+            return retval;
+        }
+
+        public HttpInputStream onCompleted()
+            throws Exception
+        {
+            close();
+            return new HttpInputStream( mis, encoding );
+        }
+    }
 }
