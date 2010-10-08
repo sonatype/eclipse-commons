@@ -184,7 +184,7 @@ public class HttpBaseSupport
 
     }
 
-    protected class BaseAsyncHandler
+    protected abstract class BaseAsyncHandler
         implements AsyncHandler<HttpInputStream>
     {
 
@@ -233,6 +233,5 @@ public class HttpBaseSupport
         {
             return null;
         }
-
     }
 }
