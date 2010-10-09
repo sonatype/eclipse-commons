@@ -126,6 +126,8 @@ public class HttpPublisher
 
         // What's this for? (from previous Jetty code)
         // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
+        
+        requestBuilder.setHeaders(headers);
 
         Future<String> future = requestBuilder.execute( handler );
         try
