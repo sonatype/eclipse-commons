@@ -21,7 +21,7 @@ public class SimpleAuthService
     implements IAuthService
 {
     private final static Logger log = LoggerFactory.getLogger( SimpleAuthService.class );
-    
+
     private static final String SECURE_NODE_PATH = "org.maven.ide.eclipse.authentication.urls";
 
     private static final String SECURE_USERNAME = "username";
@@ -38,7 +38,8 @@ public class SimpleAuthService
 
     private final ISecurePreferences secureStorage;
 
-    public SimpleAuthService( ISecurePreferences secureStorage ) {
+    public SimpleAuthService( ISecurePreferences secureStorage )
+    {
         this.secureStorage = secureStorage;
     }
 
@@ -113,11 +114,16 @@ public class SimpleAuthService
             }
             if ( authData.allowsCertificate() )
             {
-                File certificatePath = new File( uriNode.get( SECURE_SSL_CERTIFICATE_PATH, null ) );
+                File certificatePath = null;
+                String pathname = uriNode.get( SECURE_SSL_CERTIFICATE_PATH, null );
+                if ( pathname != null )
+                {
+                    certificatePath = new File( pathname );
+                }
                 String certificatePassphrase = uriNode.get( SECURE_SSL_CERTIFICATE_PASSPHRASE, null );
                 authData.setSSLCertificate( certificatePath, certificatePassphrase );
                 log.debug( "Found authentication data for URI {}: certificatePath={}", uri,
-                           certificatePath.getAbsolutePath() );
+                           certificatePath != null ? certificatePath.getAbsolutePath() : null );
             }
 
             AnonymousAccessType anonymousAccessType = null;

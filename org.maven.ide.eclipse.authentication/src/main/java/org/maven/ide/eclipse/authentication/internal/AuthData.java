@@ -109,7 +109,7 @@ public class AuthData
 
     public boolean allowsCertificate()
     {
-        return AuthenticationType.CERTIFICATE.equals( authenticationType )
+        return authenticationType == null || AuthenticationType.CERTIFICATE.equals( authenticationType )
             || AuthenticationType.CERTIFICATE_AND_USERNAME_PASSWORD.equals( authenticationType );
     }
 
