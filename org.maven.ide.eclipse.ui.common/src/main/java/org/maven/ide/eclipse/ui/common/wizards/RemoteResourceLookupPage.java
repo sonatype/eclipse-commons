@@ -72,7 +72,7 @@ abstract public class RemoteResourceLookupPage
     {
         super( RemoteResourceLookupPage.class.getName() );
         this.serverUrl = serverUrl;
-        setPageComplete( false );
+//        setPageComplete( false );
 
         loadButtonGroup = SwtValidationGroup.create( new LoadButtonValidationUI() );
         
@@ -127,7 +127,7 @@ abstract public class RemoteResourceLookupPage
         rootGroup.performValidation();
         if ( serverUrl != null )
         {
-            reload();
+            reload( true );
         }
     }
 
@@ -164,7 +164,7 @@ abstract public class RemoteResourceLookupPage
             @Override
             public void widgetSelected( SelectionEvent e )
             {
-                reload();
+                reload(false);
             }
         } );
 
@@ -240,11 +240,11 @@ abstract public class RemoteResourceLookupPage
                                     urlInputComposite.getUrl() ) );
     }
 
-    private void reload()
+    private void reload(boolean initial)
     {
         input = null;
         final String url = urlInputComposite.getUrl();
-        updateLoadControls( false, Messages.remoteResourceLookupPage_loading, IMessageProvider.INFORMATION );
+        updateLoadControls( false, Messages.remoteResourceLookupPage_loading, IMessageProvider.INFORMATION, false );
 
         final Exception[] exception = new Exception[1];
         try
@@ -282,7 +282,7 @@ abstract public class RemoteResourceLookupPage
 
         if ( exception[0] == null )
         {
-            updateLoadControls( true, selectMessage, IMessageProvider.NONE );
+            updateLoadControls( true, selectMessage, IMessageProvider.NONE, initial );
         }
         else
         {
@@ -294,7 +294,7 @@ abstract public class RemoteResourceLookupPage
             }
             log.error( message, exception[0] );
 
-            updateLoadControls( true, message, IMessageProvider.ERROR );
+            updateLoadControls( true, message, IMessageProvider.ERROR, false );
         }
     }
 
@@ -304,7 +304,7 @@ abstract public class RemoteResourceLookupPage
         return ErrorHandlingUtils.convertNexusIOExceptionToUIText( e );
     }
 
-    private void updateLoadControls( final boolean enable, final String message, final int messageType )
+    private void updateLoadControls( final boolean enable, final String message, final int messageType, final boolean initial )
     {
         if ( resourceComposite.isDisposed() )
         {
@@ -316,14 +316,18 @@ abstract public class RemoteResourceLookupPage
             public void run()
             {
                 loadButton.setEnabled( enable );
-                setInput( input );
+                if (initial) {
+                	setInitialInput( input );
+                } else {
+                	setInput( input );
+                }
                 if ( messageType == IMessageProvider.ERROR )
                 {
                     expandableComposite.setExpanded( true );
                     updateExpandableState();
                     urlInputComposite.setFocus();
                     setMessage( message, messageType );
-                    setPageComplete( false );
+//                    setPageComplete( false );
                 }
                 else
                 {
@@ -378,7 +382,23 @@ abstract public class RemoteResourceLookupPage
     
     abstract protected Composite createResourcePanel( Composite parent );
 
+    /**
+     * set input to the custom child fields. called from UI thread.
+     * @param input
+     */
     abstract protected void setInput( Object input );
+    
+    /**
+     * this method is called when there is an initial serverUrl passed in constructor and
+     * the loading from that server succeeds. To be used for preselection of values in subclasses.
+     * Use by overriding. The default implementation just calls setInput(). if you override, do so as well, or
+     * make sure you call setInput() yourself
+     * @param input
+     */
+    protected void setInitialInput( Object input )
+    {
+    	setInput(input);
+    }
 
     abstract protected Object loadResources( String url, IProgressMonitor monitor )
         throws Exception;
