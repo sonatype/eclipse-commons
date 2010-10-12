@@ -50,14 +50,6 @@ public class HttpFetcher
         BoundRequestBuilder requestBuilder =
             httpClient.prepareGet( url.toString() ).setRealm( realm ).setHeaders( headers ).setProxyServer( proxyServer );
 
-//        Future<String> future = requestBuilder.execute( new GetAsyncHandler( os, mis, url ) );
-//        try {
-//			future.get();
-//		} catch (InterruptedException e) {
-//			throw new IOException(e);
-//		} catch (ExecutionException e) {
-//			throw new RuntimeException(e);
-//		}
         his = new HttpInputStream(mis, "UTF-8");
         
         requestBuilder.execute(new GetAsyncHandler(pos, mis, url));
