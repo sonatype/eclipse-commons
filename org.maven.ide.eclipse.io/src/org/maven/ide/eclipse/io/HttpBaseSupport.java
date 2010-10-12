@@ -115,7 +115,7 @@ public class HttpBaseSupport
     public static com.ning.http.client.AsyncHandler.STATE handleStatus( String url, HttpResponseStatus responseStatus, MonitoredInputStream mis )
     {
         int status = responseStatus.getStatusCode();
-        if ( status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_NOT_ACCEPTABLE && mis != null )
+        if ( status != HttpURLConnection.HTTP_OK && mis != null )
         {
             if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
             {
