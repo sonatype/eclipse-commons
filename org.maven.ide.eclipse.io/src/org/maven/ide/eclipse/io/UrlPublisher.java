@@ -2,11 +2,11 @@ package org.maven.ide.eclipse.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jetty.http.HttpStatus;
 import org.maven.ide.eclipse.authentication.IAuthService;
 
 
@@ -115,7 +115,7 @@ public class UrlPublisher
     {
         if ( isFile( url.getScheme() ) )
         {
-            return new ServerResponse( new File( url ).exists() ? HttpStatus.OK_200 : HttpStatus.NOT_FOUND_404, null,
+            return new ServerResponse( new File( url ).exists() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_NOT_FOUND, null,
                                        "UTF-8" );
         }
         else if ( isHttp( url.getScheme() ) )
