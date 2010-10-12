@@ -202,6 +202,10 @@ abstract public class RemoteArtifactLookupPage<T>
     {
         treeViewer.setInput( input );
     }
+    
+    protected TreeViewer getTreeViewer() {
+    	return treeViewer;
+    }
 
     abstract protected String getGroupId( T entry );
 
@@ -229,13 +233,13 @@ abstract public class RemoteArtifactLookupPage<T>
         return groups.values();
     }
 
-    private class Group
+    protected class Group
     {
         private String groupId;
 
         private Map<String, Artifact> artifacts;
 
-        private Object[] artifactArray;
+        private Artifact[] artifactArray;
 
         private Group( String groupId )
         {
@@ -255,11 +259,11 @@ abstract public class RemoteArtifactLookupPage<T>
             artifact.addVersion( entry );
         }
 
-        private Object[] getArtifacts()
+        public Artifact[] getArtifacts()
         {
             if ( artifactArray == null )
             {
-                artifactArray = artifacts.values().toArray();
+                artifactArray = artifacts.values().toArray(new RemoteArtifactLookupPage.Artifact[0]);
             }
             return artifactArray;
         }
@@ -271,13 +275,13 @@ abstract public class RemoteArtifactLookupPage<T>
         }
     }
 
-    private class Artifact
+    protected class Artifact
     {
         private String artifactId;
 
         private List<Version> versions;
 
-        private Object[] versionArray;
+        private Version[] versionArray;
 
         private Artifact( String artifactId )
         {
@@ -290,11 +294,11 @@ abstract public class RemoteArtifactLookupPage<T>
             versions.add( new Version( entry ) );
         }
 
-        private Object[] getVersions()
+        public Version[] getVersions()
         {
             if ( versionArray == null )
             {
-                versionArray = versions.toArray();
+                versionArray = versions.toArray(new RemoteArtifactLookupPage.Version[0]);
             }
             return versionArray;
         }
