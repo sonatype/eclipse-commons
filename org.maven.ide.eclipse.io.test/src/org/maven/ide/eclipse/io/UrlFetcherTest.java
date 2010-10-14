@@ -2,10 +2,11 @@ package org.maven.ide.eclipse.io;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpStatus;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 
 public class UrlFetcherTest
@@ -35,7 +36,8 @@ public class UrlFetcherTest
         }
         catch ( NotFoundException e )
         {
-            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpURLConnection.HTTP_NOT_FOUND ) ) );
+            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpStatus.NOT_FOUND_404 ) ) );
+            assertTrue( e.getMessage(), e.getMessage().contains( HttpStatus.getMessage( HttpStatus.NOT_FOUND_404 ) ) );
         }
     }
 
@@ -54,7 +56,8 @@ public class UrlFetcherTest
         }
         catch ( UnauthorizedException e )
         {
-            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpURLConnection.HTTP_UNAUTHORIZED ) ) );
+            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpStatus.UNAUTHORIZED_401 ) ) );
+            assertTrue( e.getMessage(), e.getMessage().contains( HttpStatus.getMessage( HttpStatus.UNAUTHORIZED_401 ) ) );
         }
     }
 
@@ -121,7 +124,7 @@ public class UrlFetcherTest
         addRealmAndURL( "testAnonymous", address.toString(), "", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
         assertNull( "No Auth header should be set",
-                    server.getRecordedHeaders( FILE_PATH ).get( "Authorization" ) );
+                    server.getRecordedHeaders( FILE_PATH ).get( HttpHeaders.AUTHORIZATION ) );
     }
 
     /*

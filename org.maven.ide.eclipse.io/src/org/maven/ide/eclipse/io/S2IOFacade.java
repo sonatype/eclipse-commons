@@ -3,12 +3,12 @@ package org.maven.ide.eclipse.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jetty.http.HttpStatus;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.io.internal.S2IOPlugin;
 
@@ -88,18 +88,18 @@ public class S2IOFacade
         throws IOException, URISyntaxException
     {
         ServerResponse resp = head( uri, null, monitor );
-        if ( resp.getStatusCode() == HttpURLConnection.HTTP_OK )
+        if ( resp.getStatusCode() == HttpStatus.OK_200 )
         {
             return true;
         }
-        else if ( resp.getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND )
+        else if ( resp.getStatusCode() == HttpStatus.NOT_FOUND_404 )
         {
             return false;
         }
         else
         {
             int status = resp.getStatusCode();
-            throw new TransferException( "HTTP status code " + status + /* ": " + HttpStatus.getMessage( status ) + */ ": "
+            throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status ) + ": "
                 + uri, resp, null );
         }
     }

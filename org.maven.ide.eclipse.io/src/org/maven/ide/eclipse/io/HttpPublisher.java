@@ -3,23 +3,19 @@ package org.maven.ide.eclipse.io;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpExchange;
+import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpMethods;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.Buffer;
 import org.maven.ide.eclipse.authentication.IAuthService;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.FluentCaseInsensitiveStringsMap;
-import com.ning.http.client.HttpResponseBodyPart;
-import com.ning.http.client.HttpResponseHeaders;
-import com.ning.http.client.HttpResponseStatus;
 
 public class HttpPublisher
     extends HttpBaseSupport
@@ -33,8 +29,8 @@ public class HttpPublisher
      * @param monitorSubtaskName The text to be displayed by the monitor.
      * @param authService The authenticator service used to query credentials to access protected resources, may be
      *            {@code null}.
-     * @param proxyService The proxy service used to select a proxy that is applicable for the resource, may be
-     *            {@code null}.
+     * @param proxyService The proxy service used to select a proxy that is applicable for the resource, may be {@code
+     *            null}.
      * @param timeoutInMilliseconds Timeout in milliseconds. If null, it will use the default timeout.
      * @return The server response, can be empty but never {@code null}.
      * @throws IOException If the resource could not be uploaded.
@@ -45,8 +41,9 @@ public class HttpPublisher
                                    final IProxyService proxyService, Integer timeoutInMilliseconds )
         throws IOException
     {
-        return doDataExchange( file, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds, true, "PUT" );
+        PutExchange exchange = new PutExchange( url.toString() );
+        return doDataExchange( exchange, file, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds, true );
     }
 
     public ServerResponse delete( final URI url, final IProgressMonitor monitor, String monitorSubtaskName,
@@ -54,50 +51,17 @@ public class HttpPublisher
                                   Integer timeoutInMilliseconds )
         throws IOException
     {
-        return doDataExchange( null /* file */, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds, true, "DELETE" );
+        DeleteExchange exchange = new DeleteExchange( url.toString() );
+        return doDataExchange( exchange, null /* file */, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds, true );
     }
 
-    private ServerResponse doDataExchange( final RequestEntity file, final URI uri, final IProgressMonitor monitor,
-                                           String monitorSubtaskName, final IAuthService authService,
-                                           final IProxyService proxyService, Integer timeoutInMilliseconds,
-                                           boolean statusException, String httpMethod )
+    private ServerResponse doDataExchange( final _DataExchange exchange, final RequestEntity file, final URI url,
+                                           final IProgressMonitor monitor,
+                                   String monitorSubtaskName, final IAuthService authService,
+                                   final IProxyService proxyService, Integer timeoutInMilliseconds, boolean statusException )
         throws IOException
     {
-        AsyncHttpClientConfig.Builder confBuilder = init( uri, authService, proxyService, timeoutInMilliseconds );
-        AsyncHttpClientConfig conf = confBuilder.build();
-
-        AsyncHttpClient httpClient = new AsyncHttpClient( conf );
-        FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
-
-        BoundRequestBuilder requestBuilder = null;
-
-        String url = uri.toString();
-        if ( "PUT".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.preparePut( url );
-        }
-        else if ( "POST".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.preparePost( url );
-        }
-        else if ( "DELETE".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.prepareDelete( url );
-        }
-        else if ( "HEAD".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.prepareHead( url );
-        }
-        else
-        {
-            throw new RuntimeException( "Support for http method '" + httpMethod + "' not implemented." );
-        }
-
-        requestBuilder.setRealm( realm ).setProxyServer( proxyServer );
-
-        PushAsyncHandler handler = null;
-
         if ( file != null )
         {
             InputStream is = file.getContent();
@@ -110,99 +74,127 @@ public class HttpPublisher
             mis.setName( monitorSubtaskName );
             mis.setLength( (int) file.getContentLength() );
 
-            headers.add( "Content-Length", Long.toString( file.getContentLength() ) );
+            exchange.setRequestHeader( HttpHeaders.CONTENT_LENGTH, Long.toString( file.getContentLength() ) );
             if ( file.getContentType() != null )
             {
-                headers.add( "Content-Type", file.getContentType() );
+                exchange.setRequestContentType( file.getContentType() );
             }
 
-            requestBuilder.setBody( mis );
-            handler = new PushAsyncHandler( uri, mis );
+            exchange.setRequestContentSource( mis );
         }
-        else
+
+        HttpClient httpClient = startClient( url, authService, proxyService, timeoutInMilliseconds );
+        if ( authService != null )
         {
-            handler = new PushAsyncHandler( uri, null );
+            setAuthenticationHeader( authService.select( url ), exchange );
         }
-
-        // What's this for? (from previous Jetty code)
-        // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
-        
-        requestBuilder.setHeaders(headers);
-
-        Future<String> future = requestBuilder.execute( handler );
+        httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
+        httpClient.send( exchange );
         try
         {
-            future.get();
+            exchange.waitForDone( monitor, monitorSubtaskName );
         }
         catch ( InterruptedException e )
         {
             throw new IOException( "Transfer was interrupted" );
         }
-        catch ( ExecutionException e )
+        finally
         {
-            throw new RuntimeException( e );
+            try
+            {
+                httpClient.stop();
+            }
+            catch ( Exception e )
+            {
+                // ignore
+            }
         }
 
-        Throwable exception = handler.getException();
+        Throwable exception = exchange.getException();
         if ( exception != null )
         {
             throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
         }
-
+        
         ServerResponse response =
-            new ServerResponse( handler.getResponseStatus(), handler.getResponseContentBytes(), handler.getEncoding() );
+            new ServerResponse( exchange.getResponseStatus(), exchange.getResponseContentBytes(),
+                                exchange.getEncoding() );
 
         if ( statusException )
         {
-            int status = handler.getResponseStatus();
+            int status = exchange.getResponseStatus();
             switch ( status )
             {
-                case HttpURLConnection.HTTP_OK:
-                case HttpURLConnection.HTTP_CREATED:
-                case HttpURLConnection.HTTP_ACCEPTED:
-                case HttpURLConnection.HTTP_NO_CONTENT:
+                case HttpStatus.OK_200:
+                case HttpStatus.CREATED_201:
+                case HttpStatus.ACCEPTED_202:
+                case HttpStatus.NO_CONTENT_204:
                     break;
-                case HttpURLConnection.HTTP_UNAUTHORIZED:
-                    throw new UnauthorizedException( "HTTP status code " + status + ": Unauthorized: " + uri );
-                case HttpURLConnection.HTTP_FORBIDDEN:
-                    throw new ForbiddenException( "HTTP status code " + status + ": Forbidden: " + uri );
-                case HttpURLConnection.HTTP_NOT_FOUND:
-                    throw new NotFoundException( "HTTP status code " + status + ": Not Found: " + uri );
+                case HttpStatus.UNAUTHORIZED_401:
+                    throw new UnauthorizedException( "HTTP status code " + status + ": "
+                        + HttpStatus.getMessage( status ) + ": " + url );
+                case HttpStatus.FORBIDDEN_403:
+                    throw new ForbiddenException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
+                        + ": " + url );
+                case HttpStatus.NOT_FOUND_404:
+                    throw new NotFoundException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
+                        + ": " + url );
                 default:
-                    throw new TransferException( "HTTP status code " + status + ": " + uri, response, null );
+                    throw new TransferException( "HTTP status code " + status + ": " + HttpStatus.getMessage( status )
+                        + ": " + url, response, null );
             }
         }
 
         return response;
     }
 
-    private final class PushAsyncHandler
-        extends BaseAsyncHandler
+    private static class PutExchange
+        extends _DataExchange
     {
-        private final MonitoredInputStream mis;
+        public PutExchange(String url)
+        {
+            super( url, HttpMethods.PUT );
+        }
+    }
 
-        private URI uri;
+    private static class PostExchange
+        extends _DataExchange
+    {
+        public PostExchange( String url )
+        {
+            super( url, HttpMethods.POST );
+        }
+    }
+
+    private static class DeleteExchange
+        extends _DataExchange
+    {
+        public DeleteExchange( String url ) {
+            super( url, HttpMethods.DELETE );
+        }
+    }
+
+    private static class HeadExchange
+        extends _DataExchange
+    {
+        public HeadExchange( String url )
+        {
+            super( url, HttpMethods.HEAD );
+        }
+    }
+
+    private abstract static class _DataExchange
+        extends DataExchange
+    {
 
         private Throwable exception;
 
         private ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
 
-        private int responseStatus;
-
-        private PushAsyncHandler( URI uri, MonitoredInputStream mis )
+        public _DataExchange( String url, String httpMethod )
         {
-            this.mis = mis;
-            this.uri = uri;
-        }
-
-        public byte[] getResponseContentBytes()
-        {
-            return baos.toByteArray();
-        }
-
-        public int getResponseStatus()
-        {
-            return responseStatus;
+            setURL( url );
+            setMethod( httpMethod );
         }
 
         public Throwable getException()
@@ -210,42 +202,80 @@ public class HttpPublisher
             return exception;
         }
 
-        @Override
-        public void onThrowable( Throwable t )
+        public int waitForDone( IProgressMonitor monitor, String monitorTaskName )
+            throws InterruptedException
         {
-            super.onThrowable( t );
-            error( t );
+            if ( monitor == null )
+            {
+                return waitForDone();
+            }
+            synchronized ( this )
+            {
+                boolean monitorStarted = false;
+                int totalWork = 100;
+                int worked = 0;
+                IProgressMonitor subMonitor = null;
+                while ( !isDone( getStatus() ) )
+                {
+                    this.wait( 100 );
+                    if ( getStatus() == HttpExchange.STATUS_WAITING_FOR_RESPONSE )
+                    {
+                        if ( !monitorStarted )
+                        {
+                            worked = 0;
+                            monitorStarted = true;
+                            subMonitor = SubMonitor.convert( monitor, monitorTaskName, totalWork );
+                        }
+                        worked++;
+                        subMonitor.worked( 1 );
+                        if ( worked == totalWork )
+                        {
+                            // Force the monitor progress to restart
+                            monitorStarted = false;
+                        }
+                    }
+                }
+            }
+            return getStatus();
         }
 
         @Override
-        public STATE onBodyPartReceived( HttpResponseBodyPart bodyPart )
-            throws Exception
+        protected void onConnectionFailed( Throwable x )
         {
-            STATE retval = super.onBodyPartReceived( bodyPart );
-            bodyPart.writeTo( baos );
-            return retval;
+            super.onConnectionFailed( x );
+
+            error( x );
         }
 
         @Override
-        public STATE onStatusReceived( HttpResponseStatus responseStatus )
-            throws Exception
+        protected void onException( Throwable x )
         {
-            this.responseStatus = responseStatus.getStatusCode();
-            return handleStatus( uri.toString(), responseStatus, mis );
+            super.onException( x );
+
+            error( x );
         }
 
         @Override
-        public STATE onHeadersReceived( HttpResponseHeaders headers )
-            throws Exception
+        protected void onExpire()
         {
-            return super.onHeadersReceived( headers );
+            super.onExpire();
+
+            error( new IOException( "The server did not respond within the configured timeout" ) );
         }
 
         @Override
-        public String onCompleted()
-            throws Exception
+        protected void onResponseContent( Buffer content )
+            throws IOException
         {
-            return "";
+            super.onResponseContent( content );
+
+            content.writeTo( baos );
+        }
+
+        @Override
+        public byte[] getResponseContentBytes()
+        {
+            return baos.toByteArray();
         }
 
         private void error( Throwable e )
@@ -254,31 +284,23 @@ public class HttpPublisher
         }
     }
 
-    /*
-     * public int waitForDone( IProgressMonitor monitor, String monitorTaskName ) throws InterruptedException { if (
-     * monitor == null ) { return waitForDone(); } synchronized ( this ) { boolean monitorStarted = false; int totalWork
-     * = 100; int worked = 0; IProgressMonitor subMonitor = null; while ( !isDone( getStatus() ) ) { this.wait( 100 );
-     * if ( getStatus() == HttpExchange.STATUS_WAITING_FOR_RESPONSE ) { if ( !monitorStarted ) { worked = 0;
-     * monitorStarted = true; subMonitor = SubMonitor.convert( monitor, monitorTaskName, totalWork ); } worked++;
-     * subMonitor.worked( 1 ); if ( worked == totalWork ) { // Force the monitor progress to restart monitorStarted =
-     * false; } } } } return getStatus(); }
-     */
-
     public ServerResponse postFile( final RequestEntity file, final URI url, final IProgressMonitor monitor,
                                     String monitorSubtaskName, final IAuthService authService,
                                     final IProxyService proxyService, Integer timeoutInMilliseconds )
         throws IOException
     {
-        return doDataExchange( file, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds, true, "POST" );
+        PostExchange exchange = new PostExchange( url.toString() );
+        return doDataExchange( exchange, file, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds, true );
     }
 
-    public ServerResponse headFile( final URI url, final IProgressMonitor monitor, String monitorSubtaskName,
-                                    final IAuthService authService, final IProxyService proxyService,
-                                    Integer timeoutInMilliseconds )
+    public ServerResponse headFile( final URI url, final IProgressMonitor monitor,
+                                    String monitorSubtaskName, final IAuthService authService,
+                                    final IProxyService proxyService, Integer timeoutInMilliseconds )
         throws IOException
     {
-        return doDataExchange( null, url, monitor, monitorSubtaskName, authService, proxyService,
-                               timeoutInMilliseconds, false, "HEAD" );
+        HeadExchange exchange = new HeadExchange( url.toString() );
+        return doDataExchange( exchange, null, url, monitor, monitorSubtaskName, authService, proxyService,
+                               timeoutInMilliseconds, false );
     }
 }
