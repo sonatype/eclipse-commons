@@ -38,8 +38,9 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
     private static class TextSWTValidationListener extends ValidationListener<Text>
             implements ModifyListener, FocusListener {
 
-        private Validator<String> validator;
+        private final Validator<String> validator;
         private boolean hasFatalProblem = false;
+		private final ValidationStrategy strategy;
 
         private TextSWTValidationListener(Text component, ValidationStrategy strategy, ValidationUI validationUI, Validator<String> validator) {
             super(Text.class, validationUI, component);
@@ -47,11 +48,13 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
             if (strategy == null) {
                 throw new NullPointerException("strategy null");
             }
+            this.strategy = strategy;
 //TODO        component.addPropertyChangeListener("enabled", new PropertyChangeListener() {
 //            public void propertyChange(PropertyChangeEvent evt) {
 //                performValidation();
 //            }
 //        });
+            component.addFocusListener(this);
             switch (strategy) {
                 case DEFAULT:
                 case ON_CHANGE_OR_ACTION:
@@ -66,7 +69,6 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
                     });
                     break;
                 case ON_FOCUS_LOSS:
-                    component.addFocusListener(this);
                     break;
             }
             performValidation(); // Make sure any initial errors are discovered immediately.
@@ -88,10 +90,14 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
         }
 
         public void focusGained(FocusEvent fe) {
+        	//run validation here to have the currently focused field's stuff on top (leading problem)
+        	this.performValidation();
         }
 
         public void focusLost(FocusEvent fe) {
-            performValidation();
+        	if (strategy == ValidationStrategy.ON_FOCUS_LOSS) {
+        		performValidation();
+        	}
         }
     }
 }
