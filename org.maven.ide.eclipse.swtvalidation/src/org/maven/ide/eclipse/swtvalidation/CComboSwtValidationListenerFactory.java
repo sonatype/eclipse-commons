@@ -42,6 +42,7 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
 
         private Validator<String> validator;
         private boolean hasFatalProblem = false;
+		private final ValidationStrategy strategy;
 
         private CComboSWTValidationListener(CCombo component, ValidationStrategy strategy, ValidationUI validationUI, Validator<String> validator) {
             super(CCombo.class, validationUI, component);
@@ -49,6 +50,8 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
             if (strategy == null) {
                 throw new NullPointerException("strategy null");
             }
+            this.strategy = strategy;
+            component.addFocusListener(this);
 //TODO        component.addPropertyChangeListener("enabled", new PropertyChangeListener() {
 //            public void propertyChange(PropertyChangeEvent evt) {
 //                performValidation();
@@ -69,7 +72,6 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
                     });
                     break;
                 case ON_FOCUS_LOSS:
-                    component.addFocusListener(this);
                     break;
             }
             performValidation(); // Make sure any initial errors are discovered immediately.
@@ -91,10 +93,14 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
         }
 
         public void focusGained(FocusEvent fe) {
+        	//run validation here to have the currently focused field's stuff on top (leading problem)
+        	performValidation();
         }
 
         public void focusLost(FocusEvent fe) {
-            performValidation();
+        	if (strategy == ValidationStrategy.ON_FOCUS_LOSS) {
+        		performValidation();
+        	}
         }
 
         public void widgetSelected(SelectionEvent se) {
