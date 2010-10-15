@@ -3,6 +3,8 @@ package org.maven.ide.eclipse.swtvalidation;
 
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.widgets.Control;
@@ -150,6 +152,12 @@ public abstract class SwtComponentDecorationFactory {
             dec = new ControlDecoration(control, SWT.TOP | SWT.LEFT);
             dec.setMarginWidth(1);
             dec.setShowHover(true);
+            control.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					dec.hide();
+					dec.dispose();
+				}
+			});
         }
 
         public void showProblem(Problem prblm) {
