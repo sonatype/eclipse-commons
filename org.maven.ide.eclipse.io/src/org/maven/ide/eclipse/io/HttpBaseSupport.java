@@ -33,7 +33,7 @@ public class HttpBaseSupport
 
     private final Logger log = LoggerFactory.getLogger( HttpBaseSupport.class );
 
-    protected int timeout = 10 * 1000;
+    protected int timeout = 30 * 1000;
 
     protected HttpClient startClient( final URI url, final IAuthService authService, final IProxyService proxyService,
                                       Integer timeoutInMilliseconds )
