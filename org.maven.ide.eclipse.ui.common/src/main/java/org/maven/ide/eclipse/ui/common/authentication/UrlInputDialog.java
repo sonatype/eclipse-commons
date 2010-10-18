@@ -104,7 +104,6 @@ public class UrlInputDialog
         composite.setLayout( new GridLayout( 1, true ) );
 
         setTitle( title );
-        setMessage( errorMessage, IMessageProvider.ERROR );
 
         SwtValidationGroup validationGroup =
             SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
@@ -121,6 +120,7 @@ public class UrlInputDialog
         urlComposite.setLayoutData( gd );
 
         applyDialogFont( composite );
+        setMessage( errorMessage, IMessageProvider.ERROR );
         return composite;
     }
 
