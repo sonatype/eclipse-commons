@@ -104,6 +104,7 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
         	} finally {
         		focusGainedEntered = false;
         	}
+        }
 
         public void focusLost(FocusEvent fe) {
         	if (strategy == ValidationStrategy.ON_FOCUS_LOSS) {
