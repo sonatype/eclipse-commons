@@ -87,7 +87,16 @@ public class UrlInputDialog
             urlComposite.setInputHistory( history );
         }
     }
-
+    
+    //introduced because of MECLIPSE-1839
+    protected UrlInputComposite createUrlInputComposite( Composite parent, SwtValidationGroup validation, int inputStyle)
+    {
+        UrlInputComposite urlComposite = new UrlInputComposite( parent, null, validation, inputStyle );
+        urlComposite.setUrlLabelText( urlLabelText );
+        urlComposite.setUrl( url );
+        return urlComposite;
+    }
+    
     @Override
     protected Control createDialogArea( Composite parent )
     {
@@ -100,9 +109,7 @@ public class UrlInputDialog
         SwtValidationGroup validationGroup =
             SwtValidationGroup.create( SwtValidationUI.createUI( this ) );
         
-        urlComposite = new UrlInputComposite( composite, null, validationGroup, inputStyle );
-        urlComposite.setUrlLabelText( urlLabelText );
-        urlComposite.setUrl( url );
+        urlComposite = createUrlInputComposite(composite, validationGroup, inputStyle);
 
         if ( initialHistory != null )
         {
