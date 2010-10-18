@@ -102,9 +102,11 @@ public class ComboSwtValidationListenerFactory extends ValidationListenerFactory
         	focusGainedEntered = true;
         	try {
         		this.performValidation();
-        	} finally {
+        	} 
+        	finally {
         		focusGainedEntered = false;
         	}
+        }
 
         public void focusLost(FocusEvent fe) {
         	if (strategy == ValidationStrategy.ON_FOCUS_LOSS) {
