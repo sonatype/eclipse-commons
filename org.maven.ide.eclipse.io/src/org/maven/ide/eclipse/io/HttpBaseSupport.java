@@ -30,7 +30,7 @@ public class HttpBaseSupport
 
     private final Logger log = LoggerFactory.getLogger( HttpBaseSupport.class );
 
-    protected int timeout = 10 * 1000;
+    protected int timeout = 30 * 1000;
 
     protected Realm realm = null;
 
