@@ -32,9 +32,9 @@ public class LogPlugin
     {
         super.start( context );
 
-        Platform.addLogListener( logListener );
-
         configureLogger();
+
+        Platform.addLogListener( logListener );
     }
 
     private void configureLogger()
