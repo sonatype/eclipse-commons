@@ -43,6 +43,7 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
         private Validator<String> validator;
         private boolean hasFatalProblem = false;
 		private final ValidationStrategy strategy;
+		private boolean focusGainedEntered = false;
 
         private CComboSWTValidationListener(CCombo component, ValidationStrategy strategy, ValidationUI validationUI, Validator<String> validator) {
             super(CCombo.class, validationUI, component);
@@ -94,7 +95,15 @@ public class CComboSwtValidationListenerFactory extends ValidationListenerFactor
 
         public void focusGained(FocusEvent fe) {
         	//run validation here to have the currently focused field's stuff on top (leading problem)
-        	performValidation();
+        	assert Display.getCurrent() != null;
+        	//MECLIPSE-1760 check for rentry
+        	if ( focusGainedEntered   ) return;
+        	focusGainedEntered = true;
+        	try {
+        		this.performValidation();
+        	} finally {
+        		focusGainedEntered = false;
+        	}
         }
 
         public void focusLost(FocusEvent fe) {

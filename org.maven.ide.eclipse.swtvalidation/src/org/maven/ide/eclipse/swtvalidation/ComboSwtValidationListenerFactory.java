@@ -43,6 +43,7 @@ public class ComboSwtValidationListenerFactory extends ValidationListenerFactory
         private Validator<String> validator;
         private boolean hasFatalProblem = false;
 		private final ValidationStrategy strategy;
+		private boolean focusGainedEntered = false;
         
 
         private ComboSWTValidationListener(Combo component, ValidationStrategy strategy, ValidationUI validationUI, Validator<String> validator) {
@@ -95,7 +96,16 @@ public class ComboSwtValidationListenerFactory extends ValidationListenerFactory
 
         public void focusGained(FocusEvent fe) {
         	//run validation here to have the currently focused field's stuff on top (leading problem)
-        	this.performValidation();
+        	assert Display.getCurrent() != null;
+        	//MECLIPSE-1760 check for rentry
+        	if ( focusGainedEntered  ) return;
+        	focusGainedEntered = true;
+        	try {
+        		this.performValidation();
+        	} 
+        	finally {
+        		focusGainedEntered = false;
+        	}
         }
 
         public void focusLost(FocusEvent fe) {

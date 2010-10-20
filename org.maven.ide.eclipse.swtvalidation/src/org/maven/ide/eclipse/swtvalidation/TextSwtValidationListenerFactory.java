@@ -41,6 +41,7 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
         private final Validator<String> validator;
         private boolean hasFatalProblem = false;
 		private final ValidationStrategy strategy;
+		private boolean focusGainedEntered = false;
 
         private TextSWTValidationListener(Text component, ValidationStrategy strategy, ValidationUI validationUI, Validator<String> validator) {
             super(Text.class, validationUI, component);
@@ -90,8 +91,16 @@ public class TextSwtValidationListenerFactory extends ValidationListenerFactory<
         }
 
         public void focusGained(FocusEvent fe) {
+        	assert Display.getCurrent() != null;
         	//run validation here to have the currently focused field's stuff on top (leading problem)
-        	this.performValidation();
+        	//MECLIPSE-1760 check for rentry
+        	if ( focusGainedEntered ) return;
+        	focusGainedEntered = true;
+        	try {
+        		this.performValidation();
+        	} finally {
+        		focusGainedEntered = false;
+        	}
         }
 
         public void focusLost(FocusEvent fe) {
