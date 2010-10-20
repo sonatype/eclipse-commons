@@ -14,6 +14,7 @@ import org.maven.ide.eclipse.authentication.InvalidURIException;
 import org.maven.ide.eclipse.authentication.internal.URIHelper;
 import org.maven.ide.eclipse.ui.common.Messages;
 import org.netbeans.validation.api.Problems;
+import org.netbeans.validation.api.Severity;
 import org.netbeans.validation.api.Validator;
 import org.netbeans.validation.api.ValidatorUtils;
 import org.netbeans.validation.api.builtin.stringvalidation.StringValidators;
@@ -93,6 +94,9 @@ public final class SonatypeValidators
         }
     };
 
+    /**
+     * given string can be either empty or if not empty, has to be a valid url
+     */
     public static Validator<String> EMPTY_OR_URL = new StringVal()
     {
         public void validate( Problems problems, String compName, String model )
@@ -106,10 +110,16 @@ public final class SonatypeValidators
         }
     };
 
+    /**
+     * validates that the input is a non empty string and valid url, including scm: urls.
+     */
     public static Validator<String> URL_MUST_BE_VALID = new StringVal()
     {
         public void validate( Problems problems, String compName, String model )
         {
+        	//mkleint: ideally we would just check for empty string and exit if empty without any real checking
+        	//to allow for better composition of validators. instead of creating EMPTY_OR_URL..
+        	//Additionally this validator shall be configurable with regard of scm: urls acceptance to avoid NON_SCM_URL_MUST_BE_VALID 
             StringValidators.REQUIRE_NON_EMPTY_STRING.validate( problems, compName, model );
             try
             {
@@ -162,6 +172,22 @@ public final class SonatypeValidators
                 String problem = NLS.bind( Messages.errors_not_valid_url, model, e.getMessage() );
                 problems.add( problem );
             }
+        }
+    };
+    
+    /**
+     * validates that the input is a non empty string and valid url, reporting scm: urls as invalid.
+     */
+    public static Validator<String> NON_SCM_URL_MUST_BE_VALID = new StringVal()
+    {
+        public void validate( Problems problems, String compName, String model )
+        {
+            if ( model.startsWith( URIHelper.SCM_PREFIX ) )
+            {
+            	problems.add(compName + " cannot contain scm: type URLs.", Severity.FATAL);
+            	return;
+            }
+        	URL_MUST_BE_VALID.validate( problems, compName, model );
         }
     };
     
