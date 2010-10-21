@@ -132,4 +132,9 @@ class MonitoredInputStream
         }
     }
 
+    public boolean isCancelled()
+    {
+        return monitor.isCanceled();
+    }
+
 }

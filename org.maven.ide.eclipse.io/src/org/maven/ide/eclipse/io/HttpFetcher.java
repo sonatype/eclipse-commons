@@ -76,6 +76,16 @@ public class HttpFetcher
             this.url = url;
         }
 
+        private STATE checkCancel()
+        {
+            if ( mis.isCancelled() )
+            {
+                onThrowable( new IOException( "transfer has been cancelled by user" ) );
+                return STATE.ABORT;
+            }
+            return STATE.CONTINUE;
+        }
+
         public void onThrowable( Throwable t )
         {
             super.onThrowable( t );
@@ -106,12 +116,21 @@ public class HttpFetcher
         public STATE onStatusReceived( HttpResponseStatus responseStatus )
             throws Exception
         {
+            if ( checkCancel() == STATE.ABORT )
+            {
+                return STATE.ABORT;
+            }
             return handleStatus( url.toString(), responseStatus, mis );
         }
 
         public STATE onHeadersReceived( HttpResponseHeaders headers )
             throws Exception
         {
+            if ( checkCancel() == STATE.ABORT )
+            {
+                return STATE.ABORT;
+            }
+
             STATE retval = super.onHeadersReceived( headers );
             FluentCaseInsensitiveStringsMap h = headers.getHeaders();
 
@@ -133,6 +152,11 @@ public class HttpFetcher
         public STATE onBodyPartReceived( HttpResponseBodyPart bodyPart )
             throws Exception
         {
+            if ( checkCancel() == STATE.ABORT )
+            {
+                return STATE.ABORT;
+            }
+            
             STATE retval = super.onBodyPartReceived( bodyPart );
             if ( os != null )
             {
