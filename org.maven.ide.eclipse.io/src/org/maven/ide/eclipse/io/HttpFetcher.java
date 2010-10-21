@@ -53,7 +53,7 @@ public class HttpFetcher
         BoundRequestBuilder requestBuilder =
             httpClient.prepareGet( url.toString() ).setRealm( realm ).setHeaders( headers ).setProxyServer( proxyServer );
 
-        his = new HttpInputStream(mis, "UTF-8");
+        his = new HttpInputStream(mis, "UTF-8", httpClient);
         
         requestBuilder.execute(new GetAsyncHandler(pos, mis, url));
         

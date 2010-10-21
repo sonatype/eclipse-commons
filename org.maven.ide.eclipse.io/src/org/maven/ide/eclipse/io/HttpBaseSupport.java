@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ning.http.client.AsyncHandler;
+import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.FluentCaseInsensitiveStringsMap;
 import com.ning.http.client.HttpResponseBodyPart;
@@ -253,20 +254,25 @@ public class HttpBaseSupport
         extends FilterInputStream
     {
         String encoding;
+        private AsyncHttpClient client;
 
-        public HttpInputStream( InputStream is, String encoding )
+        public HttpInputStream( InputStream is, String encoding, AsyncHttpClient httpClient )
         {
             super( is );
             this.encoding = encoding;
+            this.client = httpClient;
         }
 
         @Override
         public void close()
             throws IOException
         {
+            if ( client != null )
+            {
+                client.close();
+            }
             super.close();
 
-            // TODO Async Client need closing?
         }
 
         public String getEncoding()

@@ -172,6 +172,8 @@ public class HttpPublisher
                     throw new TransferException( "HTTP status code " + status + ": " + uri, response, null );
             }
         }
+        
+        httpClient.close();
 
         return response;
     }
