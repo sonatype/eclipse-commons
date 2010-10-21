@@ -28,11 +28,13 @@ public class TimeoutTest
         try
         {
             tryHead( 32000 ); // 32 seconds should be too much (timeout is 30)
+            fail("Request is expected to time out");
         }
         catch ( IOException e )
         {
-            assertEquals( "Request is expected to time out",
-                          "The server did not respond within the configured timeout", e.getMessage() );
+            if (!"The server did not respond within the configured timeout".equals( e.getMessage() )) {
+                throw e;
+            }
         }
     }
 
