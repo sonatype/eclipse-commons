@@ -140,7 +140,7 @@ public class HttpPublisher
         }
         catch ( ExecutionException e )
         {
-            throw new RuntimeException( e );
+            throw new IOException( e );
         }
 
         Throwable exception = handler.getException();
