@@ -141,7 +141,7 @@ public class HttpPublisher
              * Delay throwing this exception, as exceptions from the server get caught here and we don't need to wrap them up.
              * Handler already knows about them.
              */
-            unknownException = new IOException( e );
+            unknownException = (IOException) new IOException().initCause( e );
         }
 
         Throwable exception = handler.getException();
