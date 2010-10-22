@@ -120,7 +120,12 @@ public class HttpFetcher
             {
                 return STATE.ABORT;
             }
-            return handleStatus( url.toString(), responseStatus, mis );
+            Throwable error = getStatusException( url.toString(), responseStatus );
+            if ( error != null )
+            {
+                mis.setException( error );
+            }
+            return handleStatus( responseStatus );
         }
 
         public STATE onHeadersReceived( HttpResponseHeaders headers )

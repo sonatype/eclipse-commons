@@ -174,34 +174,37 @@ public class HttpBaseSupport
         return confBuilder;
     }
 
-    public static com.ning.http.client.AsyncHandler.STATE handleStatus( String url, HttpResponseStatus responseStatus, MonitoredInputStream mis )
+    public static com.ning.http.client.AsyncHandler.STATE handleStatus( HttpResponseStatus responseStatus )
     {
+        return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
+    }
+    
+    public static Throwable getStatusException( String url, HttpResponseStatus responseStatus ) {
         int status = responseStatus.getStatusCode();
-        if ( status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_NOT_ACCEPTABLE && mis != null )
+        if ( status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_NOT_ACCEPTABLE )
         {
             if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
             {
-                mis.setException( new UnauthorizedException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
+                return new UnauthorizedException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url );
             }
             else if ( HttpURLConnection.HTTP_FORBIDDEN == status )
             {
-                mis.setException( new ForbiddenException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
+                return new ForbiddenException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url );
             }
             else if ( HttpURLConnection.HTTP_NOT_FOUND == status )
             {
-                mis.setException( new NotFoundException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
+                return new NotFoundException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url );
             }
             else
             {
-                mis.setException( new IOException( "HTTP status code " + status + ": " + responseStatus.getStatusText()
-                    + ": " + url ) );
+                return new IOException( "HTTP status code " + status + ": " + responseStatus.getStatusText()
+                    + ": " + url );
             }
-            return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
         }
-        return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
+        return null;
     }
     
     private IProxyData selectProxy( URI url, IProxyService proxyService )
