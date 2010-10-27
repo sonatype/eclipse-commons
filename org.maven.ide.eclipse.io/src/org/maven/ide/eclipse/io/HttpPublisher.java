@@ -117,18 +117,15 @@ public class HttpPublisher
             }
 
             requestBuilder.setBody( mis );
-            handler = new PushAsyncHandler( uri, mis );
         }
-        else
-        {
-            handler = new PushAsyncHandler( uri, null );
-        }
+        handler = new PushAsyncHandler( uri, monitor, "Receiving response" );
 
         // What's this for? (from previous Jetty code)
         // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
-        
-        requestBuilder.setHeaders(headers);
 
+        requestBuilder.setHeaders( headers );
+
+        IOException unknownException = null;
         Future<String> future = requestBuilder.execute( handler );
         try
         {
@@ -140,13 +137,24 @@ public class HttpPublisher
         }
         catch ( ExecutionException e )
         {
-            throw new RuntimeException( e );
+            /*
+             * Delay throwing this exception, as exceptions from the server get caught here and we don't need to wrap them up.
+             * Handler already knows about them.
+             */
+            unknownException = (IOException) new IOException().initCause( e );
         }
 
         Throwable exception = handler.getException();
         if ( exception != null )
         {
+            if (exception instanceof IOException) {
+                throw (IOException) exception;
+            }
             throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
+        }
+        if ( unknownException != null ) 
+        {
+            throw unknownException;
         }
 
         ServerResponse response =
@@ -173,13 +181,15 @@ public class HttpPublisher
             }
         }
 
+        httpClient.close();
+
         return response;
     }
 
     private final class PushAsyncHandler
         extends BaseAsyncHandler
     {
-        private final MonitoredInputStream mis;
+        private final MonitoredOutputStream mos;
 
         private URI uri;
 
@@ -189,9 +199,10 @@ public class HttpPublisher
 
         private int responseStatus;
 
-        private PushAsyncHandler( URI uri, MonitoredInputStream mis )
+        private PushAsyncHandler( URI uri, IProgressMonitor monitor, String taskName )
         {
-            this.mis = mis;
+            this.mos = new MonitoredOutputStream( baos, monitor );
+            mos.setName( taskName );
             this.uri = uri;
         }
 
@@ -222,7 +233,7 @@ public class HttpPublisher
             throws Exception
         {
             STATE retval = super.onBodyPartReceived( bodyPart );
-            bodyPart.writeTo( baos );
+            bodyPart.writeTo( mos );
             return retval;
         }
 
@@ -231,7 +242,12 @@ public class HttpPublisher
             throws Exception
         {
             this.responseStatus = responseStatus.getStatusCode();
-            return handleStatus( uri.toString(), responseStatus, mis );
+            Throwable error = getStatusException( uri.toString(), responseStatus );
+            if ( error != null )
+            {
+                mos.setException( error );
+            }
+            return handleStatus( responseStatus );
         }
 
         @Override

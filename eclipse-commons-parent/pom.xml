@@ -25,7 +25,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <m2eclipse-core.version>0.12.0/N/0.12.0.201010051102</m2eclipse-core.version>
+        <m2eclipse-core.version>0.12.0/N/0.12.0.201010191848</m2eclipse-core.version>
 
         <tycho-version>0.9.0</tycho-version>
 
@@ -67,7 +67,7 @@
 		<dependency>
 			<groupId>com.ning</groupId>
 			<artifactId>async-http-client</artifactId>
-			<version>1.2.1-SNAPSHOT</version>
+			<version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.netty</groupId>

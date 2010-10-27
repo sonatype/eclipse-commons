@@ -32,9 +32,7 @@ public class TimeoutTest
         }
         catch ( IOException e )
         {
-            if (!"The server did not respond within the configured timeout".equals( e.getMessage() )) {
-                throw e;
-            }
+            assertTrue( e.getMessage().toLowerCase().contains("connection timed out") );
         }
     }
 

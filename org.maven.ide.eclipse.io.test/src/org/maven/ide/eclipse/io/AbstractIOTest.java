@@ -10,13 +10,18 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.internal.net.ProxyData;
+import org.eclipse.core.net.proxy.IProxyData;
+import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.maven.ide.eclipse.authentication.AnonymousAccessType;
 import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
+import org.maven.ide.eclipse.io.internal.S2IOPlugin;
 import org.maven.ide.eclipse.tests.common.HttpServer;
+import org.osgi.util.tracker.ServiceTracker;
 
 import com.ning.http.util.Base64;
 
@@ -29,6 +34,10 @@ public abstract class AbstractIOTest
      * Password for secure remote server paths
      */
     protected static final String PASSWORD = "password";
+    
+    protected static final String KEY_PASSWORD = "keypwd";
+    
+    protected static final String STORE_PASSWORD = "storepwd";
 
     /*
      * User for secure remote server paths
@@ -69,6 +78,23 @@ public abstract class AbstractIOTest
 
     protected HttpServer server;
 
+	protected ServiceTracker proxyServiceTracker;
+    
+    @Override
+    protected void setUp() throws Exception {
+    	
+    	System.out.println( "TEST-SETUP: " + getName() );
+
+        super.setUp();
+        
+        proxyServiceTracker =
+            new ServiceTracker( S2IOPlugin.getDefault().getBundle().getBundleContext(),
+                                IProxyService.class.getName(), null );
+        proxyServiceTracker.open();
+        
+        resetProxies();
+    }
+
     @Override
     public void tearDown()
         throws Exception
@@ -85,17 +111,33 @@ public abstract class AbstractIOTest
         tmp = new File( RESOURCES, SECURED_NEW_FILE.substring( 1 ) );
         if ( tmp.exists() )
             tmp.delete();
+        
+        resetProxies();
+
+        if ( proxyServiceTracker != null )
+        {
+            proxyServiceTracker.close();
+            proxyServiceTracker = null;
+        }
+    }
+    
+    protected void startHttpServer() throws Exception {
+    	server = newHttpServer();
+    	server.start();
     }
 
-    protected void startHttpServer()
+    protected HttpServer newHttpServer()
         throws Exception
     {
         server = new HttpServer();
+        server.setHttpsPort(0);
         server.addUser( VALID_USERNAME, PASSWORD, VALID_USERNAME );
         server.addSecuredRealm( "/secured/*", VALID_USERNAME );
         server.addResources( "/", "resources" );
         server.enableRecording( "/.*" );
-        server.start();
+        server.setStorePassword(STORE_PASSWORD);
+        server.setKeyStore("resources/ssl/keystore", KEY_PASSWORD);
+        return server;
     }
 
     /**
@@ -164,4 +206,48 @@ public abstract class AbstractIOTest
         assertEquals( "Username does not match", username, decoded.substring( 0, decoded.indexOf( ':' ) ) );
         assertEquals( "Password does not match", password, decoded.substring( decoded.indexOf( ':' ) + 1 ) );
     }
+    
+    protected void setProxy( String host, int port, boolean ssl, String username, String password )
+    throws Exception
+	{
+	    IProxyService proxyService = getProxyService();
+	    assertNotNull(proxyService);
+	    
+        @SuppressWarnings("restriction")
+		IProxyData data =
+            new ProxyData( ssl ? IProxyData.HTTPS_PROXY_TYPE : IProxyData.HTTP_PROXY_TYPE, host, port, (username != null), null);
+        data.setUserid(username);
+        data.setPassword(password);
+        proxyService.setProxyData( new IProxyData[] { data } );
+    
+	}
+    
+    protected void resetProxies()
+    throws Exception
+	{
+	    IProxyService proxyService = getProxyService();
+	    if ( proxyService != null )
+	    {
+	        proxyService.setSystemProxiesEnabled( false );
+	        proxyService.setNonProxiedHosts( new String[0] );
+	        proxyService.setProxyData( new IProxyData[] { new ProxyData( IProxyData.HTTP_PROXY_TYPE ),
+	            new ProxyData( IProxyData.HTTPS_PROXY_TYPE ) } );
+	    }
+	}
+
+    
+    protected IProxyService getProxyService()
+    {
+        return ( proxyServiceTracker != null ) ? (IProxyService) proxyServiceTracker.getService() : null;
+    }
+    
+    protected void setNonProxiedHosts( String... hosts )
+    throws Exception
+	{
+	    IProxyService proxyService = getProxyService();
+	    if ( proxyService != null )
+	    {
+	        proxyService.setNonProxiedHosts( hosts );
+	    }
+	}
 }

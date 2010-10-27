@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ning.http.client.AsyncHandler;
+import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.FluentCaseInsensitiveStringsMap;
 import com.ning.http.client.HttpResponseBodyPart;
@@ -22,6 +23,8 @@ import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.ProxyServer;
 import com.ning.http.client.ProxyServer.Protocol;
 import com.ning.http.client.Realm;
+import com.ning.http.client.logging.LogManager;
+import com.ning.http.client.logging.LoggerProvider;
 
 public class HttpBaseSupport
 {
@@ -107,39 +110,101 @@ public class HttpBaseSupport
             }
         }
 
-        // TODO Bridge Asynch logger?
-
+        
+        LogManager.setProvider(new LoggerProvider() {
+			
+			public com.ning.http.client.logging.Logger getLogger(Class<?> clazz) {
+				return new com.ning.http.client.logging.Logger() {
+					
+					public void warn(Throwable t, String msg, Object... msgArgs) {
+						log.warn(String.format(msg, msgArgs), t);
+					}
+					
+					public void warn(Throwable t) {
+						log.warn("", t);
+					}
+					
+					public void warn(String msg, Object... msgArgs) {
+						log.warn(String.format(msg, msgArgs));
+					}
+					
+					public boolean isDebugEnabled() {
+						return log.isDebugEnabled();
+					}
+					
+					public void info(Throwable t, String msg, Object... msgArgs) {
+						log.info(String.format(msg, msgArgs), t);
+					}
+					
+					public void info(Throwable t) {
+						log.info("", t);
+					}
+					
+					public void info(String msg, Object... msgArgs) {
+						log.error(String.format(msg, msgArgs));
+					}
+					
+					public void error(Throwable t, String msg, Object... msgArgs) {
+						log.error(String.format(msg, msgArgs), t);
+					}
+					
+					public void error(Throwable t) {
+						log.error("", t);
+					}
+					
+					public void error(String msg, Object... msgArgs) {
+						log.error(String.format(msg, msgArgs));
+					}
+					
+					public void debug(Throwable t, String msg, Object... msgArgs) {
+						log.debug(String.format(msg, msgArgs), t);
+					}
+					
+					public void debug(Throwable t) {
+						log.debug("", t);
+					}
+					
+					public void debug(String msg, Object... msgArgs) {
+						log.debug(String.format(msg, msgArgs));
+					}
+				};
+			}
+		});
+        
         return confBuilder;
     }
 
-    public static com.ning.http.client.AsyncHandler.STATE handleStatus( String url, HttpResponseStatus responseStatus, MonitoredInputStream mis )
+    public static com.ning.http.client.AsyncHandler.STATE handleStatus( HttpResponseStatus responseStatus )
     {
+        return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
+    }
+    
+    public static Throwable getStatusException( String url, HttpResponseStatus responseStatus ) {
         int status = responseStatus.getStatusCode();
         if ( status != HttpURLConnection.HTTP_OK && mis != null )
         {
             if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
             {
-                mis.setException( new UnauthorizedException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
+                return new UnauthorizedException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url );
             }
             else if ( HttpURLConnection.HTTP_FORBIDDEN == status )
             {
-                mis.setException( new ForbiddenException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
+                return new ForbiddenException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url );
             }
             else if ( HttpURLConnection.HTTP_NOT_FOUND == status )
             {
-                mis.setException( new NotFoundException( "HTTP status code " + status + ": "
-                    + responseStatus.getStatusText() + ": " + url ) );
+                return new NotFoundException( "HTTP status code " + status + ": "
+                    + responseStatus.getStatusText() + ": " + url );
             }
             else
             {
-                mis.setException( new IOException( "HTTP status code " + status + ": " + responseStatus.getStatusText()
-                    + ": " + url ) );
+                return new IOException( "HTTP status code " + status + ": " + responseStatus.getStatusText()
+                    + ": " + url );
             }
-            return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
         }
-        return com.ning.http.client.AsyncHandler.STATE.CONTINUE;
+        return null;
     }
     
     private IProxyData selectProxy( URI url, IProxyService proxyService )
@@ -192,20 +257,25 @@ public class HttpBaseSupport
         extends FilterInputStream
     {
         String encoding;
+        private AsyncHttpClient client;
 
-        public HttpInputStream( InputStream is, String encoding )
+        public HttpInputStream( InputStream is, String encoding, AsyncHttpClient httpClient )
         {
             super( is );
             this.encoding = encoding;
+            this.client = httpClient;
         }
 
         @Override
         public void close()
             throws IOException
         {
+            if ( client != null )
+            {
+                client.close();
+            }
             super.close();
 
-            // TODO Async Client need closing?
         }
 
         public String getEncoding()
