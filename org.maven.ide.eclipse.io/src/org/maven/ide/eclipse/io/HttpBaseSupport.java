@@ -181,7 +181,7 @@ public class HttpBaseSupport
     
     public static Throwable getStatusException( String url, HttpResponseStatus responseStatus ) {
         int status = responseStatus.getStatusCode();
-        if ( status != HttpURLConnection.HTTP_OK && mis != null )
+        if ( status != HttpURLConnection.HTTP_OK )
         {
             if ( HttpURLConnection.HTTP_UNAUTHORIZED == status )
             {
