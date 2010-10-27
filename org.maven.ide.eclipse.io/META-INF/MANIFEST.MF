@@ -5,11 +5,7 @@ Bundle-SymbolicName: org.maven.ide.eclipse.io;singleton:=true
 Bundle-Version: 1.1.5.qualifier
 Bundle-Vendor: Sonatype, Inc.
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.core.net,
- org.eclipse.jetty.client;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
- org.eclipse.jetty.http;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
- org.eclipse.jetty.io;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
- org.eclipse.jetty.util;bundle-version="[7.0.0.v20091005,7.0.0.v20091005]",
+ org.eclipse.core.net, com.ning.async-http-client,
  org.maven.ide.eclipse.authentication
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
