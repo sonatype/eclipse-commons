@@ -22,8 +22,6 @@ import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.ProxyServer;
 import com.ning.http.client.ProxyServer.Protocol;
 import com.ning.http.client.Realm;
-import com.ning.http.client.logging.LogManager;
-import com.ning.http.client.logging.LoggerProvider;
 
 public class HttpBaseSupport
 {
@@ -109,67 +107,8 @@ public class HttpBaseSupport
             }
         }
 
-        
-        LogManager.setProvider(new LoggerProvider() {
-			
-			public com.ning.http.client.logging.Logger getLogger(Class<?> clazz) {
-				return new com.ning.http.client.logging.Logger() {
-					
-					public void warn(Throwable t, String msg, Object... msgArgs) {
-						log.warn(String.format(msg, msgArgs), t);
-					}
-					
-					public void warn(Throwable t) {
-						log.warn("", t);
-					}
-					
-					public void warn(String msg, Object... msgArgs) {
-						log.warn(String.format(msg, msgArgs));
-					}
-					
-					public boolean isDebugEnabled() {
-						return log.isDebugEnabled();
-					}
-					
-					public void info(Throwable t, String msg, Object... msgArgs) {
-						log.info(String.format(msg, msgArgs), t);
-					}
-					
-					public void info(Throwable t) {
-						log.info("", t);
-					}
-					
-					public void info(String msg, Object... msgArgs) {
-						log.error(String.format(msg, msgArgs));
-					}
-					
-					public void error(Throwable t, String msg, Object... msgArgs) {
-						log.error(String.format(msg, msgArgs), t);
-					}
-					
-					public void error(Throwable t) {
-						log.error("", t);
-					}
-					
-					public void error(String msg, Object... msgArgs) {
-						log.error(String.format(msg, msgArgs));
-					}
-					
-					public void debug(Throwable t, String msg, Object... msgArgs) {
-						log.debug(String.format(msg, msgArgs), t);
-					}
-					
-					public void debug(Throwable t) {
-						log.debug("", t);
-					}
-					
-					public void debug(String msg, Object... msgArgs) {
-						log.debug(String.format(msg, msgArgs));
-					}
-				};
-			}
-		});
-        
+        // TODO Bridge Asynch logger?
+
         return confBuilder;
     }
 
