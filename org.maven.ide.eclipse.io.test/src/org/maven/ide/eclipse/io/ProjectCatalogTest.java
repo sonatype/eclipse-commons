@@ -3,8 +3,13 @@ package org.maven.ide.eclipse.io;
 import java.io.FileInputStream;
 import java.net.ConnectException;
 import java.nio.channels.UnresolvedAddressException;
+import java.util.concurrent.TimeoutException;
+
+import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+
 
 /**
  * These tests are derived from com.sonatype.s2.project.integration.test/.../ProjectCatalogTest,
@@ -20,124 +25,118 @@ public class ProjectCatalogTest extends AbstractIOTest {
     public void testCatalogOverHttp()
         throws Exception
     {
-        startHttpServer();
+//         // startHttpServer();
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
-        
+
         /*
-         * Request:
-         * 
-         * GET /catalogs/basic/catalog.xml HTTP/1.1.
-         * Host: localhost:49805.
-         * Pragma: no-cache.
-         * Cache-Control: no-cache, no-store.
-         * Accept-Encoding: gzip.
-         * Connection: keep-alive.
-         * Accept: *\/*.
-         * User-Agent: NING/1.0.
-         * .
+         * Request: GET /catalogs/basic/catalog.xml HTTP/1.1. Host: localhost:49805. Pragma: no-cache. Cache-Control:
+         * no-cache, no-store. Accept-Encoding: gzip. Connection: keep-alive. Accept: *\/*. User-Agent: NING/1.0. .
          */
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP protocol and BASIC authentication.
      */
     public void testCatalogOverHttpWithBasicAuth()
         throws Exception
     {
-        startHttpServer();
-        server.addUser( "testuser", "testpass", "authorized" );
-        server.addSecuredRealm( "/*", "authorized" );
-        server.start();
+//         // startHttpServer();
+        // server.addUser( "testuser", "testpass", "authorized" );
+        // server.addSecuredRealm( "/*", "authorized" );
+        // server.start();
 
-        addRealmAndURL( "test", server.getHttpUrl(), "testuser", "testpass" );
+        addRealmAndURL( "test", url(), "testuser", "testpass" );
 
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
 
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP protocol and BASIC authentication when the password is empty.
      */
     public void testCatalogOverHttpWithBasicAuthUsingEmptyPassword()
         throws Exception
     {
-        startHttpServer();
-        server.addUser( "testuser", "", "authorized" );
-        server.addSecuredRealm( "/*", "authorized" );
-        server.start();
-
-        addRealmAndURL( "test", server.getHttpUrl(), "testuser", "" );
+//         // startHttpServer();
+        // server.addUser( "testuser", "", "authorized" );
+        // server.addSecuredRealm( "/*", "authorized" );
+        // server.start();
+        //
+        // addRealmAndURL( "test", server.getHttpUrl(), "testuser", "" );
 
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTPS protocol.
      */
     public void testCatalogOverHttps()
         throws Exception
     {
-        startHttpServer();
-
-        String catalogUrl = server.getHttpsUrl() + "/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+//         // startHttpServer();
+        //
+        // String catalogUrl = server.getHttpsUrl() + "/catalogs/basic/catalog.xml";
+        String catalogUrl = null;
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTPS protocol and BASIC authentication.
      */
     public void testCatalogOverHttpsWithBasicAuth()
         throws Exception
     {
-        startHttpServer();
-        server.addUser( "testuser", "testpass", "authorized" );
-        server.addSecuredRealm( "/*", "authorized" );
-        server.start();
-
-        addRealmAndURL( "test", server.getHttpsUrl(), "testuser", "testpass" );
-
-        String catalogUrl = server.getHttpsUrl() + "/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+//         // startHttpServer();
+        // server.addUser( "testuser", "testpass", "authorized" );
+        // server.addSecuredRealm( "/*", "authorized" );
+        // server.start();
+        //
+        // addRealmAndURL( "test", server.getHttpsUrl(), "testuser", "testpass" );
+        //
+        // String catalogUrl = server.getHttpsUrl() + "/catalogs/basic/catalog.xml";
+        String catalogUrl = null;
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTPS after redirection from HTTP protocol.
      */
     public void testCatalogOverHttpsAfterRedirectionFromHttp()
         throws Exception
     {
-        newHttpServer();
-        server.setRedirectToHttps( true );
-        server.start();
+        // newHttpServer();
+        // server.setRedirectToHttps( true );
+        // server.start();
 
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP when the server hangs.
      */
     public void testCatalogOverHttpWhenServerTimeouts()
         throws Exception
     {
-        newHttpServer();
-        server.setLatency( 60 * 60 * 1000 );
-        server.start();
+
+        // newHttpServer();
+        // server.setLatency( 60 * 60 * 1000 );
+        // server.start();
 
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
 
@@ -148,81 +147,82 @@ public class ProjectCatalogTest extends AbstractIOTest {
         }
         catch ( Exception e )
         {
-            if ( !TimeoutTest.isTimeoutException( e ) )
-            {
-                throw e;
-            }
+            assertEquals(e.getClass(), TimeoutException.class);
         }
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP when the host is bad.
      */
     public void testCatalogOverHttpWhenHostIsBad()
         throws Exception
     {
-        newHttpServer();
-        server.start();
+        // server.start();
 
         String catalogUrl = "http://bad.host/catalogs/basic";
-        try {
-        	readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        	fail("Exception not thrown");
-        } catch (ConnectException e) {
-        	assertTrue(e.getCause() != null);
-        	assertTrue(e.getCause() instanceof UnresolvedAddressException);
+        try
+        {
+            readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+            fail( "Exception not thrown" );
+        }
+        catch ( ConnectException e )
+        {
+            assertTrue( e.getCause() != null );
+            assertTrue( e.getCause() instanceof UnresolvedAddressException );
         }
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP proxy.
      */
     public void testCatalogOverHttpProxy()
         throws Exception
     {
-        startHttpServer();
-
-        setProxy( "localhost", server.getHttpPort(), false, null, null );
+        // setProxy( "localhost", server.getHttpPort(), false, null, null );
 
         String catalogUrl = "http://host-to-be-proxied.org/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP proxy that requires authentication.
      */
     public void testCatalogOverHttpProxyWithProxyAuth()
         throws Exception
     {
-        newHttpServer();
-        server.setProxyAuth( "proxyuser", "proxypass" );
-        server.start();
-
-        setProxy( "localhost", server.getHttpPort(), false, "proxyuser", "proxypass" );
+        // newHttpServer();
+        // server.setProxyAuth( "proxyuser", "proxypass" );
+        // server.start();
+        //
+        // setProxy( "localhost", server.getHttpPort(), false, "proxyuser", "proxypass" );
 
         String catalogUrl = "http://host-to-be-proxied.org/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
     }
-    
+
     /**
      * Tests catalog retrieval via HTTP when a non-applicable proxy is present.
      */
     public void testCatalogOverHttpWithNonProxiedHost()
         throws Exception
     {
-        startHttpServer();
-
         setProxy( "bad.host", 12347, false, null, null );
         setNonProxiedHosts( "localhost" );
 
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
-        String expected = readstream( new FileInputStream("resources/catalogs/basic/catalog.xml"));
-        String result = readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        assertEquals(expected, result);
+        String expected = readstream( new FileInputStream( "resources/catalogs/basic/catalog.xml" ) );
+        String result = readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+        assertEquals( expected, result );
+    }
+    
+    public static TestSuite suite()
+        throws Exception
+    {
+    	return Junit3SuiteConfiguration.suite(ProjectCatalogTest.class);
     }
     
 }

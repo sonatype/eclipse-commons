@@ -7,11 +7,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.maven.ide.eclipse.authentication.AuthFacade;
-import org.maven.ide.eclipse.tests.common.HttpServer;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Delete;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Get;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Head;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Post;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Put;
+import org.sonatype.tests.http.server.jetty.configurations.DefaultSuiteConfigurator;
+import org.sonatype.tests.http.server.jetty.configurations.SslSuiteConfigurator;
+import org.sonatype.tests.http.server.api.ServerProvider;
 
+@Configurators( { DefaultSuiteConfigurator.class, SslSuiteConfigurator.class } )
 public class S2PublisherTest
     extends AbstractIOTest
 {
@@ -28,18 +44,25 @@ public class S2PublisherTest
     protected File tmpDir;
 
     @Override
-    protected HttpServer newHttpServer()
+    public void setUp()
         throws Exception
     {
-        super.newHttpServer();
         tmpDir = File.createTempFile( "catalog", "" );
         tmpDir.delete();
-        server.addResources( "catalog", tmpDir.getAbsolutePath() );
-        server.addSecuredRealm( "/catalog/secured/*", VALID_USERNAME );
-        return server;
+        super.setUp();
     }
 
-    private static void copyDirectory( File sourceLocation, File targetLocation )
+    @Override
+	public void configureProvider(ServerProvider provider) {
+    	super.configureProvider(provider);
+    	String fsPath = tmpDir.getAbsolutePath();
+        provider().addBehaviour( "/catalog/*", recorder, new Get( fsPath ), new Post( fsPath ), new Put( fsPath ),
+                                 new Head( fsPath ), new Delete( fsPath ) );
+    	provider.addAuthentication("/catalog/secured/*", "BASIC");
+    	provider.addUser( VALID_USERNAME, PASSWORD );
+	}
+
+	private static void copyDirectory( File sourceLocation, File targetLocation )
         throws IOException
     {
 
@@ -82,7 +105,6 @@ public class S2PublisherTest
     public void testPublishProjectWithoutIcon()
         throws Exception
     {
-        newHttpServer().start();
         // HEAD /catalog/content/repositories/nx-codebase-repo/test/projectWithoutIcon/1.0.0/
         // 404 Not Found
 
@@ -109,8 +131,6 @@ public class S2PublisherTest
     public void testPublishProjectWithIcon()
         throws Exception
     {
-        newHttpServer().start();
-
         // HEAD /catalog/content/repositories/nx-codebase-repo/test/projectWithIcon/1.0.0/
         // 404 Not Found
 
@@ -150,7 +170,6 @@ public class S2PublisherTest
     public void testPublishProjectWithIcon_Authenticated_ImplicitCredentials()
         throws Exception
     {
-        newHttpServer().start();
         String serverBase = server.getHttpUrl() + "/catalog/secured";
         AuthFacade.getAuthService().save( serverBase, VALID_USERNAME, PASSWORD );
 
@@ -193,8 +212,6 @@ public class S2PublisherTest
     public void testPublishProjectWithPreferences()
         throws Exception
     {
-        newHttpServer().start();
-
         // HEAD /catalog/content/repositories/nx-codebase-repo/test/projectWithPreferences/1.0.0/
         // 404 Not Found
 
@@ -235,8 +252,6 @@ public class S2PublisherTest
     public void testPublishTwoProjects()
         throws Exception
     {
-        newHttpServer().start();
-
         /*
          * FIRST ONE
          */
@@ -310,8 +325,6 @@ public class S2PublisherTest
     public void testPublishExisting()
         throws Exception
     {
-        newHttpServer().start();
-
         try
         {
             File tmpRep = new File( getTmpDir( "" ), "test/projectWithIcon/1.0.0/" );
@@ -330,6 +343,11 @@ public class S2PublisherTest
         ServerResponse response = S2IOFacade.head( projectBase, timeout_ms, new NullProgressMonitor() );
         assertEquals( HttpURLConnection.HTTP_OK, response.getStatusCode() );
 
+    }
+    
+    public static TestSuite suite() throws Exception
+    {
+        return Junit3SuiteConfiguration.suite( S2PublisherTest.class );
     }
 
 }

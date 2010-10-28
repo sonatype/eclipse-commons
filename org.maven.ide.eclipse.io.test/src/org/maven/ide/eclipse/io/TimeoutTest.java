@@ -1,83 +1,144 @@
 package org.maven.ide.eclipse.io;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import junit.framework.TestSuite;
+
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.maven.ide.eclipse.authentication.AuthFacade;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.server.jetty.behaviour.Content;
+import org.sonatype.tests.http.server.jetty.behaviour.Pause;
+import org.sonatype.tests.http.server.jetty.behaviour.Record;
+import org.sonatype.tests.http.server.jetty.configurations.DefaultSuiteConfigurator;
+import org.sonatype.tests.http.server.jetty.configurations.SslSuiteConfigurator;
+import org.sonatype.tests.http.server.api.ServerProvider;
 import java.util.concurrent.TimeoutException;
 
-import org.maven.ide.eclipse.tests.common.HttpServer;
-
+@Configurators( { DefaultSuiteConfigurator.class, SslSuiteConfigurator.class } )
 public class TimeoutTest
     extends AbstractIOTest
 {
-    protected void startHttpServer( long latency )
-        throws Exception
+
+    @Override
+    public void configureProvider( ServerProvider provider )
     {
-        // The server is stopped in super.tearDown
-        server = new HttpServer();
-        server.addResources( "/", "resources" );
-        server.setLatency( latency );
-        server.start();
+        recorder = new Record();
+        provider().addBehaviour( "/*", recorder, new Pause(), new Content( "someContent" ) );
+        server = new ServerProviderWrapper( provider() );
     }
 
-    public void testNoTimeout_UseDefaultTimeout()
-        throws Exception
+    public void testUrlFetcherNoTimeout()
+        throws IOException
     {
-        tryHead( 28000, null, false ); // 28 seconds should be fine (default timeout is 30)
+        String url = url( "28000", "doesnotmatter" );
+
+        UrlFetcher fetcher = new UrlFetcher();
+        URI address = URI.create( url );
+        String content =
+            readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
+        assertRequest( "request missing", "GET", url );
+        assertEquals( "wrong response body", "someContent", content );
     }
 
-    public void testTimeout_UseDefaultTimeout()
-        throws Exception
+    public void testUrlFetcherTimeout()
+        throws IOException
     {
-        tryHead( 35000, null, true ); // 35 seconds should be too much (default timeout is 30)
-    }
+        String url = url( "32000", "doesnotmatter" );
 
-    public void testNoTimeout_UseNonDefaultTimeout()
-        throws Exception
-    {
-        tryHead( 65000, 70000, false );
-    }
-
-    public void testTimeout_UseNonDefaultTimeout()
-        throws Exception
-    {
-        tryHead( 70000, 65000, true );
-    }
-
-    private void tryHead( long latency, Integer timeout, boolean expectTimeout )
-        throws Exception
-    {
-        startHttpServer( latency );
-        long start = System.currentTimeMillis();
+        UrlFetcher fetcher = new UrlFetcher();
+        URI address = URI.create( url );
         try
         {
-            S2IOFacade.head( server.getHttpUrl() + "/file.txt", timeout, monitor );
-            long execTime = System.currentTimeMillis() - start;
-            System.out.println( "Request succeeded in " + execTime + " ms" );
-            if ( expectTimeout )
-            {
-                fail( "Expected timeout exception" );
-            }
-            assertTrue( "Request succeeded in " + execTime + " ms", execTime >= latency && execTime < latency + 2000 );
+            readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
+            fail( "Expected IOException (timeout)" );
         }
         catch ( Exception e )
         {
-            long execTime = System.currentTimeMillis() - start;
-            System.out.println( "Request failed in " + execTime + " ms" );
-            if ( !expectTimeout )
-            {
-                throw e;
-            }
-            if ( !isTimeoutException( e ) )
-            {
-                throw e;
-            }
-            // We got the expected timeout exception
-            if ( timeout == null )
-            {
-                timeout = 30000; // The default timeout
-            }
-            assertTrue( "Request failed in " + execTime + " ms", execTime >= timeout && execTime < timeout + 2000 );
+            assertRequest( "request missing", "GET", address.toURL().toString() );
+            assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
         }
     }
 
+    public void testS2IOFacade_Head()
+        throws IOException, URISyntaxException
+    {
+        String url = url( "2000", "doesnotmatter" );
+
+        try
+        {
+            S2IOFacade.head( url, 1000, new NullProgressMonitor() );
+            fail( "Expected IOException (timeout)" );
+        }
+        catch ( Exception e )
+        {
+            assertRequest( "request missing", "HEAD", url );
+            assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
+        }
+    }
+
+    public void testS2IOFacade_Delete()
+        throws IOException, URISyntaxException
+    {
+        String url = url( "2000", "doesnotmatter" );
+
+        try
+        {
+            S2IOFacade.delete( url, 1000, new NullProgressMonitor(), "" );
+            fail( "Expected IOException (timeout)" );
+        }
+        catch ( Exception e )
+        {
+            assertRequest( "request missing", "DELETE", url );
+            assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
+        }
+    }
+
+    public void testS2IOFacade_Put()
+        throws IOException, URISyntaxException
+    {
+        String url = url( "2000", "doesnotmatter" );
+
+        try
+        {
+            S2IOFacade.put( new ByteArrayRequestEntity( new byte[] { 1, 2, 3, 4 }, "application/octet-stream" ), url,
+                            1000, new NullProgressMonitor() );
+            fail( "Expected IOException (timeout)" );
+        }
+        catch ( Exception e )
+        {
+            assertRequest( "request missing", "PUT", url );
+            assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
+        }
+    }
+
+    public void testS2IOFacade_Post()
+        throws IOException, URISyntaxException
+    {
+        String url = url( "2000", "doesnotmatter" );
+
+        try
+        {
+            S2IOFacade.post( new ByteArrayRequestEntity( new byte[] { 1, 2, 3, 4 }, "application/octet-stream" ), url,
+                             1000, new NullProgressMonitor(), "" );
+            fail( "Expected IOException (timeout)" );
+        }
+        catch ( Exception e )
+        {
+            assertRequest( "request missing", "POST", url );
+            assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
+        }
+    }
+
+    public static TestSuite suite()
+        throws Exception
+    {
+        return Junit3SuiteConfiguration.suite( TimeoutTest.class );
+    }
+    
     public static boolean isTimeoutException( Throwable e )
     {
         while ( e != null )
@@ -90,4 +151,5 @@ public class TimeoutTest
         }
         return false;
     }
+
 }

@@ -5,13 +5,21 @@ import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
+import junit.framework.TestSuite;
+
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.server.jetty.configurations.DefaultSuiteConfigurator;
+import org.sonatype.tests.http.server.jetty.configurations.SslSuiteConfigurator;
+import org.sonatype.tests.http.server.api.ServerProvider;
+
+@Configurators( { DefaultSuiteConfigurator.class, SslSuiteConfigurator.class } )
 public class S2IOFacadeTest
     extends AbstractIOTest
 {
     public void testHeadRequest_Anonymous()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testHeadRequest_Anonymous", url, "", "" );
         ServerResponse resp = S2IOFacade.head( url, null, monitor );
@@ -30,7 +38,6 @@ public class S2IOFacadeTest
     public void testDeleteRequest_Anonymous()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testDeleteRequest_Anonymous", url, "", "" );
         ServerResponse resp = S2IOFacade.delete( url, null, monitor, "Monitor name" );
@@ -41,7 +48,6 @@ public class S2IOFacadeTest
     public void testPostRequest_Anonymous()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testPostRequest_Anonymous", url, "", "" );
         ServerResponse resp =
@@ -54,7 +60,6 @@ public class S2IOFacadeTest
     public void testPutRequest_Anonymous()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testPutRequest_Anonymous", url, "", "" );
         ServerResponse resp =
@@ -67,7 +72,6 @@ public class S2IOFacadeTest
     public void testHeadRequest_Anonymous_NotFound()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testHeadRequest_Anonymous_NotFound", url, "", "" );
         ServerResponse resp = S2IOFacade.head( url, null, monitor );
@@ -86,7 +90,6 @@ public class S2IOFacadeTest
     public void testDeleteRequest_Anonymous_NotFound()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testDeleteRequest_Anonymous_NotFound", url, "", "" );
         try
@@ -103,7 +106,6 @@ public class S2IOFacadeTest
     public void testHeadRequest_ValidUser()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         addRealmAndURL( "testHeadRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
@@ -114,7 +116,6 @@ public class S2IOFacadeTest
     public void testDeleteRequest_ValidUser()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         addRealmAndURL( "testDeleteRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.delete( address.toString(), null, monitor, "Monitor name" );
@@ -125,7 +126,6 @@ public class S2IOFacadeTest
     public void testPostRequest_ValidUser()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURED_NEW_FILE );
         addRealmAndURL( "testPostRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp =
@@ -138,7 +138,6 @@ public class S2IOFacadeTest
     public void testPutRequest_ValidUser()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURED_NEW_FILE );
         addRealmAndURL( "testPutRequest_ValidUser", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp =
@@ -151,7 +150,6 @@ public class S2IOFacadeTest
     public void testHeadRequest_ValidUser_NotFound()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + "/secured/missingFile.txt" );
         addRealmAndURL( "testHeadRequest_ValidUser_NotFound", address.toString(), VALID_USERNAME, PASSWORD );
         ServerResponse resp = S2IOFacade.head( address.toString(), null, monitor );
@@ -162,7 +160,6 @@ public class S2IOFacadeTest
     public void testDeleteRequest_ValidUser_NotFound()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + "/secured/missingFile.txt" );
         addRealmAndURL( "testDeleteRequest_ValidUser_NotFound", address.toString(), VALID_USERNAME, PASSWORD );
         try
@@ -179,14 +176,12 @@ public class S2IOFacadeTest
     public void testExists()
         throws Exception
     {
-        startHttpServer();
         assertTrue( S2IOFacade.exists( URI.create( server.getHttpUrl() + FILE_PATH ).toString(), monitor ) );
     }
 
     public void testExists_ValidUser()
         throws Exception
     {
-        startHttpServer();
         assertTrue( S2IOFacade.exists( URI.create( server.getHttpUrl() + FILE_PATH ).toString(), monitor ) );
     }
 
@@ -199,14 +194,12 @@ public class S2IOFacadeTest
     public void testExists_NotFound()
         throws Exception
     {
-        startHttpServer();
         assertFalse( S2IOFacade.exists( URI.create( server.getHttpUrl() + NEW_FILE ).toString(), monitor ) );
     }
 
     public void testExists_ValidUser_NotFound()
         throws Exception
     {
-        startHttpServer();
         assertFalse( S2IOFacade.exists( URI.create( server.getHttpUrl() + NEW_FILE ).toString(), monitor ) );
     }
 
@@ -226,13 +219,12 @@ public class S2IOFacadeTest
     // String url = server.getHttpUrl() + SECURE_FILE;
     // addRealmAndURL( "testHeadRequest_InvalidUser", url, "invalidusername", "invalidpassword" );
     // ServerResponse resp = S2IOFacade.head( url, null, monitor );
-    // assertEquals( "Unexpected HTTP status code", HttpStatus.UNAUTHORIZED_401, resp.getStatusCode() );
+    // assertEquals( "Unexpected HTTP status code", HttpURLConnection.HTTP_UNAUTHORIZED, resp.getStatusCode() );
     // }
 
     public void testOpenStream_Anonymous()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + FILE_PATH;
         addRealmAndURL( "testOpenStream_Anonymous", url, "", "" );
         assertEquals( "Content of stream differs from file", readstream( new FileInputStream( "resources/file.txt" ) ),
@@ -243,7 +235,6 @@ public class S2IOFacadeTest
     public void testOpenStream_Anonymous_NotFound()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testOpenStream_Anonymous_NotFound", url, "", "" );
         try
@@ -259,7 +250,6 @@ public class S2IOFacadeTest
     public void testOpenStream_ValidUser()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + SECURE_FILE;
         addRealmAndURL( "testOpenStream_ValidUser", url, VALID_USERNAME, PASSWORD );
         assertEquals( "Content of stream differs from file",
@@ -270,7 +260,6 @@ public class S2IOFacadeTest
     public void testOpenStream_ValidUser_NotFound()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + NEW_FILE;
         addRealmAndURL( "testOpenStream_ValidUser_NotFound", url, VALID_USERNAME, PASSWORD );
         try
@@ -286,7 +275,6 @@ public class S2IOFacadeTest
     public void testOpenStream_InvalidUser()
         throws Exception
     {
-        startHttpServer();
         String url = server.getHttpUrl() + SECURE_FILE;
         addRealmAndURL( "testOpenStream_InvalidUser", url, "invalidusername", "invalidpassword" );
         try
@@ -299,5 +287,19 @@ public class S2IOFacadeTest
             assertTrue( "Missing http status code",
                         e.getMessage().contains( String.valueOf( HttpURLConnection.HTTP_UNAUTHORIZED ) ) );
         }
+    }
+
+    @Override
+    public void configureProvider( ServerProvider provider )
+    {
+        provider().addAuthentication( "/secured/*", "BASIC" );
+        provider().addUser( VALID_USERNAME, PASSWORD );
+        super.configureProvider( provider );
+    }
+
+    public static TestSuite suite()
+        throws Exception
+    {
+        return Junit3SuiteConfiguration.suite( S2IOFacadeTest.class );
     }
 }

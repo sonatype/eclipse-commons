@@ -5,14 +5,23 @@ import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
+import junit.framework.TestSuite;
+
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.maven.ide.eclipse.authentication.AuthFacade;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.server.jetty.configurations.DefaultSuiteConfigurator;
+import org.sonatype.tests.http.server.jetty.configurations.SslSuiteConfigurator;
+import org.sonatype.tests.http.server.api.ServerProvider;
 
+@Configurators( { DefaultSuiteConfigurator.class, SslSuiteConfigurator.class } )
 public class UrlFetcherTest
     extends AbstractIOTest
 {
     private UrlFetcher fetcher;
 
+	@Override
     public void setUp()
         throws Exception
     {
@@ -26,7 +35,6 @@ public class UrlFetcherTest
     public void testHttpOpenstreamFileNotFound()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + "/nonExistentFile" );
         try
         {
@@ -45,7 +53,6 @@ public class UrlFetcherTest
     public void testHttpOpenstreamForbidden()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + SECURE_FILE );
         try
         {
@@ -64,7 +71,6 @@ public class UrlFetcherTest
     public void testHttpOpenStream()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         assertEquals( readstream( new FileInputStream( "resources/file.txt" ) ),
                      readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(),
@@ -77,7 +83,6 @@ public class UrlFetcherTest
     public void testHttpUsernameAndPasswordSent()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testUsernameAndPasswordSent", address.toString(), "username", "password" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -90,7 +95,6 @@ public class UrlFetcherTest
     public void testHttpUsernameOnly()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testUsernameOnly", address.toString(), "username", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -103,7 +107,6 @@ public class UrlFetcherTest
     public void testHttpPasswordOnly()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testPasswordOnly", address.toString(), "", "password" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -116,7 +119,6 @@ public class UrlFetcherTest
     public void testHttpAnonymous()
         throws Exception
     {
-        startHttpServer();
         URI address = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testAnonymous", address.toString(), "", "" );
         readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
@@ -133,5 +135,19 @@ public class UrlFetcherTest
         assertEquals( readstream( new FileInputStream( "resources/file.txt" ) ),
                       readstream( fetcher.openStream( new File( RESOURCES, "file.txt" ).toURI(), monitor,
                                                       AuthFacade.getAuthService(), null ) ) );
+    }
+
+    @Override
+    public void configureProvider( ServerProvider provider )
+    {
+        provider().addAuthentication( "/secured/*", "BASIC" );
+        provider().addUser( VALID_USERNAME, PASSWORD );
+        super.configureProvider( provider );
+    }
+
+    public static TestSuite suite()
+        throws Exception
+    {
+        return Junit3SuiteConfiguration.suite( UrlFetcherTest.class );
     }
 }

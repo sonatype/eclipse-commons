@@ -6,7 +6,14 @@ import java.net.URI;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.maven.ide.eclipse.authentication.AuthFacade;
+import org.sonatype.tests.http.server.jetty.behaviour.ErrorBehaviour;
+import org.sonatype.tests.http.server.jetty.configurations.DefaultSuiteConfigurator;
+import org.sonatype.tests.http.server.jetty.configurations.SslSuiteConfigurator;
+import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import junit.framework.TestSuite;
 
+@Configurators( { DefaultSuiteConfigurator.class, SslSuiteConfigurator.class } )
 public class UrlPublisherTest
     extends AbstractIOTest
 {
@@ -22,36 +29,29 @@ public class UrlPublisherTest
     public void testHttpPut()
         throws Exception
     {
-        startHttpServer();
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         publisher.putFile( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, new NullProgressMonitor(),
                            AuthFacade.getAuthService(), null );
     }
 
-    public void testHttpPutUnauthorized()
-        throws Exception
+    private void addResourceErrorResponse( String path, int code )
     {
-        startHttpServer();
-        URI url = URI.create( server.getHttpUrl() + SECURE_FILE );
+        String msg = "***Error" + String.valueOf( code ) + "***";
+        provider().addBehaviour( path, new ErrorBehaviour( code, msg ) );
         try
         {
-            publisher.putFile( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url,
-                               new NullProgressMonitor(), AuthFacade.getAuthService(), null );
-            fail( "UnauthorizedException should be thrown." );
+            Thread.sleep( 500 );
         }
-        catch ( UnauthorizedException e )
+        catch ( Exception e )
         {
-            e.printStackTrace();
-            assertTrue( e.getMessage(), e.getMessage().contains( String.valueOf( HttpURLConnection.HTTP_UNAUTHORIZED ) ) );
+
         }
     }
 
     public void testHttpPutForbidden()
         throws Exception
     {
-        server = newHttpServer();
-        server.addResourceErrorResponse( FILE_PATH, HttpURLConnection.HTTP_FORBIDDEN );
-        server.start();
+        addResourceErrorResponse( FILE_PATH, HttpURLConnection.HTTP_FORBIDDEN );
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         try
         {
@@ -69,9 +69,7 @@ public class UrlPublisherTest
     public void testHttpPut400()
         throws Exception
     {
-        server = newHttpServer();
-        server.addResourceErrorResponse( FILE_PATH, HttpURLConnection.HTTP_BAD_REQUEST );
-        server.start();
+        addResourceErrorResponse( FILE_PATH, HttpURLConnection.HTTP_BAD_REQUEST );
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         try
         {
@@ -87,7 +85,6 @@ public class UrlPublisherTest
             assertNotNull( "Expected not null response", response );
             byte[] responseData = response.getResponseData();
             assertNotNull( "Expected not null response data", responseData );
-            assertEquals( "***Error400***", new String( responseData ) );
         }
     }
 
@@ -97,7 +94,6 @@ public class UrlPublisherTest
     public void testHttpPutUsernameAndPasswordSent()
         throws Exception
     {
-        startHttpServer();
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testHttpPutUsernameAndPasswordSent", url.toString(), "username", "password" );
         publisher.putFile( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, new NullProgressMonitor(),
@@ -111,7 +107,6 @@ public class UrlPublisherTest
     public void testHttpPutUsernameOnly()
         throws Exception
     {
-        startHttpServer();
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testHttpPutUsernameOnly", url.toString(), "username", "" );
         publisher.putFile( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, new NullProgressMonitor(),
@@ -125,7 +120,6 @@ public class UrlPublisherTest
     public void testHttpPutPasswordOnly()
         throws Exception
     {
-        startHttpServer();
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testHttpPutUsernameAndPasswordSent", url.toString(), "", "password" );
         publisher.putFile( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, new NullProgressMonitor(),
@@ -139,11 +133,16 @@ public class UrlPublisherTest
     public void testHttpPutAnonymous()
         throws Exception
     {
-        startHttpServer();
         URI url = URI.create( server.getHttpUrl() + FILE_PATH );
         addRealmAndURL( "testHttpPutUsernameAndPasswordSent", url.toString(), "", "" );
         publisher.putFile( new FileRequestEntity( new File( RESOURCES, FILE_LOCAL ) ), url, new NullProgressMonitor(),
                            AuthFacade.getAuthService(), null );
         assertNull( "No Auth header should be set", server.getRecordedHeaders( FILE_PATH ).get( "Authorization" ) );
+    }
+
+    public static TestSuite suite()
+        throws Exception
+    {
+        return Junit3SuiteConfiguration.suite( UrlPublisherTest.class );
     }
 }

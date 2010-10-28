@@ -4,11 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
-
-import junit.framework.TestCase;
 
 import org.eclipse.core.internal.net.ProxyData;
 import org.eclipse.core.net.proxy.IProxyData;
@@ -22,21 +22,92 @@ import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.io.internal.S2IOPlugin;
 import org.maven.ide.eclipse.tests.common.HttpServer;
 import org.osgi.util.tracker.ServiceTracker;
+import org.sonatype.tests.http.runner.AbstractSuiteConfiguration;
+import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.server.jetty.behaviour.Record;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Delete;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Get;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Head;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Post;
+import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Put;
+import org.sonatype.tests.http.server.api.ServerProvider;
 
 import com.ning.http.util.Base64;
 
+/**
+ * Basic test class.
+ * <p>
+ * The purpose of the http-testing-harness is executing the exact same test cases in different server environments.
+ * </p>
+ * <p>
+ * Instead of having a method to set up a server instance that is called before every test method, the server set up is
+ * handled by {@link Configurators} annotated at the test class. The super class (*SuiteConfiguration) handles start,
+ * stop and configuration of the behavior of server instances.
+ * </p>
+ * <p>
+ * The server instances can be configured by providing behaviors that may be chained for a pathspec. They are called
+ * from within a Servlet and may act accordingly. Overwrite
+ * {@link Junit3SuiteConfiguration#configureProvider(ServerProvider)} for a central configuration, although single test
+ * methods may add behavior as well.
+ * </p>
+ * <p>
+ * For JUnit3, every class has to inherit from 'Junit3ServerConfiguration' and provide a static suite-method that
+ * delegates to {@link Junit3SuiteConfiguration#suite(Class)}.
+ * </p>
+ * 
+ * @see AbstractSuiteConfiguration
+ * @see Configurators
+ * @see Junit3SuiteConfiguration#suite(Class)
+ * @see ServerProvider#addBehaviour(String, org.sonatype.tests.http.server.api.Behaviour...)
+ * @see ServerProvider#addAuthentication(String, String)
+ * @see ServerProvider#addUser(String, Object)
+ */
 public abstract class AbstractIOTest
-    extends TestCase
+    extends Junit3SuiteConfiguration
 {
+    protected class ServerProviderWrapper
+    {
+
+        private final ServerProvider provider;
+
+        public ServerProviderWrapper( ServerProvider provider )
+        {
+            this.provider = provider;
+        }
+
+        public URL getHttpUrl()
+        {
+            try
+            {
+                return provider.getUrl();
+            }
+            catch ( MalformedURLException e )
+            {
+                throw new IllegalStateException( "ServerProvider was not correctly initialized: " + e.getMessage(), e );
+            }
+        }
+
+        public Map<String, String> getRecordedHeaders( String filePath )
+        {
+            return recorder.getRequestHeaders().get( filePath );
+        }
+
+        public List<String> getRecordedRequests()
+        {
+            return recorder.getRequests();
+        }
+    }
+
     protected static final IProgressMonitor monitor = new NullProgressMonitor();
 
     /*
      * Password for secure remote server paths
      */
     protected static final String PASSWORD = "password";
-    
+
     protected static final String KEY_PASSWORD = "keypwd";
-    
+
     protected static final String STORE_PASSWORD = "storepwd";
 
     /*
@@ -76,22 +147,24 @@ public abstract class AbstractIOTest
 
     private static final String AUTH_TYPE = "Basic ";
 
-    protected HttpServer server;
+    protected ServerProviderWrapper server;
 
-	protected ServiceTracker proxyServiceTracker;
-    
+    protected Record recorder;
+
+    protected ServiceTracker proxyServiceTracker;
+
     @Override
-    protected void setUp() throws Exception {
-    	
-    	System.out.println( "TEST-SETUP: " + getName() );
+    public void setUp()
+        throws Exception
+    {
 
         super.setUp();
-        
+
         proxyServiceTracker =
-            new ServiceTracker( S2IOPlugin.getDefault().getBundle().getBundleContext(),
-                                IProxyService.class.getName(), null );
+            new ServiceTracker( S2IOPlugin.getDefault().getBundle().getBundleContext(), IProxyService.class.getName(),
+                                null );
         proxyServiceTracker.open();
-        
+
         resetProxies();
     }
 
@@ -101,10 +174,11 @@ public abstract class AbstractIOTest
     {
         AuthFacade.getAuthRegistry().clear();
 
-        if ( server != null )
+        if ( provider() != null )
         {
-            server.stop();
+            provider().stop();
         }
+
         File tmp = new File( RESOURCES, NEW_FILE.substring( 1 ) );
         if ( tmp.exists() )
         {
@@ -115,7 +189,7 @@ public abstract class AbstractIOTest
         {
             tmp.delete();
         }
-        
+
         resetProxies();
 
         if ( proxyServiceTracker != null )
@@ -123,25 +197,6 @@ public abstract class AbstractIOTest
             proxyServiceTracker.close();
             proxyServiceTracker = null;
         }
-    }
-    
-    protected void startHttpServer() throws Exception {
-    	server = newHttpServer();
-    	server.start();
-    }
-
-    protected HttpServer newHttpServer()
-        throws Exception
-    {
-        server = new HttpServer();
-        server.setHttpsPort(0);
-        server.addUser( VALID_USERNAME, PASSWORD, VALID_USERNAME );
-        server.addSecuredRealm( "/secured/*", VALID_USERNAME );
-        server.addResources( "/", "resources" );
-        server.enableRecording( "/.*" );
-        server.setStorePassword(STORE_PASSWORD);
-        server.setKeyStore("resources/ssl/keystore", KEY_PASSWORD);
-        return server;
     }
 
     /**
@@ -171,7 +226,9 @@ public abstract class AbstractIOTest
                 builder.append( new String( buffer, 0, size ) );
             }
             if ( size != -1 )
+            {
                 builder.append( new String( buffer, 0, size ) );
+            }
             return builder.toString();
         }
         finally
@@ -206,52 +263,67 @@ public abstract class AbstractIOTest
         assertNotNull( "Authentication header was null", authHeader );
         assertTrue( "Authentication should be type: " + AUTH_TYPE, authHeader.startsWith( AUTH_TYPE ) );
 
-        String decoded = new String(Base64.decode( authHeader.substring( AUTH_TYPE.length() )));
+        String decoded = new String( Base64.decode( authHeader.substring( AUTH_TYPE.length() ) ) );
         assertEquals( "Username does not match", username, decoded.substring( 0, decoded.indexOf( ':' ) ) );
         assertEquals( "Password does not match", password, decoded.substring( decoded.indexOf( ':' ) + 1 ) );
     }
-    
-    protected void setProxy( String host, int port, boolean ssl, String username, String password )
-    throws Exception
-	{
-	    IProxyService proxyService = getProxyService();
-	    assertNotNull(proxyService);
-	    
-        @SuppressWarnings("restriction")
-		IProxyData data =
-            new ProxyData( ssl ? IProxyData.HTTPS_PROXY_TYPE : IProxyData.HTTP_PROXY_TYPE, host, port, (username != null), null);
-        data.setUserid(username);
-        data.setPassword(password);
-        proxyService.setProxyData( new IProxyData[] { data } );
-    
-	}
-    
-    protected void resetProxies()
-    throws Exception
-	{
-	    IProxyService proxyService = getProxyService();
-	    if ( proxyService != null )
-	    {
-	        proxyService.setSystemProxiesEnabled( false );
-	        proxyService.setNonProxiedHosts( new String[0] );
-	        proxyService.setProxyData( new IProxyData[] { new ProxyData( IProxyData.HTTP_PROXY_TYPE ),
-	            new ProxyData( IProxyData.HTTPS_PROXY_TYPE ) } );
-	    }
-	}
 
-    
+    @Override
+    public void configureProvider( ServerProvider provider )
+    {
+        super.configureProvider( provider );
+        recorder = new Record();
+        String fsPath = "resources";
+        provider().addBehaviour( "/*", recorder, new Get( fsPath ), new Post( fsPath ), new Put( fsPath ),
+                                 new Head( fsPath ), new Delete( fsPath ) );
+        server = new ServerProviderWrapper( provider() );
+    }
+
+    protected void setProxy( String host, int port, boolean ssl, String username, String password )
+        throws Exception
+    {
+        IProxyService proxyService = getProxyService();
+        assertNotNull( proxyService );
+
+        @SuppressWarnings( "restriction" )
+        IProxyData data =
+            new ProxyData( ssl ? IProxyData.HTTPS_PROXY_TYPE : IProxyData.HTTP_PROXY_TYPE, host, port,
+                           ( username != null ), null );
+        data.setUserid( username );
+        data.setPassword( password );
+        proxyService.setProxyData( new IProxyData[] { data } );
+    }
+
+    protected void resetProxies()
+        throws Exception
+    {
+        IProxyService proxyService = getProxyService();
+        if ( proxyService != null )
+        {
+            proxyService.setSystemProxiesEnabled( false );
+            proxyService.setNonProxiedHosts( new String[0] );
+
+            @SuppressWarnings( "restriction" )
+            IProxyData[] data =
+                new IProxyData[] { new ProxyData( IProxyData.HTTP_PROXY_TYPE ),
+                    new ProxyData( IProxyData.HTTPS_PROXY_TYPE ) };
+
+            proxyService.setProxyData( data );
+        }
+    }
+
     protected IProxyService getProxyService()
     {
         return ( proxyServiceTracker != null ) ? (IProxyService) proxyServiceTracker.getService() : null;
     }
-    
+
     protected void setNonProxiedHosts( String... hosts )
-    throws Exception
-	{
-	    IProxyService proxyService = getProxyService();
-	    if ( proxyService != null )
-	    {
-	        proxyService.setNonProxiedHosts( hosts );
-	    }
-	}
+        throws Exception
+    {
+        IProxyService proxyService = getProxyService();
+        if ( proxyService != null )
+        {
+            proxyService.setNonProxiedHosts( hosts );
+        }
+    }
 }
