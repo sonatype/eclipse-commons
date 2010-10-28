@@ -147,12 +147,13 @@ public class HttpPublisher
         Throwable exception = handler.getException();
         if ( exception != null )
         {
-            if (exception instanceof IOException) {
+            if ( exception instanceof IOException )
+            {
                 throw (IOException) exception;
             }
             throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
         }
-        if ( unknownException != null ) 
+        if ( unknownException != null )
         {
             throw unknownException;
         }
@@ -242,11 +243,6 @@ public class HttpPublisher
             throws Exception
         {
             this.responseStatus = responseStatus.getStatusCode();
-            Throwable error = getStatusException( uri.toString(), responseStatus );
-            if ( error != null )
-            {
-                mos.setException( error );
-            }
             return handleStatus( responseStatus );
         }
 

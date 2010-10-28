@@ -9,12 +9,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public class MonitoredOutputStream
     extends FilterOutputStream
 {
-
     private IProgressMonitor monitor;
 
     private int length = IProgressMonitor.UNKNOWN;
-
-    private Throwable exception;
 
     private boolean started = false;
 
@@ -36,20 +33,6 @@ public class MonitoredOutputStream
     public void setLength( int length )
     {
         this.length = length;
-    }
-
-    /**
-     * Sets the exception for this stream. If an exception is present when write() is called, it will be thrown. This
-     * exception can only be set once. Subsequent calls will be ignored.
-     * 
-     * @param exception to exception to be thrown if write() is called
-     */
-    public void setException( Throwable exception )
-    {
-        if ( this.exception == null )
-        {
-            this.exception = exception;
-        }
     }
     
     /**
@@ -79,8 +62,6 @@ public class MonitoredOutputStream
         
         super.write( b );
         
-        checkForError();
-        
         if ( monitor != null )
         {
             if ( !started )
@@ -98,22 +79,6 @@ public class MonitoredOutputStream
         if ( monitor != null && monitor.isCanceled() )
         {
             throw new IOException( "Transfer has been cancelled" );
-        }
-    }
-
-    private void checkForError()
-        throws IOException
-    {
-        if ( exception != null )
-        {
-            if ( exception instanceof IOException )
-            {
-                throw (IOException) exception;
-            }
-            else
-            {
-                throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
-            }
         }
     }
 }
