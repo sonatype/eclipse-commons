@@ -40,7 +40,7 @@ public class UrlFetcherTest
     }
 
     /*
-     * Tests the error thrown when a user does not have perission to access a file.
+     * Tests the error thrown when a user does not have permission to access a file.
      */
     public void testHttpOpenstreamForbidden()
         throws Exception
