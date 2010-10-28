@@ -107,10 +107,14 @@ public abstract class AbstractIOTest
         }
         File tmp = new File( RESOURCES, NEW_FILE.substring( 1 ) );
         if ( tmp.exists() )
+        {
             tmp.delete();
+        }
         tmp = new File( RESOURCES, SECURED_NEW_FILE.substring( 1 ) );
         if ( tmp.exists() )
+        {
             tmp.delete();
+        }
         
         resetProxies();
 
