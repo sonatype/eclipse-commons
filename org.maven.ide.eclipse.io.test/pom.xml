@@ -24,7 +24,7 @@
           <useUIHarness>false</useUIHarness>
           <argLine>${tycho.test.jvmArgs}</argLine>
           <appArgLine>-eclipse.keyring target/keyring -eclipse.password resources/secure-storage-password.txt -pluginCustomization ${basedir}/plugin_customization.ini</appArgLine>
-          <forkedProcessTimeoutInSeconds>180</forkedProcessTimeoutInSeconds>
+          <forkedProcessTimeoutInSeconds>360</forkedProcessTimeoutInSeconds>
         </configuration>
       </plugin>
     </plugins>
