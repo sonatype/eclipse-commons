@@ -270,12 +270,17 @@ public class HttpBaseSupport
         public void close()
             throws IOException
         {
-            if ( client != null )
+            try
             {
-                client.close();
+                if ( client != null )
+                {
+                    client.close();
+                }
             }
-            super.close();
-
+            finally
+            {
+                super.close();
+            }
         }
 
         public String getEncoding()

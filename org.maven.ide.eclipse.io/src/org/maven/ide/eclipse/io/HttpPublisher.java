@@ -68,123 +68,129 @@ public class HttpPublisher
         AsyncHttpClientConfig conf = confBuilder.build();
 
         AsyncHttpClient httpClient = new AsyncHttpClient( conf );
-        FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
-
-        BoundRequestBuilder requestBuilder = null;
-
-        String url = uri.toString();
-        if ( "PUT".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.preparePut( url );
-        }
-        else if ( "POST".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.preparePost( url );
-        }
-        else if ( "DELETE".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.prepareDelete( url );
-        }
-        else if ( "HEAD".equals( httpMethod ) )
-        {
-            requestBuilder = httpClient.prepareHead( url );
-        }
-        else
-        {
-            throw new RuntimeException( "Support for http method '" + httpMethod + "' not implemented." );
-        }
-
-        requestBuilder.setRealm( realm ).setProxyServer( proxyServer );
-
-        PushAsyncHandler handler = null;
-
-        if ( file != null )
-        {
-            InputStream is = file.getContent();
-
-            MonitoredInputStream mis = new MonitoredInputStream( is, SubMonitor.convert( monitor ) );
-            if ( monitorSubtaskName == null )
-            {
-                monitorSubtaskName = "Uploading file " + file.getName();
-            }
-            mis.setName( monitorSubtaskName );
-            mis.setLength( (int) file.getContentLength() );
-
-            headers.add( "Content-Length", Long.toString( file.getContentLength() ) );
-            if ( file.getContentType() != null )
-            {
-                headers.add( "Content-Type", file.getContentType() );
-            }
-
-            requestBuilder.setBody( mis );
-        }
-        handler = new PushAsyncHandler( uri, monitor, "Receiving response" );
-
-        // What's this for? (from previous Jetty code)
-        // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
-
-        requestBuilder.setHeaders( headers );
-
-        IOException unknownException = null;
-        Future<String> future = requestBuilder.execute( handler );
         try
         {
-            future.get();
-        }
-        catch ( InterruptedException e )
-        {
-            throw new IOException( "Transfer was interrupted" );
-        }
-        catch ( ExecutionException e )
-        {
-            /*
-             * Delay throwing this exception, as exceptions from the server get caught here and we don't need to wrap them up.
-             * Handler already knows about them.
-             */
-            unknownException = (IOException) new IOException().initCause( e );
-        }
+            FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
 
-        Throwable exception = handler.getException();
-        if ( exception != null )
-        {
-            if ( exception instanceof IOException )
+            BoundRequestBuilder requestBuilder = null;
+
+            String url = uri.toString();
+            if ( "PUT".equals( httpMethod ) )
             {
-                throw (IOException) exception;
+                requestBuilder = httpClient.preparePut( url );
             }
-            throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
-        }
-        if ( unknownException != null )
-        {
-            throw unknownException;
-        }
-
-        ServerResponse response =
-            new ServerResponse( handler.getResponseStatus(), handler.getResponseContentBytes(), handler.getEncoding() );
-
-        if ( statusException )
-        {
-            int status = handler.getResponseStatus();
-            switch ( status )
+            else if ( "POST".equals( httpMethod ) )
             {
-                case HttpURLConnection.HTTP_OK:
-                case HttpURLConnection.HTTP_CREATED:
-                case HttpURLConnection.HTTP_ACCEPTED:
-                case HttpURLConnection.HTTP_NO_CONTENT:
-                    break;
-                case HttpURLConnection.HTTP_UNAUTHORIZED:
-                    throw new UnauthorizedException( "HTTP status code " + status + ": Unauthorized: " + uri );
-                case HttpURLConnection.HTTP_FORBIDDEN:
-                    throw new ForbiddenException( "HTTP status code " + status + ": Forbidden: " + uri );
-                case HttpURLConnection.HTTP_NOT_FOUND:
-                    throw new NotFoundException( "HTTP status code " + status + ": Not Found: " + uri );
-                default:
-                    throw new TransferException( "HTTP status code " + status + ": " + uri, response, null );
+                requestBuilder = httpClient.preparePost( url );
             }
+            else if ( "DELETE".equals( httpMethod ) )
+            {
+                requestBuilder = httpClient.prepareDelete( url );
+            }
+            else if ( "HEAD".equals( httpMethod ) )
+            {
+                requestBuilder = httpClient.prepareHead( url );
+            }
+            else
+            {
+                throw new RuntimeException( "Support for http method '" + httpMethod + "' not implemented." );
+            }
+
+            requestBuilder.setRealm( realm ).setProxyServer( proxyServer );
+
+            PushAsyncHandler handler = null;
+
+            if ( file != null )
+            {
+                InputStream is = file.getContent();
+
+                MonitoredInputStream mis = new MonitoredInputStream( is, SubMonitor.convert( monitor ) );
+                if ( monitorSubtaskName == null )
+                {
+                    monitorSubtaskName = "Uploading file " + file.getName();
+                }
+                mis.setName( monitorSubtaskName );
+                mis.setLength( (int) file.getContentLength() );
+
+                headers.add( "Content-Length", Long.toString( file.getContentLength() ) );
+                if ( file.getContentType() != null )
+                {
+                    headers.add( "Content-Type", file.getContentType() );
+                }
+
+                requestBuilder.setBody( mis );
+            }
+            handler = new PushAsyncHandler( monitor, "Receiving response" );
+
+            // What's this for? (from previous Jetty code)
+            // httpClient.registerListener( "org.eclipse.jetty.client.webdav.WebdavListener" );
+
+            requestBuilder.setHeaders( headers );
+
+            IOException unknownException = null;
+            Future<String> future = requestBuilder.execute( handler );
+            try
+            {
+                future.get();
+            }
+            catch ( InterruptedException e )
+            {
+                throw new IOException( "Transfer was interrupted" );
+            }
+            catch ( ExecutionException e )
+            {
+                /*
+                 * Delay throwing this exception, as exceptions from the server get caught here and we don't need to
+                 * wrap them up. Handler already knows about them.
+                 */
+                unknownException = (IOException) new IOException().initCause( e );
+            }
+
+            Throwable exception = handler.getException();
+            if ( exception != null )
+            {
+                if ( exception instanceof IOException )
+                {
+                    throw (IOException) exception;
+                }
+                throw (IOException) new IOException( exception.getMessage() ).initCause( exception );
+            }
+            if ( unknownException != null )
+            {
+                throw unknownException;
+            }
+
+            ServerResponse response =
+                new ServerResponse( handler.getResponseStatus(), handler.getResponseContentBytes(),
+                                    handler.getEncoding() );
+
+            if ( statusException )
+            {
+                int status = handler.getResponseStatus();
+                switch ( status )
+                {
+                    case HttpURLConnection.HTTP_OK:
+                    case HttpURLConnection.HTTP_CREATED:
+                    case HttpURLConnection.HTTP_ACCEPTED:
+                    case HttpURLConnection.HTTP_NO_CONTENT:
+                        break;
+                    case HttpURLConnection.HTTP_UNAUTHORIZED:
+                        throw new UnauthorizedException( "HTTP status code " + status + ": Unauthorized: " + uri );
+                    case HttpURLConnection.HTTP_FORBIDDEN:
+                        throw new ForbiddenException( "HTTP status code " + status + ": Forbidden: " + uri );
+                    case HttpURLConnection.HTTP_NOT_FOUND:
+                        throw new NotFoundException( "HTTP status code " + status + ": Not Found: " + uri );
+                    default:
+                        throw new TransferException( "HTTP status code " + status + ": " + uri, response, null );
+                }
+            }
+
+            return response;
         }
-
-        httpClient.close();
-
-        return response;
+        finally
+        {
+            httpClient.close();
+        }
     }
 
     private final class PushAsyncHandler
@@ -192,19 +198,16 @@ public class HttpPublisher
     {
         private final MonitoredOutputStream mos;
 
-        private URI uri;
-
         private Throwable exception;
 
         private ByteArrayOutputStream baos = new ByteArrayOutputStream( 1024 );
 
         private int responseStatus;
 
-        private PushAsyncHandler( URI uri, IProgressMonitor monitor, String taskName )
+        private PushAsyncHandler( IProgressMonitor monitor, String taskName )
         {
             this.mos = new MonitoredOutputStream( baos, monitor );
             mos.setName( taskName );
-            this.uri = uri;
         }
 
         public byte[] getResponseContentBytes()
