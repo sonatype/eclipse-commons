@@ -31,7 +31,7 @@ public class HttpBaseSupport
 
     private final Logger log = LoggerFactory.getLogger( HttpBaseSupport.class );
 
-    protected int timeout = 30 * 1000;
+    private static final int DEFAULT_TIMEOUT = 30 * 1000;
 
     protected Realm realm = null;
 
@@ -55,11 +55,11 @@ public class HttpBaseSupport
     {
         if ( timeoutInMilliseconds == null )
         {
-            timeoutInMilliseconds = timeout;
+            timeoutInMilliseconds = DEFAULT_TIMEOUT;
         }
 
         AsyncHttpClientConfig.Builder confBuilder =
-            new AsyncHttpClientConfig.Builder().setIdleConnectionTimeoutInMs( timeoutInMilliseconds ).setCompressionEnabled( true );
+            new AsyncHttpClientConfig.Builder().setRequestTimeoutInMs( timeoutInMilliseconds ).setCompressionEnabled( true );
 
         IProxyData proxy = selectProxy( url, proxyService );
         if ( proxy != null && proxy.getHost() != null )
