@@ -1,7 +1,5 @@
 package org.maven.ide.eclipse.io;
 
-import java.io.IOException;
-
 import org.maven.ide.eclipse.tests.common.HttpServer;
 
 public class TimeoutTest
@@ -20,44 +18,28 @@ public class TimeoutTest
     public void testNoTimeout_UseDefaultTimeout()
         throws Exception
     {
-        tryHead( 28000, null ); // 28 seconds should be fine (default timeout is 30)
+        tryHead( 28000, null, false ); // 28 seconds should be fine (default timeout is 30)
     }
 
     public void testTimeout_UseDefaultTimeout()
         throws Exception
     {
-        try
-        {
-            tryHead( 35000, null ); // 32 seconds should be too much (default timeout is 30)
-            fail("Request is expected to time out");
-        }
-        catch ( IOException e )
-        {
-            assertTrue( e.getMessage().toLowerCase().contains("connection timed out") );
-        }
+        tryHead( 35000, null, true ); // 35 seconds should be too much (default timeout is 30)
     }
 
     public void testNoTimeout_UseNonDefaultTimeout()
         throws Exception
     {
-        tryHead( 63000, 65000 );
+        tryHead( 63000, 65000, false );
     }
 
     public void testTimeout_UseNonDefaultTimeout()
         throws Exception
     {
-        try
-        {
-            tryHead( 65000, 63000 );
-            fail( "Request is expected to time out" );
-        }
-        catch ( IOException e )
-        {
-            assertTrue( e.getMessage().toLowerCase().contains( "connection timed out" ) );
-        }
+        tryHead( 65000, 63000, true );
     }
 
-    private void tryHead( long latency, Integer timeout )
+    private void tryHead( long latency, Integer timeout, boolean expectTimeout )
         throws Exception
     {
         startHttpServer( latency );
@@ -67,26 +49,30 @@ public class TimeoutTest
             S2IOFacade.head( server.getHttpUrl() + "/file.txt", timeout, monitor );
             long execTime = System.currentTimeMillis() - start;
             System.out.println( "Request finished in " + execTime + " ms" );
-            assertTrue( "Request finished in " + execTime + " ms", execTime >= latency && execTime < latency + 2000 );
+            if ( expectTimeout )
+            {
+                fail( "Expected timeout exception" );
+            }
+            assertTrue( "Request succeeded in " + execTime + " ms", execTime >= latency && execTime < latency + 2000 );
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
             long execTime = System.currentTimeMillis() - start;
+            System.out.println( "Request failed in " + execTime + " ms" );
+            if ( !expectTimeout )
+            {
+                throw e;
+            }
             if ( !e.getMessage().toLowerCase().contains( "connection timed out" ) )
             {
                 throw e;
             }
+            // We got the expected timeout exception
             if ( timeout == null )
             {
                 timeout = 30000; // The default timeout
             }
-            System.out.println( "Request failed in " + execTime + " ms" );
             assertTrue( "Request failed in " + execTime + " ms", execTime >= timeout && execTime < timeout + 2000 );
-            throw e;
-        }
-        finally
-        {
-            System.out.println( "Request finished after " + ( System.currentTimeMillis() - start ) + " ms" );
         }
     }
 }
