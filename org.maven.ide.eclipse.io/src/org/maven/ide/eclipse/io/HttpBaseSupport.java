@@ -58,6 +58,7 @@ public class HttpBaseSupport
             timeoutInMilliseconds = DEFAULT_TIMEOUT;
         }
 
+        log.debug( "Using timeout={} ms", timeoutInMilliseconds );
         AsyncHttpClientConfig.Builder confBuilder =
             new AsyncHttpClientConfig.Builder().setRequestTimeoutInMs( timeoutInMilliseconds ).setCompressionEnabled( true );
 

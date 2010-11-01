@@ -78,7 +78,7 @@ public class TimeoutTest
         }
     }
 
-    private boolean isTimeoutException( Exception e )
+    private boolean isTimeoutException( Throwable e )
     {
         while ( e != null )
         {
@@ -86,6 +86,7 @@ public class TimeoutTest
             {
                 return true;
             }
+            e = e.getCause();
         }
         return false;
     }
