@@ -1,5 +1,7 @@
 package org.maven.ide.eclipse.io;
 
+import java.util.concurrent.TimeoutException;
+
 import org.maven.ide.eclipse.tests.common.HttpServer;
 
 public class TimeoutTest
@@ -30,13 +32,13 @@ public class TimeoutTest
     public void testNoTimeout_UseNonDefaultTimeout()
         throws Exception
     {
-        tryHead( 63000, 65000, false );
+        tryHead( 65000, 70000, false );
     }
 
     public void testTimeout_UseNonDefaultTimeout()
         throws Exception
     {
-        tryHead( 65000, 63000, true );
+        tryHead( 70000, 65000, true );
     }
 
     private void tryHead( long latency, Integer timeout, boolean expectTimeout )
@@ -48,7 +50,7 @@ public class TimeoutTest
         {
             S2IOFacade.head( server.getHttpUrl() + "/file.txt", timeout, monitor );
             long execTime = System.currentTimeMillis() - start;
-            System.out.println( "Request finished in " + execTime + " ms" );
+            System.out.println( "Request succeeded in " + execTime + " ms" );
             if ( expectTimeout )
             {
                 fail( "Expected timeout exception" );
@@ -63,7 +65,7 @@ public class TimeoutTest
             {
                 throw e;
             }
-            if ( !e.getMessage().toLowerCase().contains( "connection timed out" ) )
+            if ( !isTimeoutException( e ) )
             {
                 throw e;
             }
@@ -74,5 +76,17 @@ public class TimeoutTest
             }
             assertTrue( "Request failed in " + execTime + " ms", execTime >= timeout && execTime < timeout + 2000 );
         }
+    }
+
+    private boolean isTimeoutException( Exception e )
+    {
+        while ( e != null )
+        {
+            if ( e instanceof TimeoutException )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
