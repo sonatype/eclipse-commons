@@ -78,7 +78,7 @@ public class TimeoutTest
         }
     }
 
-    private boolean isTimeoutException( Throwable e )
+    public static boolean isTimeoutException( Throwable e )
     {
         while ( e != null )
         {

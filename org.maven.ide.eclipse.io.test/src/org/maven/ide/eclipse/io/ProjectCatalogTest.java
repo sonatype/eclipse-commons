@@ -1,7 +1,6 @@
 package org.maven.ide.eclipse.io;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.channels.UnresolvedAddressException;
 
@@ -142,12 +141,17 @@ public class ProjectCatalogTest extends AbstractIOTest {
 
         String catalogUrl = server.getHttpUrl() + "/catalogs/basic/catalog.xml";
 
-        try {
-        	readstream(S2IOFacade.openStream(catalogUrl, new NullProgressMonitor()));
-        	fail("Exception not thrown");
-        } catch (IOException e) {
-        	assertTrue(e.getMessage() != null);
-        	assertTrue(e.getMessage().contains("Connection timed out"));
+        try
+        {
+            readstream( S2IOFacade.openStream( catalogUrl, new NullProgressMonitor() ) );
+            fail( "Exception not thrown" );
+        }
+        catch ( Exception e )
+        {
+            if ( !TimeoutTest.isTimeoutException( e ) )
+            {
+                throw e;
+            }
         }
     }
     
