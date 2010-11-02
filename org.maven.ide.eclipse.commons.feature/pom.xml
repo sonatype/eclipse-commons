@@ -74,7 +74,7 @@
 
                   <serverId>sonatype-commercial</serverId>
                   <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>eclipse-commons/${unqualifiedVersion}/N/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
+                  <repositoryPath>eclipse-commons/${unqualifiedVersion}/S/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
                 </configuration>
               </execution>
             </executions>
