@@ -17,6 +17,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -67,6 +68,8 @@ abstract public class RemoteResourceLookupPage
     private SwtValidationGroup okButtonGroup;
     
     private SwtValidationGroup rootGroup;
+
+	private boolean initial = true;
 
     public RemoteResourceLookupPage( String serverUrl )
     {
@@ -125,13 +128,26 @@ abstract public class RemoteResourceLookupPage
         setControl( panel );
 
         rootGroup.performValidation();
-        if ( serverUrl != null )
-        {
-            reload( true );
-        }
     }
 
-    protected UrlInputComposite createUrlInputComposite( Composite parent )
+    @Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		//MECLIPSE-1935 - have the loading delayed until the page is visible
+		if (visible && initial ) {
+			initial = false;
+	        if ( serverUrl != null )
+	        {
+	        	Display.getCurrent().asyncExec(new Runnable() {
+					public void run() {
+			            reload( true );
+					}
+				});
+	        }
+		}
+	}
+
+	protected UrlInputComposite createUrlInputComposite( Composite parent )
     {
         return new UrlInputComposite( parent, null, getLoadButtonValidationGroup(), UrlInputComposite.ALLOW_ANONYMOUS );
     }
