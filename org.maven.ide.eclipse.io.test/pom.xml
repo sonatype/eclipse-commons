@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.maven.ide.eclipse.commons</groupId>
     <artifactId>eclipse-commons-parent</artifactId>
-    <version>1.1.5.20101102-1540</version>
+    <version>1.1.5.20101114</version>
     <relativePath>../eclipse-commons-parent</relativePath>
   </parent>
 

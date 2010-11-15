@@ -118,7 +118,7 @@ public class HttpBaseSupport
 				return new com.ning.http.client.logging.Logger() {
 					
 					public void warn(Throwable t, String msg, Object... msgArgs) {
-						log.warn(String.format(msg, msgArgs), t);
+						log.warn(msg, msgArgs, t);
 					}
 					
 					public void warn(Throwable t) {
@@ -126,7 +126,7 @@ public class HttpBaseSupport
 					}
 					
 					public void warn(String msg, Object... msgArgs) {
-						log.warn(String.format(msg, msgArgs));
+						log.warn(msg, msgArgs);
 					}
 					
 					public boolean isDebugEnabled() {
@@ -134,7 +134,7 @@ public class HttpBaseSupport
 					}
 					
 					public void info(Throwable t, String msg, Object... msgArgs) {
-						log.info(String.format(msg, msgArgs), t);
+						log.info(msg, msgArgs, t);
 					}
 					
 					public void info(Throwable t) {
@@ -142,11 +142,11 @@ public class HttpBaseSupport
 					}
 					
 					public void info(String msg, Object... msgArgs) {
-						log.error(String.format(msg, msgArgs));
+						log.error(msg, msgArgs);
 					}
 					
 					public void error(Throwable t, String msg, Object... msgArgs) {
-						log.error(String.format(msg, msgArgs), t);
+						log.error(msg, msgArgs, t);
 					}
 					
 					public void error(Throwable t) {
@@ -154,11 +154,11 @@ public class HttpBaseSupport
 					}
 					
 					public void error(String msg, Object... msgArgs) {
-						log.error(String.format(msg, msgArgs));
+						log.error(msg, msgArgs);
 					}
 					
 					public void debug(Throwable t, String msg, Object... msgArgs) {
-						log.debug(String.format(msg, msgArgs), t);
+						log.debug(msg, msgArgs, t);
 					}
 					
 					public void debug(Throwable t) {
@@ -166,7 +166,7 @@ public class HttpBaseSupport
 					}
 					
 					public void debug(String msg, Object... msgArgs) {
-						log.debug(String.format(msg, msgArgs));
+						log.debug(msg, msgArgs);
 					}
 				};
 			}
