@@ -11,7 +11,7 @@ Export-Package: org.maven.ide.eclipse.swtvalidation,
 Bundle-ClassPath: jars/simplevalidation-swt-1.0-SNAPSHOT-all.jar,
  .
 MavenArtifact-BaseVersion: 1.0.0-SNAPSHOT
-Bundle-Version: 1.1.5.qualifier
+Bundle-Version: 1.1.5.20101102-1540
 MavenArtifact-ArtifactId: org.maven.ide.eclipse.swtvalidation
 MavenArtifact-GroupId: org.maven.ide.eclipse.commons
 Bundle-Name: SWT Simple Validation Framework
