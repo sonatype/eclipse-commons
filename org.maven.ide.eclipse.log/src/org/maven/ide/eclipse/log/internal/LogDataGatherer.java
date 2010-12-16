@@ -3,10 +3,10 @@ package org.maven.ide.eclipse.log.internal;
 import java.io.File;
 
 import org.eclipse.core.runtime.CoreException;
-import org.maven.ide.eclipse.pr.IDataGatherer;
-import org.maven.ide.eclipse.pr.IDataGatheringContext;
-import org.maven.ide.eclipse.pr.IDataTarget;
-import org.maven.ide.eclipse.pr.sources.ExternalFileSource;
+import org.eclipse.m2e.pr.IDataGatherer;
+import org.eclipse.m2e.pr.IDataGatheringContext;
+import org.eclipse.m2e.pr.IDataTarget;
+import org.eclipse.m2e.pr.sources.ExternalFileSource;
 
 public class LogDataGatherer
     implements IDataGatherer

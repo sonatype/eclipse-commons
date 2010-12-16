@@ -25,7 +25,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <m2eclipse-core.version>0.12.0/N/0.12.0.201011011700</m2eclipse-core.version>
+        <m2eclipse-core.version>0.13.0/N/0.13.0.201012141709</m2eclipse-core.version>
+        <m2eclipse-core-sonatype.version>0.13.0/N/0.13.0.201012161635</m2eclipse-core-sonatype.version>
 
         <tycho-version>0.9.0</tycho-version>
 
@@ -42,6 +43,11 @@
             <id>m2e</id>
             <layout>p2</layout>
             <url>http://repository.sonatype.org/content/sites/forge-sites/m2e/${m2eclipse-core.version}</url>
+        </repository>
+        <repository>
+            <id>m2e-sonatype</id>
+            <layout>p2</layout>
+            <url>http://repository.sonatype.org/content/sites/forge-sites/m2e-sonatype/${m2eclipse-core-sonatype.version}</url>
         </repository>
 
         <repository>

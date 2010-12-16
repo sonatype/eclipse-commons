@@ -20,18 +20,17 @@ import org.maven.ide.eclipse.authentication.AuthFacade;
 import org.maven.ide.eclipse.authentication.AuthenticationType;
 import org.maven.ide.eclipse.authentication.IAuthRealm;
 import org.maven.ide.eclipse.io.internal.S2IOPlugin;
-import org.maven.ide.eclipse.tests.common.HttpServer;
 import org.osgi.util.tracker.ServiceTracker;
 import org.sonatype.tests.http.runner.AbstractSuiteConfiguration;
 import org.sonatype.tests.http.runner.annotations.Configurators;
 import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.server.api.ServerProvider;
 import org.sonatype.tests.http.server.jetty.behaviour.Record;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Delete;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Get;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Head;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Post;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Put;
-import org.sonatype.tests.http.server.api.ServerProvider;
 
 import com.ning.http.util.Base64;
 
