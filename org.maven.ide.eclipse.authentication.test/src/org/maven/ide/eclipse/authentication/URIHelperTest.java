@@ -11,7 +11,7 @@ public class URIHelperTest
     {
         String sUri = "http://foo";
         assertEquals( sUri, URIHelper.normalize( sUri ).toString() );
-        assertEquals( sUri, URIHelper.normalize( TestURINormalizer.URI_PREFIX + sUri ).toString() );
+        assertEquals( sUri, URIHelper.normalize( DummyURINormalizer.URI_PREFIX + sUri ).toString() );
     }
 
     public void testRemoveScmPrefix()

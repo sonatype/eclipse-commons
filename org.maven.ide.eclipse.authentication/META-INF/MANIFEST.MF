@@ -6,7 +6,7 @@ Bundle-Version: 1.1.7.qualifier
 Bundle-Vendor: Sonatype, Inc.
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
-Import-Package: org.slf4j;version="[1.5,1.6)"
+Import-Package: org.slf4j;version="[1.5,1.7)"
 Export-Package: org.maven.ide.eclipse.authentication,
  org.maven.ide.eclipse.authentication.internal,
  org.maven.ide.eclipse.authentication.internal.storage

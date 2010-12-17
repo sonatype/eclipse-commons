@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension-point id="dataGatherers" name="%extension-point.name" schema="schema/dataGatherers.exsd"/>
+
+   <extension point="org.eclipse.m2e.core.m2menu">
+      <factory class="org.maven.ide.eclipse.pr.internal.ProblemReportingMenuCreator"/>
+   </extension>
+
+  <extension point="org.eclipse.ui.actionSets">
+    <actionSet id="org.eclipse.m2e.help.actionSet"
+          label="%actionSet.label"
+          description="%actionSet.description"
+          visible="true">
+       <action id="org.eclipse.m2e.help.report"
+           label="%action.label"
+           tooltip="%action.tooltip"
+           menubarPath="help/additions"
+           icon="icons/report-bug.gif"
+           class="org.maven.ide.eclipse.pr.internal.wizard.ProblemReportingAction"/>
+    </actionSet>
+  </extension>
+  
+</plugin>

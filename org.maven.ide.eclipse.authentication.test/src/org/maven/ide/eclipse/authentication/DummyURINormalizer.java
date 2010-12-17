@@ -1,6 +1,6 @@
 package org.maven.ide.eclipse.authentication;
 
-public class TestURINormalizer
+public class DummyURINormalizer
     implements IURINormalizer
 {
     public static final String URI_PREFIX = "unittest:";

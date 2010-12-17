@@ -8,7 +8,7 @@ Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.maven.ide.eclipse.ui.common;singleton:=true
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
 Import-Package: org.eclipse.equinox.security.storage.provider,
- org.slf4j;version="[1.5,1.6)"
+ org.slf4j;version="[1.5,1.7)"
 Require-Bundle: org.eclipse.osgi,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,

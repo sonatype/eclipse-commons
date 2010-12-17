@@ -12,11 +12,11 @@
    </extension>
    
    <extension
-         id="org.maven.ide.eclipse.authentication.TestURINormalizer"
+         id="org.maven.ide.eclipse.authentication.DummyURINormalizer"
          name="URI Normalizer for unit tests"
          point="org.maven.ide.eclipse.authentication.URINormalizer">
       <handler
-            class="org.maven.ide.eclipse.authentication.TestURINormalizer">
+            class="org.maven.ide.eclipse.authentication.DummyURINormalizer">
       </handler>
    </extension>
 </plugin>
