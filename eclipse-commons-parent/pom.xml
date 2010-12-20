@@ -37,7 +37,7 @@
             <layout>p2</layout>
             <url>http://download.eclipse.org/releases/galileo</url>
         </repository>
-        <!-- Required for org.slf4j -->
+        <!-- Required for org.slf4j on galileo -->
         <repository>
             <id>orbit</id>
             <layout>p2</layout>
