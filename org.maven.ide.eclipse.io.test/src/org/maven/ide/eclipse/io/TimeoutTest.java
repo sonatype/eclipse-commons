@@ -34,30 +34,40 @@ public class TimeoutTest
     public void testUrlFetcherNoTimeout()
         throws IOException
     {
-        String url = url( "28000", "doesnotmatter" );
+        int pause = 28000;
+        String url = url( String.valueOf(pause), "doesnotmatter" );
 
         UrlFetcher fetcher = new UrlFetcher();
         URI address = URI.create( url );
+        long start = System.currentTimeMillis();
         String content =
             readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
+        long time = System.currentTimeMillis() - start;
         assertRequest( "request missing", "GET", url );
         assertEquals( "wrong response body", "someContent", content );
+        assertTrue("Request needed " + time + "ms", time >= pause && time < pause+2000);
     }
 
     public void testUrlFetcherTimeout()
         throws IOException
     {
-        String url = url( "32000", "doesnotmatter" );
+        int defaultTimeout = 30000;
+        int pause = 32000;
+        String url = url( String.valueOf(pause), "doesnotmatter" );
 
         UrlFetcher fetcher = new UrlFetcher();
         URI address = URI.create( url );
+        long start = 0;
         try
         {
+            start = System.currentTimeMillis();
             readstream( fetcher.openStream( address, new NullProgressMonitor(), AuthFacade.getAuthService(), null ) );
             fail( "Expected IOException (timeout)" );
         }
         catch ( Exception e )
         {
+            long time = System.currentTimeMillis() - start;
+            assertTrue("Request needed " + time + "ms", time >= defaultTimeout && time < defaultTimeout+2000);
             assertRequest( "request missing", "GET", address.toURL().toString() );
             assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
         }
@@ -67,14 +77,19 @@ public class TimeoutTest
         throws IOException, URISyntaxException
     {
         String url = url( "2000", "doesnotmatter" );
+        int timeout = 1000;
 
+        long start = 0;
         try
         {
-            S2IOFacade.head( url, 1000, new NullProgressMonitor() );
+            start = System.currentTimeMillis();
+            S2IOFacade.head( url, timeout, new NullProgressMonitor() );
             fail( "Expected IOException (timeout)" );
         }
         catch ( Exception e )
         {
+            long time = System.currentTimeMillis() - start;
+            assertTrue("Request needed " + time + "ms", time >= timeout && time < timeout+800);
             assertRequest( "request missing", "HEAD", url );
             assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
         }
@@ -85,13 +100,18 @@ public class TimeoutTest
     {
         String url = url( "2000", "doesnotmatter" );
 
+        int timeout = 1000;
+        long start = 0;
         try
         {
-            S2IOFacade.delete( url, 1000, new NullProgressMonitor(), "" );
+            start = System.currentTimeMillis();
+            S2IOFacade.delete( url, timeout, new NullProgressMonitor(), "" );
             fail( "Expected IOException (timeout)" );
         }
         catch ( Exception e )
         {
+            long time = System.currentTimeMillis() - start;
+            assertTrue("Request needed " + time + "ms", time >= timeout && time < timeout+800);
             assertRequest( "request missing", "DELETE", url );
             assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
         }
@@ -102,14 +122,19 @@ public class TimeoutTest
     {
         String url = url( "2000", "doesnotmatter" );
 
+        int timeout = 1000;
+        long start = 0;
         try
         {
+            start = System.currentTimeMillis();
             S2IOFacade.put( new ByteArrayRequestEntity( new byte[] { 1, 2, 3, 4 }, "application/octet-stream" ), url,
-                            1000, new NullProgressMonitor() );
+                            timeout, new NullProgressMonitor() );
             fail( "Expected IOException (timeout)" );
         }
         catch ( Exception e )
         {
+            long time = System.currentTimeMillis() - start;
+            assertTrue("Request needed " + time + "ms", time >= timeout && time < timeout+800);
             assertRequest( "request missing", "PUT", url );
             assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
         }
@@ -120,14 +145,19 @@ public class TimeoutTest
     {
         String url = url( "2000", "doesnotmatter" );
 
+        int timeout = 1000;
+        long start = 0;
         try
         {
+            start = System.currentTimeMillis();
             S2IOFacade.post( new ByteArrayRequestEntity( new byte[] { 1, 2, 3, 4 }, "application/octet-stream" ), url,
                              1000, new NullProgressMonitor(), "" );
             fail( "Expected IOException (timeout)" );
         }
         catch ( Exception e )
         {
+            long time = System.currentTimeMillis() - start;
+            assertTrue("Request needed " + time + "ms", time >= timeout && time < timeout+800);
             assertRequest( "request missing", "POST", url );
             assertTrue( "failure was not caused by timeout", isTimeoutException( e ));
         }
