@@ -27,7 +27,7 @@
     <properties>
         <m2eclipse-core.version>0.13.0/N/0.13.0.201101311437</m2eclipse-core.version>
 
-        <tycho-version>0.9.0</tycho-version>
+        <tycho-version>0.10.0</tycho-version>
 
         <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/com-sites/content-compressed/</m2e.site-compressed>
     </properties>
