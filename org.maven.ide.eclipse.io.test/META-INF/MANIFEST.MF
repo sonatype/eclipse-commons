@@ -14,9 +14,9 @@ Require-Bundle: org.junit,
  org.maven.ide.eclipse.authentication.test,
  org.maven.ide.eclipse.ui.common,
  org.maven.ide.eclipse.authentication,
- com.ning.async-http-client,
  org.sonatype.http-testing-harness.junit-runner,
  org.sonatype.http-testing-harness.harness-runner,
  org.sonatype.http-testing-harness.server-provider,
  org.sonatype.http-testing-harness.hth-api,
  javax.servlet
+Import-Package: com.ning.http.util

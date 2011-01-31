@@ -13,26 +13,30 @@
   <artifactId>org.maven.ide.eclipse.io.test</artifactId>
   <packaging>eclipse-test-plugin</packaging>
 
+  <properties>
+    <http-testing-harness.version>0.3</http-testing-harness.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.sonatype.http-testing-harness</groupId>
       <artifactId>junit-runner</artifactId>
-      <version>0.3</version>
+      <version>${http-testing-harness.version}</version>
     </dependency>
     <dependency>
       <groupId>org.sonatype.http-testing-harness</groupId>
       <artifactId>harness-runner</artifactId>
-      <version>0.3</version>
+      <version>${http-testing-harness.version}</version>
     </dependency>
     <dependency>
       <groupId>org.sonatype.http-testing-harness</groupId>
       <artifactId>server-provider</artifactId>
-      <version>0.3</version>
+      <version>${http-testing-harness.version}</version>
     </dependency>
     <dependency>
       <groupId>org.sonatype.http-testing-harness</groupId>
       <artifactId>hth-api</artifactId>
-      <version>0.3</version>
+      <version>${http-testing-harness.version}</version>
     </dependency>
   </dependencies>
 

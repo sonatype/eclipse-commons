@@ -23,8 +23,6 @@ import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.ProxyServer;
 import com.ning.http.client.ProxyServer.Protocol;
 import com.ning.http.client.Realm;
-import com.ning.http.client.logging.LogManager;
-import com.ning.http.client.logging.Slf4jLoggerProvider;
 
 public class HttpBaseSupport
 {
@@ -110,9 +108,7 @@ public class HttpBaseSupport
                     new Realm.RealmBuilder().setPassword( authData.getPassword() ).setUsePreemptiveAuth( true ).setPrincipal( authData.getUsername() ).build();
             }
         }
-
-        
-        LogManager.setProvider( new Slf4jLoggerProvider() );
+        // LogManager.setProvider( new Slf4jLoggerProvider() );
         
         return confBuilder;
     }
