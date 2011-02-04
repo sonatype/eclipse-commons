@@ -6,12 +6,12 @@ Bundle-Version: 1.1.7.qualifier
 Bundle-Vendor: Sonatype, Inc.
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.net,
- org.maven.ide.eclipse.authentication
+ org.maven.ide.eclipse.authentication,
+ org.slf4j.api;bundle-version="1.5.11"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Import-Package: org.slf4j;version="[1.5,1.7)",
- com.ning.http.client
+Import-Package: com.ning.http.client
 Export-Package: org.maven.ide.eclipse.io,
  org.maven.ide.eclipse.io.internal
 Bundle-Activator: org.maven.ide.eclipse.io.internal.S2IOPlugin

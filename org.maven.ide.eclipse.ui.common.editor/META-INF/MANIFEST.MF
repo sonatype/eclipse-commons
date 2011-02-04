@@ -7,7 +7,6 @@ Bundle-Name: Maven Eclipse UI Editor Commons
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.maven.ide.eclipse.ui.common.editor;singleton:=true
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
-Import-Package: org.slf4j;version="[1.5,1.7)"
 Require-Bundle: org.eclipse.osgi,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
@@ -16,7 +15,8 @@ Require-Bundle: org.eclipse.osgi,
  org.eclipse.ui.forms,
  org.eclipse.ui.ide,
  org.eclipse.ui.workbench,
- org.maven.ide.eclipse.swtvalidation
+ org.maven.ide.eclipse.swtvalidation,
+ org.slf4j.api;bundle-version="1.6.1"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.maven.ide.eclipse.ui.common.editor.internal.Activator
 Bundle-Vendor: Sonatype, Inc.

@@ -7,12 +7,10 @@ Bundle-Vendor: Sonatype, Inc.
 Bundle-Activator: org.maven.ide.eclipse.log.internal.LogPlugin
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
-Bundle-ClassPath: .,
- jars/ch.qos.logback.classic_0.9.19.v20100519-1505.jar,
- jars/ch.qos.logback.core_0.9.19.v20100419-1216.jar,
- jars/org.slf4j.api_1.5.11.v20100519-1910.jar,
- jars/ch.qos.logback.slf4j_0.9.19.v20100519-1910.jar
-Require-Bundle: org.eclipse.core.runtime
+Bundle-ClassPath: .
+Require-Bundle: org.eclipse.core.runtime,
+ ch.qos.logback.classic;bundle-version="0.9.19",
+ ch.qos.logback.core;bundle-version="0.9.19",
+ org.slf4j.api;bundle-version="1.5.11"
 Export-Package: org.maven.ide.eclipse.log,
- org.maven.ide.eclipse.log.internal;x-internal:=true,
- org.slf4j;provider=m2eclipse;version="1.5.11"
+ org.maven.ide.eclipse.log.internal;x-internal:=true
