@@ -42,7 +42,7 @@
         <repository>
             <id>orbit</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/tools/orbit/downloads/drops/S20101014084557/repository</url>
+            <url>http://download.eclipse.org/tools/orbit/downloads/drops/S20110124210048/repository</url>
         </repository>
         <repository>
             <id>m2e</id>
