@@ -7,17 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.maven.ide.eclipse.authentication.AuthFacade;
-import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
 import org.sonatype.tests.http.runner.annotations.Configurators;
+import org.sonatype.tests.http.runner.junit.Junit3SuiteConfiguration;
+import org.sonatype.tests.http.server.api.ServerProvider;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Delete;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Get;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Head;
@@ -25,7 +22,6 @@ import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Post;
 import org.sonatype.tests.http.server.jetty.behaviour.filesystem.Put;
 import org.sonatype.tests.http.server.jetty.configurations.DefaultSuiteConfigurator;
 import org.sonatype.tests.http.server.jetty.configurations.SslSuiteConfigurator;
-import org.sonatype.tests.http.server.api.ServerProvider;
 
 @Configurators( { DefaultSuiteConfigurator.class, SslSuiteConfigurator.class } )
 public class S2PublisherTest
