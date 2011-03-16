@@ -25,7 +25,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <m2eclipse-core.version>0.13.0/N/0.13.0.201102281605</m2eclipse-core.version>
+        <m2eclipse-core.version>0.13.0/N/0.13.0.201103151108</m2eclipse-core.version>
+        <orbit.version>S20110304120314</orbit.version>
 
         <tycho-version>0.10.0</tycho-version>
 
@@ -38,11 +39,11 @@
             <layout>p2</layout>
             <url>http://download.eclipse.org/releases/galileo</url>
         </repository>
-        <!-- Required for org.slf4j on galileo -->
+        <!-- Required for org.slf4j -->
         <repository>
             <id>orbit</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/tools/orbit/downloads/drops/S20110124210048/repository</url>
+            <url>http://download.eclipse.org/tools/orbit/downloads/drops/${orbit.version}/repository</url>
         </repository>
         <repository>
             <id>m2e</id>
@@ -66,7 +67,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-
     </repositories>
     
     <dependencies>
