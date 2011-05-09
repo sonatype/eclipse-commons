@@ -30,7 +30,7 @@
 
         <tycho-version>0.10.0</tycho-version>
 
-        <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/com-sites/content-compressed/</m2e.site-compressed>
+        <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
     </properties>
 
     <repositories>
